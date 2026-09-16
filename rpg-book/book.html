@@ -2,72 +2,120 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Mushoku Tensei RPG — Livro Básico</title>
+<title>Mushoku Tensei RPG — Livro do Jogador</title>
 <style>
   @page { size: A4; margin: 20mm 18mm 22mm 18mm; }
   :root{
-    --ink:#2c1e12; --parchment:#f3e9d2; --parchment-dark:#e7d8b3;
+    --ink:#241a10; --parchment:#f3e9d2; --parchment-dark:#e7d8b3; --parchment-darker:#dcc99a;
     --gold:#a5781f; --wine:#7a2222; --forest:#2f5233;
     --fire:#b8391f; --water:#1f5c8b; --wind:#3c8060; --earth:#8a6a2c; --detox:#6c7a7d;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:var(--parchment);color:var(--ink);
-    font-family:"DejaVu Sans","Liberation Sans",sans-serif; font-size:11pt; line-height:1.45;}
-  h1,h2,h3,h4{font-family:"Liberation Serif","DejaVu Serif",serif; color:var(--wine); margin:0 0 4mm 0;}
-  h1{font-size:22pt; letter-spacing:1px; text-transform:uppercase; text-align:center;}
-  h2{font-size:15pt; border-bottom:2px solid var(--gold); padding-bottom:1.5mm; margin-top:6mm;}
-  h3{font-size:12.5pt; color:var(--forest); margin-top:4mm;}
-  p{margin:2mm 0;}
-  .section{page-break-before:always; padding-top:2mm;}
+    font-family:"DejaVu Sans","Liberation Sans",sans-serif; font-size:11.3pt; line-height:1.5;}
+  h1,h2,h3,h4{font-family:"Liberation Serif","DejaVu Serif",serif; color:var(--wine); margin:0 0 3mm 0;}
+  h1{font-size:25pt; letter-spacing:0.5px; text-align:center; column-span:all;}
+  h2{font-size:16.5pt; border-bottom:2px solid var(--gold); padding-bottom:1.5mm; margin-top:2mm; break-after:avoid;}
+  h3{font-size:13pt; color:var(--forest); margin-top:3mm; break-after:avoid;}
+  h4{font-size:11.8pt; margin:0 0 1mm 0; break-after:avoid;}
+  p{margin:0 0 2.6mm 0; orphans:3; widows:3; text-align:justify;}
+  ul,ol{margin:0 0 2.6mm 0; padding-left:4.5mm;}
+  li{margin-bottom:1mm;}
+
+  /* ---- página / colunas ---- */
+  .section{page-break-before:always; padding-top:1mm; column-count:2; column-gap:9mm; column-rule:0.5pt solid #c8b384;}
   .section:first-child{page-break-before:avoid;}
-  .ornament{display:block; margin:2mm auto 6mm auto;}
-  .lede{font-style:italic; color:#4a3a28; border-left:3px solid var(--gold); padding-left:4mm; margin:3mm 0 5mm 0;}
-  table{width:100%; border-collapse:collapse; margin:3mm 0 5mm 0; font-size:9.5pt;}
-  tr{break-inside:avoid;}
-  th,td{border:0.5pt solid #b7a173; padding:1.5mm 2.5mm; text-align:left; vertical-align:top;}
+  .section.nocol{column-count:1;}
+  .full{column-span:all;}
+  .banner{display:block; width:100%; height:auto; margin:1mm 0 4mm 0; column-span:all;}
+  .ornament{display:block; margin:1mm auto 4mm auto; column-span:all;}
+  .subtitle-bar{column-span:all; text-align:center; font-family:"Liberation Serif",serif; font-size:12.5pt; color:var(--forest); margin:-2mm 0 4mm 0;}
+
+  .lede{font-style:italic; color:#4a3a28; border-left:3px solid var(--gold); padding-left:4mm; margin:2mm 0 4mm 0; break-inside:avoid;}
+  .readaloud{background:#eee3c4; border:0.75pt solid var(--gold); border-radius:1.5mm; padding:3mm 4mm; margin:3mm 0; font-style:italic; break-inside:avoid;}
+  .readaloud::before{content:"“ Leia em voz alta ”"; display:block; font-style:normal; font-size:8pt; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-bottom:1.5mm;}
+
+  table{width:100%; border-collapse:collapse; margin:2.5mm 0 4mm 0; font-size:10.3pt; break-inside:avoid;}
+  th,td{border:0.5pt solid #b7a173; padding:1.6mm 2.6mm; text-align:left; vertical-align:top;}
   th{background:var(--wine); color:var(--parchment); font-family:"Liberation Serif",serif; font-weight:bold;}
+  tr{break-inside:avoid;}
   tr:nth-child(even) td{background:var(--parchment-dark);}
-  .cols2{display:flex; gap:6mm;}
+  table.full{column-span:all;}
+
+  .cols2{display:flex; gap:6mm; column-span:all;}
   .cols2 > div{flex:1;}
-  .callout{background:var(--parchment-dark); border-left:4px solid var(--forest); padding:3mm 4mm; margin:4mm 0; font-size:10pt; break-inside:avoid;}
+
+  .callout{background:var(--parchment-dark); border-left:4px solid var(--forest); padding:2.8mm 4mm; margin:3mm 0; font-size:10.3pt; break-inside:avoid;}
   .callout.mestre{border-left-color:var(--wine);}
+  .callout::before{display:block; font-family:"Liberation Serif",serif; font-weight:bold; color:var(--forest); font-size:9.5pt; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:1mm;}
+  .callout.dica::before{content:"Dica do Mestre";}
+  .callout.mestre::before{content:"Regra da Casa"; color:var(--wine);}
+  .callout.lore::before{content:"Você sabia?"; color:var(--forest);}
+
   .icon{width:9mm; height:9mm; flex:none;}
-  .race-grid{display:flex; flex-wrap:wrap; gap:3mm; margin:3mm 0;}
-  .race-card{width:47%; display:flex; gap:3mm; align-items:flex-start; border:0.5pt solid #b7a173; padding:2.5mm 3mm; background:rgba(255,255,255,.25); break-inside:avoid;}
-  .race-card h4{margin:0 0 1mm 0; font-family:"Liberation Serif",serif; color:var(--wine); font-size:11pt;}
-  .race-card p{margin:0; font-size:9pt;}
-  .elem-row{display:flex; gap:3mm; margin:3mm 0; flex-wrap:wrap;}
-  .elem-badge{display:flex; align-items:center; gap:2mm; border:0.5pt solid #b7a173; border-radius:3mm; padding:1.5mm 3mm; font-size:9pt; background:rgba(255,255,255,.3);}
-  .elem-badge .icon{width:6mm;height:6mm;}
-  .statblock{border:0.8pt solid var(--wine); background:rgba(255,255,255,.35); padding:3mm 4mm; margin:3mm 0 5mm 0; break-inside:avoid;}
+  .grid2.full{column-span:all; display:flex; flex-wrap:wrap; gap:3mm; margin:3mm 0;}
+  .card{width:47%; display:flex; gap:3mm; align-items:flex-start; border:0.5pt solid #b7a173; padding:3mm 3.5mm; background:rgba(255,255,255,.28); break-inside:avoid;}
+  .card h4{color:var(--wine); font-size:11.8pt;}
+  .card p{margin:0; font-size:10.2pt; text-align:left;}
+  .card .icon{width:11mm;height:11mm;}
+
+  .elem-row{display:flex; gap:3mm; margin:3mm 0; flex-wrap:wrap; column-span:all;}
+  .elem-badge{display:flex; align-items:center; gap:2mm; border:0.5pt solid #b7a173; border-radius:3mm; padding:2mm 3.5mm; font-size:10pt; background:rgba(255,255,255,.3);}
+  .elem-badge .icon{width:7mm;height:7mm;}
+
+  .statblock{border:0.9pt solid var(--wine); background:rgba(255,255,255,.35); padding:3mm 4mm; margin:0 0 4mm 0; break-inside:avoid;}
   .statblock-head{display:flex; align-items:center; gap:3mm; border-bottom:1px solid var(--gold); padding-bottom:1.5mm; margin-bottom:2mm;}
-  .statblock-head .icon{width:11mm;height:11mm;}
-  .statblock-head h3{margin:0;}
-  .tag{display:inline-block; background:var(--forest); color:var(--parchment); font-size:8pt; padding:0.5mm 2mm; border-radius:2mm; margin-left:2mm;}
+  .statblock-head .icon{width:12mm;height:12mm;}
+  .statblock-head h3{margin:0; font-size:13pt;}
+  .statblock p{font-size:10.2pt; margin:0;}
+  .tag{display:inline-block; background:var(--forest); color:var(--parchment); font-size:8.3pt; padding:0.6mm 2.2mm; border-radius:2mm; margin-left:2mm; font-family:"DejaVu Sans",sans-serif; font-weight:normal;}
+
   .sheet-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:3mm; margin:3mm 0;}
-  .sheet-box{border:0.7pt solid var(--ink); padding:2mm 3mm; min-height:12mm;}
-  .sheet-box label{display:block; font-size:8pt; text-transform:uppercase; color:var(--wine); letter-spacing:0.5px; margin-bottom:1mm;}
+  .sheet-box{border:0.7pt solid var(--ink); padding:2mm 3mm; min-height:12mm; break-inside:avoid;}
+  .sheet-box label{display:block; font-size:8.3pt; text-transform:uppercase; color:var(--wine); letter-spacing:0.5px; margin-bottom:1mm;}
   .sheet-line{border-bottom:0.5pt solid #7a6a4d; height:5mm;}
-  .cover{height:255mm; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:relative;}
-  .cover .bigcircle{width:110mm; height:110mm;}
-  .cover h1{font-size:34pt; margin-top:6mm;}
-  .cover .subtitle{font-family:"Liberation Serif",serif; font-size:14pt; color:var(--forest); margin-top:1mm;}
-  .cover .disclaimer{position:absolute; bottom:6mm; font-size:8pt; color:#6a5a40; width:80%; text-align:center;}
-  .toc-list{list-style:none; padding:0; margin:6mm 0;}
-  .toc-list li{display:flex; justify-content:space-between; border-bottom:0.5pt dotted #a08c5f; padding:1.5mm 0; font-family:"Liberation Serif",serif; font-size:12pt;}
-  .worldmap{width:100%; height:auto; margin:3mm 0;}
+
+  .cover{height:255mm; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:relative; column-count:1;}
+  .cover .bigcircle{width:100mm; height:100mm;}
+  .cover h1{font-size:36pt; margin-top:5mm;}
+  .cover .subtitle{font-family:"Liberation Serif",serif; font-size:14.5pt; color:var(--forest); margin-top:1mm;}
+  .cover .disclaimer{position:absolute; bottom:6mm; font-size:8pt; color:#6a5a40; width:82%; text-align:center;}
+  .cover .skyline{width:100%; max-width:180mm; margin-top:-6mm;}
+
+  .toc-list{list-style:none; padding:0; margin:4mm 0; column-span:all;}
+  .toc-list li{display:flex; justify-content:space-between; border-bottom:0.5pt dotted #a08c5f; padding:1.6mm 0; font-family:"Liberation Serif",serif; font-size:11.5pt;}
+  .toc-list .grp{font-weight:bold; color:var(--wine); border:none; margin-top:2mm;}
+
+  .worldmap{width:100%; height:auto; margin:2mm 0;}
   .center{text-align:center;}
-  .small{font-size:8.5pt; color:#5a4a34;}
-  .rankladder{display:flex; justify-content:space-between; margin:3mm 0 5mm 0; flex-wrap:wrap;}
-  .rankladder div{flex:1; text-align:center; font-size:8pt; border-top:2px solid var(--gold); padding-top:1.5mm; margin:0 0.5mm;}
-  .rankladder div b{display:block; font-family:"Liberation Serif",serif; font-size:9.5pt; color:var(--wine);}
+  .small{font-size:9.3pt; color:#5a4a34;}
+  .full.small{column-span:all;}
+  .rankladder{display:flex; justify-content:space-between; margin:2.5mm 0 4mm 0; flex-wrap:wrap; column-span:all;}
+  .rankladder div{flex:1; text-align:center; font-size:8.6pt; border-top:2px solid var(--gold); padding-top:1.5mm; margin:0 0.5mm;}
+  .rankladder div b{display:block; font-family:"Liberation Serif",serif; font-size:10pt; color:var(--wine);}
+
+  .chapno{display:block; text-align:center; font-family:"Liberation Serif",serif; color:var(--gold); letter-spacing:3px; font-size:10pt; text-transform:uppercase; column-span:all; margin-bottom:-1mm;}
 </style>
 </head>
 <body>
 
-<!-- ============ SVG SPRITE (ilustrações originais, vetoriais) ============ -->
+<!-- ============ SVG SPRITE — ilustrações vetoriais 100% originais ============ -->
 <svg width="0" height="0" style="position:absolute">
 <defs>
+
+<linearGradient id="gradGold" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0" stop-color="#dcc99a"/><stop offset=".5" stop-color="#efe0bb"/><stop offset="1" stop-color="#dcc99a"/>
+</linearGradient>
+
+<symbol id="banner-bg" viewBox="0 0 800 150">
+  <rect x="0" y="18" width="800" height="114" fill="url(#gradGold)" stroke="#a5781f" stroke-width="2"/>
+  <rect x="6" y="24" width="788" height="102" fill="none" stroke="#7a2222" stroke-width="1"/>
+  <path d="M0 18 Q20 0 40 18" fill="none" stroke="#a5781f" stroke-width="2"/>
+  <path d="M760 18 Q780 0 800 18" fill="none" stroke="#a5781f" stroke-width="2"/>
+  <path d="M0 132 Q20 150 40 132" fill="none" stroke="#a5781f" stroke-width="2"/>
+  <path d="M760 132 Q780 150 800 132" fill="none" stroke="#a5781f" stroke-width="2"/>
+  <circle cx="20" cy="75" r="4" fill="#7a2222"/><circle cx="780" cy="75" r="4" fill="#7a2222"/>
+</symbol>
 
 <symbol id="icon-magiccircle" viewBox="0 0 200 200">
   <circle cx="100" cy="100" r="92" fill="none" stroke="#a5781f" stroke-width="2"/>
@@ -102,7 +150,7 @@
 <symbol id="icon-detox" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="#6c7a7d" stroke-width="5"/><path d="M20 32 L28 40 L44 22" fill="none" stroke="#6c7a7d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 
 <symbol id="icon-human" viewBox="0 0 64 64"><circle cx="32" cy="18" r="12" fill="#7a2222"/><path d="M14 58c2-16 8-24 18-24s16 8 18 24z" fill="#7a2222"/></symbol>
-<symbol id="icon-elf" viewBox="0 0 64 64"><circle cx="32" cy="20" r="11" fill="#2f5233"/><path d="M20 16 L8 8 M44 16 L56 8" stroke="#2f5233" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M14 58c2-15 8-23 18-23s16 8 18 23z" fill="#2f5233"/></symbol>
+<symbol id="icon-elf" viewBox="0 0 64 64"><circle cx="32" cy="20" r="11" fill="#2f5233"/><path d="M22 14 L14 10 L20 20Z M42 14 L50 10 L44 20Z" fill="#2f5233"/><path d="M14 58c2-15 8-23 18-23s16 8 18 23z" fill="#2f5233"/></symbol>
 <symbol id="icon-dwarf" viewBox="0 0 64 64"><circle cx="32" cy="20" r="11" fill="#8a6a2c"/><path d="M18 26c4 14 6 18 14 18s10-4 14-18" fill="none" stroke="#8a6a2c" stroke-width="4"/><rect x="24" y="42" width="16" height="18" fill="#8a6a2c"/></symbol>
 <symbol id="icon-beast" viewBox="0 0 64 64"><circle cx="32" cy="24" r="13" fill="#b8391f"/><polygon points="18,14 24,6 26,18" fill="#b8391f"/><polygon points="46,14 40,6 38,18" fill="#b8391f"/><path d="M16 58c2-14 8-20 16-20s14 6 16 20z" fill="#b8391f"/></symbol>
 <symbol id="icon-superd" viewBox="0 0 64 64"><circle cx="32" cy="20" r="11" fill="#3c8060"/><polygon points="32,10 35,16 29,16" fill="#a5781f"/><path d="M14 58c2-15 8-23 18-23s16 8 18 23z" fill="#3c8060"/></symbol>
@@ -114,6 +162,20 @@
 <symbol id="icon-golem" viewBox="0 0 64 64"><rect x="14" y="18" width="36" height="30" fill="#8a6a2c"/><rect x="20" y="4" width="24" height="16" fill="#8a6a2c"/><rect x="6" y="22" width="10" height="22" fill="#8a6a2c"/><rect x="48" y="22" width="10" height="22" fill="#8a6a2c"/><circle cx="26" cy="12" r="2.5" fill="#b8391f"/><circle cx="38" cy="12" r="2.5" fill="#b8391f"/></symbol>
 <symbol id="icon-slime" viewBox="0 0 64 64"><path d="M10 44c0-16 10-30 22-30s22 14 22 30c0 8-10 12-22 12s-22-4-22-12z" fill="#3c8060" opacity="0.85"/><circle cx="26" cy="34" r="2.5" fill="#12241a"/><circle cx="38" cy="34" r="2.5" fill="#12241a"/></symbol>
 <symbol id="icon-harpy" viewBox="0 0 64 64"><circle cx="32" cy="20" r="9" fill="#1f5c8b"/><path d="M4 34 Q24 20 30 30 Q36 20 60 34 Q40 38 32 50 Q24 38 4 34Z" fill="#1f5c8b"/></symbol>
+<symbol id="icon-drakeling" viewBox="0 0 64 64"><path fill="#3c8060" d="M10 46c4-10 10-8 14-16 3-7 10-14 18-14-1 5-3 8-1 10 7-2 12 1 14 6-5 0-8 3-7 7 5 3 8 9 7 15-7-7-13-8-19-4-8 5-18 3-26-4z"/><circle cx="20" cy="30" r="2" fill="#12241a"/></symbol>
+<symbol id="icon-bandit" viewBox="0 0 64 64"><circle cx="32" cy="18" r="10" fill="#4a3a28"/><rect x="20" y="14" width="24" height="5" fill="#241a10"/><path d="M14 58c2-16 8-24 18-24s16 8 18 24z" fill="#4a3a28"/></symbol>
+<symbol id="icon-spirit" viewBox="0 0 64 64"><path fill="#1f5c8b" opacity="0.8" d="M32 6c10 8 18 20 18 32a18 18 0 01-36 0c0-12 8-24 18-32z"/><circle cx="26" cy="34" r="2" fill="#e7d8b3"/><circle cx="38" cy="34" r="2" fill="#e7d8b3"/></symbol>
+
+<symbol id="icon-shield" viewBox="0 0 64 64"><path fill="#7a2222" stroke="#241a10" stroke-width="2" d="M32 4l22 8v16c0 16-9 27-22 32C19 55 10 44 10 28V12z"/><path fill="none" stroke="#e7d8b3" stroke-width="3" d="M32 14v34M20 24h24"/></symbol>
+<symbol id="icon-staff" viewBox="0 0 64 64"><rect x="29" y="14" width="6" height="46" fill="#8a6a2c"/><circle cx="32" cy="10" r="9" fill="none" stroke="#1f5c8b" stroke-width="3"/><circle cx="32" cy="10" r="3" fill="#1f5c8b"/></symbol>
+<symbol id="icon-bow" viewBox="0 0 64 64"><path d="M18 6 Q40 32 18 58" fill="none" stroke="#8a6a2c" stroke-width="4"/><line x1="18" y1="6" x2="18" y2="58" stroke="#4a3a28" stroke-width="1.4"/><line x1="6" y1="32" x2="52" y2="32" stroke="#241a10" stroke-width="2"/></symbol>
+<symbol id="icon-potion" viewBox="0 0 64 64"><path d="M26 8h12v10l8 14v18a6 6 0 01-6 6H24a6 6 0 01-6-6V32l8-14z" fill="#3c8060" stroke="#241a10" stroke-width="2"/><rect x="24" y="4" width="16" height="6" fill="#8a6a2c"/></symbol>
+<symbol id="icon-mask" viewBox="0 0 64 64"><path d="M8 22c8-10 40-10 48 0-2 16-10 26-24 26S10 38 8 22z" fill="#4a3a28"/><circle cx="22" cy="26" r="4" fill="#e7d8b3"/><circle cx="42" cy="26" r="4" fill="#e7d8b3"/></symbol>
+<symbol id="icon-guildseal" viewBox="0 0 64 64"><path fill="#a5781f" stroke="#241a10" stroke-width="1.5" d="M32 4l24 9v15c0 17-10 28-24 32C18 56 8 45 8 28V13z"/><text x="32" y="38" font-size="22" text-anchor="middle" fill="#241a10" font-family="Liberation Serif,serif">G</text></symbol>
+<symbol id="icon-book" viewBox="0 0 64 64"><path d="M32 12c-6-4-16-6-24-4v38c8-2 18 0 24 4 6-4 16-6 24-4V8c-8-2-18 0-24 4z" fill="#7a2222" stroke="#241a10" stroke-width="1.5"/><line x1="32" y1="12" x2="32" y2="50" stroke="#241a10" stroke-width="1.5"/></symbol>
+<symbol id="icon-scroll" viewBox="0 0 64 64"><rect x="10" y="16" width="44" height="32" fill="#eee3c4" stroke="#8a6a2c" stroke-width="2"/><circle cx="8" cy="32" r="6" fill="#8a6a2c"/><circle cx="56" cy="32" r="6" fill="#8a6a2c"/><line x1="18" y1="26" x2="46" y2="26" stroke="#4a3a28" stroke-width="1.4"/><line x1="18" y1="34" x2="46" y2="34" stroke="#4a3a28" stroke-width="1.4"/><line x1="18" y1="42" x2="38" y2="42" stroke="#4a3a28" stroke-width="1.4"/></symbol>
+<symbol id="icon-boot" viewBox="0 0 64 64"><path d="M22 6h14v24l14 10v12H14V36l8-6z" fill="#4a3a28" stroke="#241a10" stroke-width="1.5"/></symbol>
+<symbol id="icon-compass" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="none" stroke="#8a6a2c" stroke-width="2.5"/><polygon points="32,10 38,32 32,54 26,32" fill="#7a2222"/></symbol>
 
 <symbol id="icon-d20" viewBox="0 0 64 64"><polygon points="32,4 58,20 58,44 32,60 6,44 6,20" fill="#e7d8b3" stroke="#2c1e12" stroke-width="2"/><polygon points="32,4 58,20 32,32" fill="#d8c79a"/><polygon points="6,20 32,4 32,32" fill="#c9b689"/><polygon points="6,44 32,60 32,32" fill="#d8c79a"/><polygon points="58,44 32,60 32,32" fill="#c9b689"/><text x="32" y="24" font-size="10" text-anchor="middle" fill="#2c1e12" font-family="Liberation Serif, serif">20</text></symbol>
 
@@ -132,202 +194,326 @@
 <section class="section cover">
   <svg class="bigcircle"><use href="#icon-magiccircle"/></svg>
   <h1>Mushoku Tensei RPG</h1>
-  <div class="subtitle">Livro Básico — Sistema de Mesa Não-Oficial</div>
+  <div class="subtitle">Livro do Jogador — Edição Revisada</div>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
-  <p class="small" style="max-width:120mm">Reencarnação, mana e a segunda chance em um mundo de espadas e magia.<br>Um sourcebook de fã, para jogar em mesa com dados e amigos.</p>
+  <svg class="skyline" viewBox="0 0 800 90">
+    <polygon points="0,90 40,40 90,70 140,20 200,60 260,10 320,55 380,25 440,65 500,15 560,58 620,30 680,68 740,35 800,90" fill="#c9b689" opacity="0.7"/>
+    <polygon points="0,90 60,60 120,80 180,45 240,75 300,35 360,72 420,48 480,78 540,40 600,74 660,50 720,80 800,60 800,90" fill="#a5781f" opacity="0.55"/>
+  </svg>
+  <p class="small" style="max-width:130mm">Reencarnação, mana e a segunda chance em um mundo de espadas e magia.<br>
+  Um sourcebook de fã — completo, ilustrado e pronto para jogar em mesa.</p>
   <div class="disclaimer">Obra de fã, não-oficial e sem fins lucrativos. Inspirada no universo de <i>Mushoku Tensei: Jobless Reincarnation</i>,
-  criado por Rifujin na Magonote. Todas as ilustrações deste livro são vetoriais e originais; nomes, personagens e trama da obra original
-  pertencem aos seus respectivos autores e editoras. Não afiliado nem endossado por eles.</div>
+  criado por Rifujin na Magonote. Todas as ilustrações deste livro são vetoriais e originais, desenhadas para esta edição — nenhuma
+  imagem oficial ou de terceiros foi utilizada. Nomes, personagens e trama da obra original pertencem aos seus respectivos autores e
+  editoras. Não afiliado nem endossado por eles.</div>
 </section>
 
 <!-- ============ SUMÁRIO ============ -->
-<section class="section">
+<section class="section nocol">
   <h1>Sumário</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <ul class="toc-list">
-    <li><span>1. O Mundo</span><span>03</span></li>
-    <li><span>2. Criação de Personagem</span><span>04</span></li>
-    <li><span>3. Raças</span><span>05</span></li>
-    <li><span>4. Sistema de Magia</span><span>07</span></li>
-    <li><span>5. Estilos de Espada</span><span>09</span></li>
-    <li><span>6. Perícias</span><span>10</span></li>
-    <li><span>7. Combate</span><span>11</span></li>
-    <li><span>8. Equipamentos</span><span>13</span></li>
-    <li><span>9. Bestiário</span><span>14</span></li>
-    <li><span>10. Aventura: O Selo do Bosque Cinza</span><span>16</span></li>
-    <li><span>11. Guia do Mestre</span><span>17</span></li>
-    <li><span>12. Ficha de Personagem</span><span>18</span></li>
+    <li class="grp"><span>Introdução</span><span></span></li>
+    <li><span>0. Como Usar Este Livro</span><span>04</span></li>
+    <li><span>1. O Mundo</span><span>05</span></li>
+    <li class="grp"><span>Personagem</span><span></span></li>
+    <li><span>2. Criação de Personagem</span><span>07</span></li>
+    <li><span>3. Raças</span><span>09</span></li>
+    <li><span>4. Ofícios</span><span>11</span></li>
+    <li class="grp"><span>Poder</span><span></span></li>
+    <li><span>5. Sistema de Magia e Grimório</span><span>13</span></li>
+    <li><span>6. Estilos de Espada</span><span>16</span></li>
+    <li><span>7. Fôlego e Manobras de Combate</span><span>18</span></li>
+    <li><span>8. Perícias</span><span>20</span></li>
+    <li class="grp"><span>Jogo</span><span></span></li>
+    <li><span>9. Combate</span><span>21</span></li>
+    <li><span>10. Equipamentos</span><span>23</span></li>
+    <li><span>11. Itens Mágicos e Alquimia</span><span>25</span></li>
+    <li><span>12. A Guilda de Aventureiros</span><span>27</span></li>
+    <li class="grp"><span>Mestre</span><span></span></li>
+    <li><span>13. Bestiário</span><span>28</span></li>
+    <li><span>14. Aliados de Exemplo</span><span>31</span></li>
+    <li><span>15. Aventura: O Selo do Bosque Cinza</span><span>32</span></li>
+    <li><span>16. Guia do Mestre</span><span>35</span></li>
+    <li class="grp"><span>Apêndices</span><span></span></li>
+    <li><span>17. Ficha de Personagem</span><span>37</span></li>
+    <li><span>18. Referência Rápida</span><span>38</span></li>
   </ul>
+</section>
+
+<!-- ============ 0. COMO USAR ============ -->
+<section class="section">
+  <span class="chapno">Introdução</span>
+  <h1>0. Como Usar Este Livro</h1>
+  <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
+  <p>Este é um sistema completo de RPG de mesa, para grupos de 3 a 5 jogadores e um Mestre. Antes da primeira
+  sessão, todos devem ler os Capítulos 1 a 3; o resto o grupo consulta conforme joga. O Mestre deve ler o livro
+  inteiro, incluindo o Capítulo 16.</p>
+  <h3>Notação de dados</h3>
+  <p>Uma rolagem é escrita como <b>NdX</b>: N dados de X lados. <b>2d6</b> significa "role dois dados de seis lados
+  e some". <b>d20</b> sozinho significa um dado de vinte lados. Um <b>modificador</b> (mod.) é somado ou subtraído
+  do resultado: <b>d20 + mod. AGI</b> significa "role um d20 e some o modificador de Agilidade".</p>
+  <h3>Vantagem e Desvantagem</h3>
+  <p>Quando uma regra dá <b>vantagem</b>, role o dado indicado duas vezes e use o maior resultado. Com
+  <b>desvantagem</b>, role duas vezes e use o menor. As duas nunca se acumulam — se uma situação daria os dois,
+  elas se cancelam e rola-se normalmente.</p>
+  <h3>As caixas deste livro</h3>
+  <div class="callout dica">Assim aparecem sugestões e exemplos de como conduzir uma cena — dirigido ao Mestre, mas útil para todos lerem.</div>
+  <div class="callout mestre">Assim aparecem regras opcionais ou variantes — o grupo decide se usa ou não. Nenhuma é necessária para jogar.</div>
+  <div class="callout lore">Assim aparece curiosidade de mundo — contexto e sabor, sem efeito mecânico.</div>
+  <div class="readaloud">E assim aparece um texto pronto para o Mestre ler em voz alta para descrever uma cena aos jogadores.</div>
+  <h3>O que você precisa</h3>
+  <p>Um conjunto de dados poliédricos (d4, d6, d8, d10, d12, d20) por jogador — ou um par de d20 e alguns d6, que
+  cobrem quase tudo — lápis, borracha, fichas de personagem (Cap. 17) e fichas em branco de monstro para o Mestre.</p>
 </section>
 
 <!-- ============ 1. O MUNDO ============ -->
 <section class="section">
+  <span class="chapno">Introdução</span>
   <h1>1. O Mundo</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <p class="lede">"Ninguém escolhe onde nasce a segunda vez — mas todos escolhem o que fazem com ela."</p>
   <p>Os personagens vivem em um mundo dividido em cinco grandes continentes, ligado por mana — a energia que
-  permeia o ar, o solo e os seres vivos. Alguns habitantes deste mundo carregam memórias de uma vida anterior,
-  vividas em outro lugar, e despertam nesta com o corpo de uma criança e a mente de um adulto: são os
-  <b>Reencarnados</b>, um dos modelos de personagem sugeridos neste livro (veja o Capítulo 2).</p>
+  permeia o ar, o solo e os seres vivos. Séculos atrás, uma grande guerra quase apagou a civilização; dela restaram
+  ruínas, monstros fora de lugar e um medo antigo de certos povos que ninguém mais lembra bem por quê. É nesse
+  mundo, já reconstruído mas ainda cheio de cicatrizes, que a campanha acontece.</p>
+  <p>Alguns habitantes carregam memórias de uma vida anterior, vivida em outro lugar completamente diferente, e
+  despertam aqui com o corpo de uma criança e a mente de um adulto: são os <b>Reencarnados</b> (Capítulo 2) — raros,
+  discretos sobre o próprio passado, e frequentemente movidos por um objetivo muito claro nesta segunda vida.</p>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-compass" x="340" y="15" width="120" height="120"/></svg>
   <svg class="worldmap" viewBox="0 0 600 260">
     <rect x="0" y="0" width="600" height="260" fill="#e7d8b3"/>
-    <path d="M60 150 Q120 90 220 110 Q300 100 320 160 Q260 210 160 200 Q80 200 60 150Z" fill="#8a6a2c" opacity=".8"/>
-    <text x="150" y="160" font-size="12" fill="#2c1e12" font-family="Liberation Serif,serif">Begaritto</text>
-    <path d="M300 60 Q400 30 480 70 Q470 140 380 150 Q300 140 300 60Z" fill="#3c8060" opacity=".8"/>
-    <text x="360" y="100" font-size="12" fill="#2c1e12" font-family="Liberation Serif,serif">Continente Central</text>
-    <path d="M420 150 Q500 140 540 190 Q500 230 430 220 Q400 190 420 150Z" fill="#1f5c8b" opacity=".8"/>
+    <path d="M60 150 Q120 90 220 110 Q300 100 320 160 Q260 210 160 200 Q80 200 60 150Z" fill="#8a6a2c" opacity=".82"/>
+    <text x="150" y="160" font-size="12" fill="#241a10" font-family="Liberation Serif,serif">Begaritto</text>
+    <path d="M300 60 Q400 30 480 70 Q470 140 380 150 Q300 140 300 60Z" fill="#3c8060" opacity=".82"/>
+    <text x="360" y="100" font-size="12" fill="#241a10" font-family="Liberation Serif,serif">Continente Central</text>
+    <path d="M420 150 Q500 140 540 190 Q500 230 430 220 Q400 190 420 150Z" fill="#1f5c8b" opacity=".82"/>
     <text x="440" y="195" font-size="12" fill="#f3e9d2" font-family="Liberation Serif,serif">Millis</text>
-    <path d="M200 20 Q260 5 300 30 Q270 55 220 50 Q190 40 200 20Z" fill="#b8391f" opacity=".8"/>
+    <path d="M200 20 Q260 5 300 30 Q270 55 220 50 Q190 40 200 20Z" fill="#b8391f" opacity=".82"/>
     <text x="210" y="35" font-size="10" fill="#f3e9d2" font-family="Liberation Serif,serif">C. Divino</text>
-    <path d="M40 40 Q90 15 130 45 Q100 75 55 70 Q30 60 40 40Z" fill="#5a4a34" opacity=".8"/>
+    <path d="M40 40 Q90 15 130 45 Q100 75 55 70 Q30 60 40 40Z" fill="#5a4a34" opacity=".82"/>
     <text x="45" y="50" font-size="10" fill="#f3e9d2" font-family="Liberation Serif,serif">C. Demoníaco</text>
+    <g fill="#241a10" opacity=".5">
+      <polygon points="340,80 348,64 356,80"/><polygon points="352,84 360,68 368,84"/>
+      <polygon points="130,120 138,106 146,120"/>
+    </g>
   </svg>
-  <p class="small center">Mapa esquemático (não geograficamente exato) dos cinco continentes usados como pano de fundo de campanha.</p>
-  <div class="cols2">
-    <div>
-      <h3>Mana e o cotidiano</h3>
-      <p>Mana está em tudo: no ar que se respira, na água dos rios, no sangue dos monstros. Toda criatura viva
-      possui uma reserva pessoal de mana, e é ela que alimenta a magia. Cidades maiores têm guildas de
-      Aventureiros, que registram e enviam pessoas para resolver problemas — de caça a monstros a escolta de
-      caravanas — em troca de dinheiro e reputação.</p>
-      <h3>As Sete Grandes Potências</h3>
-      <p>Espalhados pelo mundo, existe um punhado de indivíduos — magos, espadachins e coisas piores — fortes o
-      bastante para mudar o destino de uma guerra sozinhos. São referidos como as <b>Sete Grandes Potências</b>,
-      e servem de vara de medir para o quão poderoso alguém pode ficar. Nenhum personagem começa perto desse
-      nível — mas todos podem, um dia, chegar lá.</p>
-    </div>
-    <div>
-      <h3>Guildas de Aventureiros</h3>
-      <p>Toda cidade de porte médio tem uma sede de guilda. Aventureiros recebem uma carteira com classificação
-      por letra (F a S) que sobe conforme completam missões. A carteira também serve de identidade e crédito em
-      muitas cidades.</p>
-      <h3>Usando este livro em outras ambientações</h3>
-      <p>O sistema deste livro (raças, magia, espada, combate) funciona sozinho como um RPG de fantasia genérico
-      de "reencarnação e segunda chance" — troque nomes de lugares à vontade para sua própria mesa.</p>
-    </div>
-  </div>
+  <p class="small full center">Mapa esquemático (não geograficamente exato) dos cinco continentes usados como pano de fundo de campanha.</p>
+
+  <h3>Mana e o cotidiano</h3>
+  <p>Mana está em tudo: no ar que se respira, na água dos rios, no sangue dos monstros. Toda criatura viva possui
+  uma reserva pessoal de mana, e é ela que alimenta a magia. Vilarejos pequenos raramente têm um mago residente;
+  cidades médias e grandes têm ao menos uma escola ou guilda de magos.</p>
+  <h3>Guildas de Aventureiros</h3>
+  <p>Toda cidade de porte médio tem uma sede de guilda. Aventureiros recebem uma carteira com classificação por
+  letra (F a S) que sobe conforme completam missões — ela também serve de identidade e crédito em muitas cidades.
+  O Capítulo 12 detalha o sistema completo de ranques.</p>
+  <h3>As Sete Grandes Potências</h3>
+  <p>Espalhados pelo mundo existe um punhado de indivíduos — magos, espadachins e coisas piores — fortes o
+  bastante para mudar o destino de uma guerra sozinhos. São referidos como as <b>Sete Grandes Potências</b> e
+  servem de vara de medir para o quão poderoso alguém pode ficar. Nenhum personagem começa perto desse nível —
+  mas, com anos de jogo, todos podem, um dia, chegar lá.</p>
+  <div class="callout lore">Ninguém sabe ao certo quem são todas as Sete hoje — a lista muda a cada geração, e boatos sobre
+  quem caiu e quem ascendeu valem ouro em qualquer taverna.</div>
+  <h3>As cinco raças temidas ou raras</h3>
+  <p>Superd, Migurd e Sangue-de-Dragão (Cap. 3) carregam, cada um à sua maneira, o peso de uma história que a
+  maioria dos humanos conhece apenas em fragmentos distorcidos. Jogar um deles é jogar contra o preconceito do
+  mundo — não uma penalidade mecânica pesada, mas uma lente narrativa que o Mestre deve usar com cuidado e nunca
+  como piada fácil.</p>
+  <h3>Usando este livro em outras ambientações</h3>
+  <p>O sistema (raças, ofícios, magia, espada, combate) funciona sozinho como um RPG de fantasia genérico de
+  "reencarnação e segunda chance". Troque nomes de lugares à vontade para sua própria mesa — nada aqui depende de
+  geografia específica.</p>
 </section>
 
 <!-- ============ 2. CRIAÇÃO DE PERSONAGEM ============ -->
 <section class="section">
+  <span class="chapno">Personagem</span>
   <h1>2. Criação de Personagem</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <h3>Passo a passo</h3>
-  <table>
+  <table class="full">
     <tr><th>Passo</th><th>O que fazer</th></tr>
-    <tr><td>1. Origem</td><td>Escolha entre <b>Nativo</b> (nasceu e cresceu neste mundo) ou <b>Reencarnado</b>
-      (memórias de outra vida; veja abaixo). </td></tr>
-    <tr><td>2. Raça</td><td>Escolha uma raça no Capítulo 3. Aplique os modificadores de atributo e a habilidade racial.</td></tr>
-    <tr><td>3. Atributos</td><td>Distribua 27 pontos entre os seis atributos (custo por ponto: 8→1, 9→1, 10→1, 11→1, 12→1, 13→1,
-      14→2, 15→2; nenhum atributo pode começar acima de 15 antes dos modificadores raciais). Se preferir algo mais rápido,
-      use o arranjo padrão <b>15, 14, 13, 12, 10, 8</b> e distribua como quiser.</td></tr>
-    <tr><td>4. Trilha</td><td>Escolha uma trilha inicial: <b>Marcial</b> (foco em espada/combate físico), <b>Arcana</b> (foco em magia)
-      ou <b>Híbrida</b> (um pouco dos dois, mais lenta em ambos).</td></tr>
-    <tr><td>5. Perícias</td><td>Marque 4 perícias como treinadas (Capítulo 6).</td></tr>
-    <tr><td>6. Equipamento</td><td>Pegue o pacote inicial da sua trilha (Capítulo 8) ou compre com 50 Rea (moeda padrão).</td></tr>
-    <tr><td>7. Detalhes</td><td>Nome, cidade natal, um objetivo pessoal e um vínculo com outro personagem do grupo.</td></tr>
+    <tr><td>1. Origem</td><td>Escolha entre <b>Nativo</b> (nasceu e cresceu neste mundo) ou <b>Reencarnado</b> (memórias de outra vida; veja abaixo).</td></tr>
+    <tr><td>2. Raça</td><td>Escolha uma raça no Capítulo 3. Aplique modificadores de atributo e habilidade racial.</td></tr>
+    <tr><td>3. Atributos</td><td>Distribua 27 pontos (custo 8–13→1 cada, 14–15→2 cada; nada acima de 15 antes dos raciais)
+      ou use o arranjo padrão <b>15, 14, 13, 12, 10, 8</b>.</td></tr>
+    <tr><td>4. Ofício</td><td>Escolha um Ofício no Capítulo 4 — define seu papel de combate e um recurso especial.</td></tr>
+    <tr><td>5. Perícias</td><td>Marque 4 perícias como treinadas, mais as concedidas pelo Ofício (Capítulo 8).</td></tr>
+    <tr><td>6. Equipamento</td><td>Pegue o pacote inicial do seu Ofício (Capítulo 10) ou compre com 50 Rea.</td></tr>
+    <tr><td>7. Detalhes</td><td>Nome, cidade natal, um objetivo pessoal e um Vínculo com outro personagem do grupo (abaixo).</td></tr>
   </table>
 
   <h3>Reencarnado: uma vida antes desta</h3>
   <p>Um personagem Reencarnado desperta neste mundo lembrando de uma vida anterior — geralmente comum, às vezes
-  encerrada de forma abrupta. Mecanicamente:</p>
+  encerrada de forma abrupta e sem aviso. Mecanicamente:</p>
   <div class="callout">
-    <b>Benefício</b> — Escolha um Ofício da vida passada (Estudante, Programador, Atleta, Professor, etc.).
-    Uma vez por sessão, quando esse conhecimento se aplicaria, o jogador pode rolar um dado extra (d6) e somar
-    ao resultado de qualquer teste de perícia ou ataque.<br>
-    <b>Custo</b> — Reencarnados começam com 1 atributo físico (Força, Agilidade ou Vigor) reduzido em -1, refletindo
-    um corpo que ainda não terminou de crescer, e uma "Cicatriz do Passado": um trauma ou remorso que o mestre pode
-    usar como gancho narrativo.
+    <b>Benefício</b> — Escolha um Ofício da vida passada (Estudante, Programador, Atleta, Professor, Enfermeiro...).
+    Uma vez por sessão, quando esse conhecimento se aplicaria, role um d6 extra e some ao resultado de qualquer
+    teste de perícia ou ataque.<br>
+    <b>Custo</b> — Reduza um atributo físico (Força, Agilidade ou Vigor) em -1, refletindo um corpo que ainda não
+    terminou de crescer, e defina uma <b>Cicatriz do Passado</b>: um trauma ou remorso que o Mestre pode usar como
+    gancho narrativo.
   </div>
 
+  <h3>Vínculos</h3>
+  <p>Na criação, cada personagem escolhe um <b>Vínculo</b> com outro personagem do grupo: uma dívida, uma amizade
+  de infância, um voto, uma rivalidade que virou lealdade. Uma vez por sessão, ao ajudar ou ser ajudado por esse
+  aliado especificamente, o jogador pode repetir uma rolagem (sua ou do aliado) e ficar com o novo resultado.</p>
+
   <h3>Atributos</h3>
-  <table>
+  <table class="full">
     <tr><th>Atributo</th><th>Sigla</th><th>Uso</th></tr>
-    <tr><td>Força</td><td>FOR</td><td>Dano corpo a corpo, carregar peso, testes de quebrar/arrombar.</td></tr>
+    <tr><td>Força</td><td>FOR</td><td>Dano corpo a corpo, carregar peso, arrombar, parte do cálculo de Fôlego.</td></tr>
     <tr><td>Agilidade</td><td>AGI</td><td>Iniciativa, Defesa, esquiva, furtividade, ataques à distância.</td></tr>
-    <tr><td>Vigor</td><td>VIG</td><td>Pontos de Vida, resistência a veneno/cansaço/frio.</td></tr>
+    <tr><td>Vigor</td><td>VIG</td><td>Pontos de Vida, resistência a veneno/cansaço/frio, parte do Fôlego.</td></tr>
     <tr><td>Inteligência</td><td>INT</td><td>Pontos de Mana, poder e alcance de magias, conhecimento.</td></tr>
     <tr><td>Vontade</td><td>VON</td><td>Resistência mental, controle de mana em combate, percepção de perigo.</td></tr>
-    <tr><td>Carisma</td><td>CAR</td><td>Negociação, liderança, presença de espírito animal/familiar.</td></tr>
+    <tr><td>Carisma</td><td>CAR</td><td>Negociação, liderança, presença de espírito, animais e familiares.</td></tr>
   </table>
-  <p class="small">Modificador de qualquer atributo = (valor do atributo − 10) ÷ 2, arredondado para baixo. Ex.: FOR 14 → +2.</p>
+  <p class="small">Modificador = (valor do atributo − 10) ÷ 2, arredondado para baixo. Ex.: FOR 14 → +2; FOR 9 → -1.</p>
 </section>
 
 <!-- ============ 3. RAÇAS ============ -->
 <section class="section">
+  <span class="chapno">Personagem</span>
   <h1>3. Raças</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
-  <p>Sete povos dividem o mundo conhecido. Nenhuma raça é estritamente melhor que outra — cada uma joga um jogo
-  diferente.</p>
-  <div class="race-grid">
-    <div class="race-card"><svg class="icon"><use href="#icon-human"/></svg>
-      <div><h4>Humano</h4><p><b>+1 em dois atributos à escolha.</b> Aprende perícias e magias em metade do tempo
-      (vantagem em testes de treino fora de combate). A raça mais numerosa e adaptável; sem afinidade elemental fixa.</p></div>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/>
+    <use href="#icon-human" x="60" y="25" width="90" height="90"/>
+    <use href="#icon-elf" x="165" y="25" width="90" height="90"/>
+    <use href="#icon-dwarf" x="270" y="25" width="90" height="90"/>
+    <use href="#icon-beast" x="375" y="25" width="90" height="90"/>
+    <use href="#icon-superd" x="480" y="25" width="90" height="90"/>
+    <use href="#icon-migurd" x="585" y="25" width="90" height="90"/>
+    <use href="#icon-dragon" x="655" y="25" width="90" height="90"/>
+  </svg>
+  <p class="full">Sete povos dividem o mundo conhecido. Nenhuma raça é estritamente melhor que outra — cada uma joga
+  um jogo diferente, e cada bônus tem um custo social ou situacional em algum lugar da ficha.</p>
+  <div class="grid2 full">
+    <div class="card"><svg class="icon"><use href="#icon-human"/></svg>
+      <div><h4>Humano</h4><p><b>+1 em dois atributos à escolha.</b> Aprende perícias e Ofícios em metade do tempo
+      (vantagem em testes de treino fora de combate). A raça mais numerosa e adaptável; sem afinidade elemental
+      fixa, mas também sem restrição alguma.</p></div>
     </div>
-    <div class="race-card"><svg class="icon"><use href="#icon-elf"/></svg>
-      <div><h4>Elfo</h4><p><b>+2 AGI, +1 INT.</b> Vantagem em testes de Percepção e Furtividade em florestas.
-      Vivem centenas de anos e envelhecem devagar — bom para personagens "sábios" mesmo jovens em nível.</p></div>
+    <div class="card"><svg class="icon"><use href="#icon-elf"/></svg>
+      <div><h4>Elfo</h4><p><b>+2 AGI, +1 INT.</b> Vantagem em Percepção e Furtividade em florestas. Vivem
+      centenas de anos e envelhecem devagar — bons para personagens "sábios" mesmo jovens em nível. Comunidades
+      élficas raramente saem de suas florestas natais, o que rende olhares curiosos alhures.</p></div>
     </div>
-    <div class="race-card"><svg class="icon"><use href="#icon-dwarf"/></svg>
+    <div class="card"><svg class="icon"><use href="#icon-dwarf"/></svg>
       <div><h4>Anão</h4><p><b>+2 FOR, +1 VIG.</b> Resistência a veneno e a efeitos de medo. Bônus para identificar
-      metais, forjar e avaliar itens. Povo de mineradores e ferreiros, comum no Continente Central.</p></div>
+      metais, forjar e avaliar itens (útil no Cap. 11). Povo de mineradores e ferreiros, comum no Continente
+      Central, orgulhoso e de palavra firme.</p></div>
     </div>
-    <div class="race-card"><svg class="icon"><use href="#icon-beast"/></svg>
+    <div class="card"><svg class="icon"><use href="#icon-beast"/></svg>
       <div><h4>Fera (Beastfolk)</h4><p><b>+2 AGI, +1 FOR.</b> Olfato e audição aguçados (vantagem em Percepção por
-      cheiro/som). Vive na Grande Floresta em clãs; grande diversidade de formas (orelhas, cauda, garras).</p></div>
+      cheiro/som). Vivem na Grande Floresta em clãs; grande diversidade de formas (orelhas, cauda, garras) — dois
+      Feras raramente se parecem entre si.</p></div>
     </div>
-    <div class="race-card"><svg class="icon"><use href="#icon-superd"/></svg>
-      <div><h4>Superd</h4><p><b>+2 INT, +1 VON.</b> A gema na testa permite <i>Sentir Mana</i>: detecta seres vivos e
-      fontes de magia num raio de 20m, mesmo no escuro. Povo raro e temido por uma guerra antiga que não começaram
-      sozinhos — sofrem desvantagem em testes sociais com quem não os conhece.</p></div>
+    <div class="card"><svg class="icon"><use href="#icon-superd"/></svg>
+      <div><h4>Superd</h4><p><b>+2 INT, +1 VON.</b> A gema na testa permite <i>Sentir Mana</i>: detecta seres
+      vivos e fontes de magia num raio de 20m, mesmo no escuro. Povo raro e temido por uma guerra antiga que não
+      começaram sozinhos — desvantagem em testes sociais com quem não os conhece pessoalmente.</p></div>
     </div>
-    <div class="race-card"><svg class="icon"><use href="#icon-migurd"/></svg>
-      <div><h4>Migurd</h4><p><b>+2 INT, +1 CAR.</b> Telepatia curta com outros Migurds (sem custo de mana, até 100m).
-      Vivem cerca de 200 anos e amadurecem rápido no corpo, devagar na aparência. Povo raro, discreto, de vilas ocultas.</p></div>
+    <div class="card"><svg class="icon"><use href="#icon-migurd"/></svg>
+      <div><h4>Migurd</h4><p><b>+2 INT, +1 CAR.</b> Telepatia curta com outros Migurds (sem custo de mana, até
+      100m). Vivem cerca de 200 anos e amadurecem rápido no corpo, devagar na aparência. Povo raro, discreto, de
+      vilas ocultas que preferem não ser encontradas.</p></div>
     </div>
-    <div class="race-card"><svg class="icon"><use href="#icon-dragon"/></svg>
-      <div><h4>Sangue-de-Dragão</h4><p><b>+2 FOR, +2 VIG, −1 CAR.</b> Escamas dão +1 de Defesa natural. Resistência a
-      um elemento à escolha na criação. Raro, forte, e olhado com desconfiança pelas demais raças — jogue se quiser
-      começar em desvantagem social e vantagem de combate.</p></div>
+    <div class="card"><svg class="icon"><use href="#icon-dragon"/></svg>
+      <div><h4>Sangue-de-Dragão</h4><p><b>+2 FOR, +2 VIG, −1 CAR.</b> Escamas dão +1 de Defesa natural. Resistência
+      a um elemento à escolha na criação. Raro, forte, e olhado com desconfiança pelas demais raças — jogue se
+      quiser começar em desvantagem social e vantagem de combate.</p></div>
     </div>
   </div>
 </section>
 
-<!-- ============ 4. SISTEMA DE MAGIA ============ -->
+<!-- ============ 4. OFÍCIOS ============ -->
 <section class="section">
-  <h1>4. Sistema de Magia</h1>
+  <span class="chapno">Personagem</span>
+  <h1>4. Ofícios</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
-  <div class="cols2">
-    <div>
-      <svg class="ornament" width="120" height="120" style="float:right;margin:0 0 3mm 4mm"><use href="#icon-magiccircle"/></svg>
-      <p>Magia é mana moldada por vontade e forma. Todo personagem com INT 10+ pode conjurar; a diferença entre
-      um mago de rua e um Rei Mago está em quanto mana ele tem e quantas vezes já treinou a forma do feitiço.</p>
-      <h3>Pontos de Mana (PM)</h3>
-      <p>PM = INT × 3 + nível × 2. Conjurar uma magia custa PM igual a 2× o Grau da magia (veja tabela). PM voltam
-      por completo após um descanso longo.</p>
-      <h3>Conjuração com e sem Encantamento</h3>
-      <p>Por padrão, conjurar exige recitar um encantamento (uma ação inteira, e qualquer um por perto sabe que
-      uma magia está vindo). Um personagem pode aprender <b>Conjuração Silenciosa</b> como talento de trilha Arcana:
-      metade da ação, sem som — extremamente raro e poderoso, marca registrada dos maiores magos do mundo.</p>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/>
+    <use href="#icon-shield" x="70" y="30" width="80" height="80"/>
+    <use href="#icon-staff" x="200" y="30" width="80" height="80"/>
+    <use href="#icon-bow" x="330" y="30" width="80" height="80"/>
+    <use href="#icon-potion" x="460" y="30" width="80" height="80"/>
+    <use href="#icon-mask" x="590" y="30" width="80" height="80"/>
+    <use href="#icon-swordcross" x="655" y="35" width="70" height="70"/>
+  </svg>
+  <p class="full">O Ofício define seu papel na mesa: o recurso que você gasta, a abertura de combate que você
+  domina, e uma habilidade de nível 5 que marca quem você se tornou. Um personagem pode trocar de Ofício depois,
+  mas o treino começa do zero — trate isso como decisão de campanha, não de sessão.</p>
+
+  <div class="grid2 full">
+    <div class="card"><svg class="icon"><use href="#icon-shield"/></svg><div>
+      <h4>Guerreiro</h4><p><b>Recurso:</b> Fôlego (Cap. 7). <b>Nível 1 — Postura de Escudo:</b> +2 de Defesa
+      enquanto usa arma de uma mão e escudo. <b>Nível 5 — Inabalável:</b> uma vez por combate, ignore os efeitos
+      de Derrubado ou Atordoado.</p></div>
     </div>
-    <div>
-      <h3>Os cinco elementos</h3>
-      <div class="elem-row">
-        <div class="elem-badge"><svg class="icon"><use href="#icon-fire"/></svg>Fogo</div>
-        <div class="elem-badge"><svg class="icon"><use href="#icon-water"/></svg>Água</div>
-        <div class="elem-badge"><svg class="icon"><use href="#icon-wind"/></svg>Vento</div>
-        <div class="elem-badge"><svg class="icon"><use href="#icon-earth"/></svg>Terra</div>
-        <div class="elem-badge"><svg class="icon"><use href="#icon-detox"/></svg>Desintoxicação</div>
-      </div>
-      <p>Fogo e Água se anulam; Vento e Terra se anulam. Desintoxicação não ataca — cura, remove veneno/doença e
-      purifica água. Um personagem escolhe 1 elemento inicial (2 se Reencarnado com Ofício "estudioso"); mais
-      elementos podem ser aprendidos depois com treino.</p>
-      <h3>Graus de Magia</h3>
-      <p>Cada elemento evolui em 7 graus, do Iniciante ao Divino — os mesmos usados para medir o poder de
-      qualquer mago no mundo conhecido:</p>
+    <div class="card"><svg class="icon"><use href="#icon-staff"/></svg><div>
+      <h4>Mago Elemental</h4><p><b>Recurso:</b> Mana (Cap. 5). <b>Nível 1 — Canalização:</b> +2 PM máximo por
+      elemento aprendido. <b>Nível 5 — Sobrecarga Controlada:</b> uma vez por dia, conjure uma magia sem gastar PM
+      (ainda precisa do grau necessário).</p></div>
+    </div>
+    <div class="card"><svg class="icon"><use href="#icon-bow"/></svg><div>
+      <h4>Arqueiro / Batedor</h4><p><b>Recurso:</b> Fôlego. <b>Nível 1 — Mira Firme:</b> ignora a desvantagem de
+      atirar em alvo engajado em corpo a corpo. <b>Nível 5 — Tiro Certeiro:</b> uma vez por combate, um ataque à
+      distância automaticamente acerta (ainda rola dano).</p></div>
+    </div>
+    <div class="card"><svg class="icon"><use href="#icon-potion"/></svg><div>
+      <h4>Curandeiro</h4><p><b>Recurso:</b> Mana, com foco em Desintoxicação. <b>Nível 1 — Mãos Constantes:</b>
+      suas magias de cura recuperam +2 PV fixos. <b>Nível 5 — Segunda Chance:</b> uma vez por dia, estabilize e
+      cure 1 PV em um aliado a até 9m como reação, mesmo fora de alcance normal de toque.</p></div>
+    </div>
+    <div class="card"><svg class="icon"><use href="#icon-mask"/></svg><div>
+      <h4>Ladino / Batedor de Sombras</h4><p><b>Recurso:</b> Fôlego. <b>Nível 1 — Golpe Oportuno:</b> +2d6 de dano
+      contra um alvo Derrubado, Atordoado ou que ainda não agiu no combate. <b>Nível 5 — Sombra entre Sombras:</b>
+      Furtividade nunca sofre desvantagem por falta de cobertura parcial.</p></div>
+    </div>
+    <div class="card"><svg class="icon"><use href="#icon-swordcross"/></svg><div>
+      <h4>Espadachim-Arcano</h4><p><b>Recurso:</b> Mana <i>e</i> Fôlego, ambos reduzidos pela metade (arredondado
+      para cima). <b>Nível 1 — Lâmina Encantada:</b> pode envolver a própria arma em um elemento conhecido,
+      adicionando 1d4 de dano daquele tipo por 1 minuto (custa 2 PM). <b>Nível 5 — Corte Dimensional:</b> combine
+      uma magia de grau 1 com um ataque corpo a corpo na mesma ação, uma vez por combate.</p></div>
     </div>
   </div>
-  <div class="rankladder">
+  <div class="callout dica full">Um grupo não precisa de um de cada Ofício. Dois Guerreiros com Vínculos diferentes
+  jogam muito diferente um do outro — o Ofício é ponto de partida mecânico, não identidade fechada.</div>
+</section>
+
+<!-- ============ 5. MAGIA ============ -->
+<section class="section">
+  <span class="chapno">Poder</span>
+  <h1>5. Sistema de Magia e Grimório</h1>
+  <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-magiccircle" x="340" y="15" width="120" height="120"/></svg>
+  <p class="full">Magia é mana moldada por vontade e forma. Todo personagem com INT 10+ pode conjurar; a diferença
+  entre um mago de rua e um Rei Mago está em quanto mana ele tem e quantas vezes já treinou a forma exata do
+  feitiço.</p>
+
+  <h3>Pontos de Mana (PM)</h3>
+  <p>PM = INT × 3 + nível × 2 (+2 por elemento se Mago Elemental). Conjurar custa PM igual a 2× o Grau da magia.
+  PM voltam por completo após um descanso longo (uma noite de sono).</p>
+  <h3>Conjuração com e sem Encantamento</h3>
+  <p>Por padrão, conjurar exige recitar um encantamento — uma ação inteira, e qualquer um por perto percebe que
+  uma magia está vindo. <b>Conjuração Silenciosa</b> é um talento raro que pode ser treinado depois do nível 4
+  (com aprovação do Mestre): metade da ação, sem som — marca registrada dos maiores magos do mundo.</p>
+
+  <div class="elem-row full">
+    <div class="elem-badge"><svg class="icon"><use href="#icon-fire"/></svg>Fogo</div>
+    <div class="elem-badge"><svg class="icon"><use href="#icon-water"/></svg>Água</div>
+    <div class="elem-badge"><svg class="icon"><use href="#icon-wind"/></svg>Vento</div>
+    <div class="elem-badge"><svg class="icon"><use href="#icon-earth"/></svg>Terra</div>
+    <div class="elem-badge"><svg class="icon"><use href="#icon-detox"/></svg>Desintoxicação</div>
+  </div>
+  <p class="full">Fogo e Água se anulam; Vento e Terra se anulam. Desintoxicação não ataca — cura, remove
+  veneno/doença e purifica água. Escolha 1 elemento inicial (2 se Mago Elemental, ou Reencarnado com Ofício
+  "estudioso"); mais elementos podem ser aprendidos depois com treino em jogo.</p>
+
+  <h3>Graus de Magia</h3>
+  <div class="rankladder full">
     <div><b>Iniciante</b>Grau 1 · efeito pessoal</div>
     <div><b>Intermediário</b>Grau 2 · pequena área</div>
     <div><b>Avançado</b>Grau 3 · área média</div>
@@ -336,228 +522,407 @@
     <div><b>Imperial</b>Grau 6 · afeta um território</div>
     <div><b>Divino</b>Grau 7 · afeta um continente</div>
   </div>
-  <table>
-    <tr><th>Grau</th><th>Custo (PM)</th><th>INT mínima</th><th>Exemplo de efeito</th></tr>
-    <tr><td>1 — Iniciante</td><td>2</td><td>10</td><td>Bola de fogo do tamanho de um punho; luz; pequeno curativo (1d6).</td></tr>
-    <tr><td>2 — Intermediário</td><td>4</td><td>12</td><td>Lança de água que atravessa madeira; rajada que derruba; cura 2d6.</td></tr>
-    <tr><td>3 — Avançado</td><td>6</td><td>14</td><td>Muro de chamas de 10m; tremor que abre fendas; cura ferimento grave.</td></tr>
-    <tr><td>4 — Santo</td><td>8</td><td>16</td><td>Convocar chuva ou nevasca numa região pequena; cura em área.</td></tr>
-    <tr><td>5 — Real</td><td>10</td><td>18</td><td>Inundar um vale; ressuscitar a vida vegetal de uma região.</td></tr>
+  <table class="full">
+    <tr><th>Grau</th><th>PM</th><th>INT mín.</th><th>Efeito típico</th></tr>
+    <tr><td>1 — Iniciante</td><td>2</td><td>10</td><td>Bola de fogo do tamanho de um punho; pequeno curativo (1d6).</td></tr>
+    <tr><td>2 — Intermediário</td><td>4</td><td>12</td><td>Lança que atravessa madeira; rajada que derruba; cura 2d6.</td></tr>
+    <tr><td>3 — Avançado</td><td>6</td><td>14</td><td>Muro de chamas de 10m; tremor que abre fendas; cura grave.</td></tr>
+    <tr><td>4 — Santo</td><td>8</td><td>16</td><td>Convocar chuva/nevasca numa região pequena; cura em área.</td></tr>
+    <tr><td>5 — Real</td><td>10</td><td>18</td><td>Inundar um vale; reviver a vida vegetal de uma região.</td></tr>
     <tr><td>6 — Imperial</td><td>12</td><td>20</td><td>Abrir uma cratera do tamanho de uma vila; efeitos-lenda.</td></tr>
     <tr><td>7 — Divino</td><td>16</td><td>22</td><td>Reservado às Sete Grandes Potências; muda o mapa.</td></tr>
   </table>
-  <p class="small">Em jogo, a maioria das campanhas nunca ultrapassa o Grau 3–4: são efeitos já claramente heroicos.</p>
-</section>
+  <p class="small full">A maioria das campanhas nunca ultrapassa o Grau 3–4: já são efeitos claramente heroicos.</p>
 
-<!-- ============ 5. ESTILOS DE ESPADA ============ -->
-<section class="section">
-  <h1>5. Estilos de Espada</h1>
-  <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
-  <div class="center"><svg style="width:26mm;height:26mm"><use href="#icon-swordcross"/></svg></div>
-  <p>Assim como a magia tem graus, a espada tem estilos. Um personagem Marcial escolhe um dos três grandes estilos
-  na criação; trocar de estilo depois é possível, mas custa treino do zero.</p>
-  <table>
-    <tr><th>Estilo</th><th>Filosofia</th><th>Mecânica</th></tr>
-    <tr><td><b>Estilo Deus-Espada</b></td><td>Golpear primeiro, golpear forte. Ofensiva pura.</td>
-      <td>+2 no primeiro ataque de cada combate; sem bônus de Defesa.</td></tr>
-    <tr><td><b>Estilo Deus-Água</b></td><td>Ler o inimigo, aparar, contra-atacar.</td>
-      <td>+2 de Defesa; ao aparar um ataque com sucesso, pode gastar a reação para contra-atacar imediatamente.</td></tr>
-    <tr><td><b>Estilo Deus-Norte</b></td><td>Sobreviver a qualquer custo, usar o ambiente, ser imprevisível.</td>
-      <td>Uma vez por combate, pode usar o cenário (derrubar algo, jogar terra, etc.) para forçar o alvo a repetir a
-      próxima rolagem de ataque contra o personagem.</td></tr>
+  <h3>Grimório — magias nomeadas</h3>
+  <p class="full">Exemplos prontos para usar. O Mestre pode aprovar variações ou magias novas do mesmo grau e
+  custo.</p>
+  <table class="full">
+    <tr><th>Magia</th><th>Elemento · Grau</th><th>Custo</th><th>Efeito</th></tr>
+    <tr><td>Faísca</td><td>Fogo · 1</td><td>2 PM</td><td>1d6 de dano de fogo, alcance 9m.</td></tr>
+    <tr><td>Lança de Fogo</td><td>Fogo · 2</td><td>4 PM</td><td>2d6, atravessa e atinge um segundo alvo em linha.</td></tr>
+    <tr><td>Agulha d'Água</td><td>Água · 1</td><td>2 PM</td><td>1d6 perfurante, ignora 2 pontos de Armadura.</td></tr>
+    <tr><td>Muro Líquido</td><td>Água · 2</td><td>4 PM</td><td>Bloqueia projéteis vindos de uma direção por 1 rodada.</td></tr>
+    <tr><td>Lâmina de Vento</td><td>Vento · 1</td><td>2 PM</td><td>1d6 cortante, alcance 12m.</td></tr>
+    <tr><td>Rajada Derrubante</td><td>Vento · 2</td><td>4 PM</td><td>Empurra 3m; alvo cai se falhar em VIG (CD 13).</td></tr>
+    <tr><td>Punho de Pedra</td><td>Terra · 1</td><td>2 PM</td><td>1d8 contundente, alcance curto (3m).</td></tr>
+    <tr><td>Tremor Local</td><td>Terra · 2</td><td>4 PM</td><td>Derruba todos num raio de 3m (VIG CD 13 para resistir).</td></tr>
+    <tr><td>Mãos que Curam</td><td>Desintox. · 1</td><td>2 PM</td><td>Cura 1d6 + mod. INT por toque.</td></tr>
+    <tr><td>Onda Vital</td><td>Desintox. · 2</td><td>4 PM</td><td>Cura 2d6 distribuídos entre até 3 alvos a 3m entre si.</td></tr>
   </table>
-  <p class="small center">Deus-Espada supera Deus-Norte (velocidade demais para reagir). Deus-Norte supera Deus-Água
-  (imprevisível demais para ler). Deus-Água supera Deus-Espada (aparar quem só ataca é mais fácil).</p>
-  <h3>Graus de espada</h3>
-  <p>Cada estilo também evolui em sete graus (Novato, Intermediário, Avançado, Santo, Rei, Imperador, Deus).
-  A cada grau alcançado (via treino em jogo, a critério do mestre), o personagem aprende uma técnica nova do
-  estilo — uma manobra especial que só quem chegou àquele nível de maestria consegue executar.</p>
 </section>
 
-<!-- ============ 6. PERÍCIAS ============ -->
+<!-- ============ 6. ESTILOS DE ESPADA ============ -->
 <section class="section">
-  <h1>6. Perícias</h1>
+  <span class="chapno">Poder</span>
+  <h1>6. Estilos de Espada</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
-  <p>Perícia treinada dá +2 no teste (d20 + modificador do atributo + bônus de treino, contra uma Dificuldade
-  definida pelo mestre: 10 fácil, 15 moderado, 20 difícil, 25 quase impossível).</p>
-  <table>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-swordcross" x="350" y="25" width="100" height="100"/></svg>
+  <p class="full">Assim como a magia tem graus, a espada tem estilos. Um personagem escolhe um dos três grandes
+  estilos na criação (independente de Ofício — até um Mago pode ter treino formal de espada). Trocar de estilo
+  depois exige treino do zero.</p>
+  <table class="full">
+    <tr><th>Estilo</th><th>Filosofia</th><th>Mecânica</th></tr>
+    <tr><td><b>Deus-Espada</b></td><td>Golpear primeiro, golpear forte. Ofensiva pura.</td>
+      <td>+2 no primeiro ataque de cada combate; sem bônus de Defesa.</td></tr>
+    <tr><td><b>Deus-Água</b></td><td>Ler o inimigo, aparar, contra-atacar.</td>
+      <td>+2 de Defesa; ao aparar com sucesso, gaste a reação para contra-atacar imediatamente.</td></tr>
+    <tr><td><b>Deus-Norte</b></td><td>Sobreviver a qualquer custo, usar o ambiente, ser imprevisível.</td>
+      <td>Uma vez por combate, use o cenário (derrubar algo, jogar terra) para forçar o alvo a repetir a próxima
+      rolagem de ataque contra você.</td></tr>
+  </table>
+  <p class="small full center">Deus-Espada supera Deus-Norte (rápido demais para reagir). Deus-Norte supera
+  Deus-Água (imprevisível demais para ler). Deus-Água supera Deus-Espada (aparar quem só ataca é mais fácil).</p>
+
+  <h3>Graus de espada e técnicas</h3>
+  <p>Cada estilo evolui em sete graus (Novato, Intermediário, Avançado, Santo, Rei, Imperador, Deus). A cada grau
+  alcançado — via treino em jogo, a critério do Mestre — o personagem aprende uma técnica nova.</p>
+  <table class="full">
+    <tr><th>Grau</th><th>Técnica de exemplo (qualquer estilo)</th></tr>
+    <tr><td>Novato</td><td>Golpe Firme: +1 de dano fixo com armas do estilo.</td></tr>
+    <tr><td>Intermediário</td><td>Passo de Combate: mover-se 3m como parte de um ataque, sem gastar deslocamento.</td></tr>
+    <tr><td>Avançado</td><td>Corte Duplo: uma vez por rodada, ataque duas vezes por 3 Fôlego (veja Cap. 7).</td></tr>
+    <tr><td>Santo</td><td>Leitura de Combate: vantagem no primeiro ataque contra um alvo que você observou por 1 rodada.</td></tr>
+    <tr><td>Rei</td><td>Golpe que Quebra Guarda: ataques ignoram metade da Defesa vinda de armadura.</td></tr>
+    <tr><td>Imperador</td><td>Onda de Corte: um ataque atinge todos os inimigos adjacentes ao alvo.</td></tr>
+    <tr><td>Deus</td><td>Marca de Mestre: uma vez por sessão, um ataque é automaticamente um acerto crítico.</td></tr>
+  </table>
+</section>
+
+<!-- ============ 7. FÔLEGO E MANOBRAS ============ -->
+<section class="section">
+  <span class="chapno">Poder</span>
+  <h1>7. Fôlego e Manobras de Combate</h1>
+  <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-boot" x="350" y="30" width="100" height="90"/></svg>
+  <p class="full">Assim como magos gastam Mana, quem luta de perto gasta <b>Fôlego</b>: fôlego físico, foco e
+  adrenalina. É o recurso que dá às Manobras de combate a mesma sensação tática que a magia dá aos conjuradores.</p>
+  <h3>Pontos de Fôlego (FL)</h3>
+  <p>FL = (mod. FOR + mod. VIG) × 2 + nível × 2, mínimo 4. Diferente da Mana, o Fôlego volta por completo após um
+  <b>descanso curto</b> (cerca de 10 minutos) — personagens marciais agem mais vezes por sessão, mas não guardam
+  reservas de um dia inteiro como os magos.</p>
+
+  <h3>Manobras</h3>
+  <table class="full">
+    <tr><th>Manobra</th><th>Custo</th><th>Efeito</th></tr>
+    <tr><td>Investida Certeira</td><td>3 FL</td><td>Mova-se até seu deslocamento e ataque com +2.</td></tr>
+    <tr><td>Golpe Duplo</td><td>4 FL</td><td>Dois ataques na mesma ação, cada um com −2.</td></tr>
+    <tr><td>Aparar Perfeito</td><td>2 FL (reação)</td><td>Anula completamente um ataque corpo a corpo contra você.</td></tr>
+    <tr><td>Desarmar</td><td>3 FL</td><td>Teste oposto de FOR contra FOR ou AGI do alvo; sucesso derruba a arma dele.</td></tr>
+    <tr><td>Grito de Guerra</td><td>2 FL</td><td>Aliados num raio de 9m ganham +1 em ataque até o fim da próxima rodada.</td></tr>
+    <tr><td>Passo Sombrio</td><td>3 FL (requer AGI 14+)</td><td>Mova-se sem provocar ataques de oportunidade e ganhe vantagem no próximo ataque.</td></tr>
+  </table>
+  <div class="callout dica full">Manobras não são exclusivas de nenhum Ofício — qualquer personagem com Fôlego
+  disponível pode tentar qualquer uma. O Guerreiro e o Ladino só têm mais FL para gastar nelas.</div>
+
+  <h3>Críticos e complicações</h3>
+  <p>Um <b>20 natural</b> em um ataque é sempre um acerto crítico: dobre os dados de dano (não o modificador).
+  Um <b>1 natural</b> em qualquer teste de combate é uma complicação — role 1d6 na tabela abaixo.</p>
+  <table class="full">
+    <tr><th>d6</th><th>Complicação</th></tr>
+    <tr><td>1</td><td>A arma escorrega da mão e cai a 2m.</td></tr>
+    <tr><td>2</td><td>Perde o equilíbrio: fica Derrubado.</td></tr>
+    <tr><td>3</td><td>Fica exposto: o próximo ataque contra você tem vantagem.</td></tr>
+    <tr><td>4</td><td>Gasta munição ou material extra sem efeito.</td></tr>
+    <tr><td>5</td><td>Machuca-se levemente: sofre 1 ponto de dano.</td></tr>
+    <tr><td>6</td><td>Chama atenção indesejada — um som alto, um grito, algo se move nas sombras.</td></tr>
+  </table>
+</section>
+
+<!-- ============ 8. PERÍCIAS ============ -->
+<section class="section">
+  <span class="chapno">Poder</span>
+  <h1>8. Perícias</h1>
+  <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
+  <p>Perícia treinada dá +2 no teste (d20 + mod. do atributo + bônus de treino, contra uma Dificuldade definida
+  pelo Mestre: 10 fácil, 15 moderado, 20 difícil, 25 quase impossível).</p>
+  <table class="full">
     <tr><th>Perícia</th><th>Atributo</th><th>Perícia</th><th>Atributo</th></tr>
     <tr><td>Atletismo</td><td>FOR</td><td>Intuição</td><td>VON</td></tr>
     <tr><td>Luta</td><td>FOR</td><td>Medicina</td><td>INT</td></tr>
     <tr><td>Acrobacia</td><td>AGI</td><td>Arcanismo</td><td>INT</td></tr>
-    <tr><td>Furtividade</td><td>AGI</td><td>Sobrevivência</td><td>VON</td></tr>
-    <tr><td>Pontaria</td><td>AGI</td><td>Persuasão</td><td>CAR</td></tr>
-    <tr><td>Percepção</td><td>VON</td><td>Enganação</td><td>CAR</td></tr>
-    <tr><td>Vontade</td><td>VON</td><td>Liderança</td><td>CAR</td></tr>
+    <tr><td>Furtividade</td><td>AGI</td><td>Alquimia</td><td>INT</td></tr>
+    <tr><td>Pontaria</td><td>AGI</td><td>Sobrevivência</td><td>VON</td></tr>
+    <tr><td>Percepção</td><td>VON</td><td>Persuasão</td><td>CAR</td></tr>
+    <tr><td>Vontade</td><td>VON</td><td>Enganação</td><td>CAR</td></tr>
+    <tr><td>Adestramento</td><td>CAR</td><td>Liderança</td><td>CAR</td></tr>
   </table>
 </section>
 
-<!-- ============ 7. COMBATE ============ -->
+<!-- ============ 9. COMBATE ============ -->
 <section class="section">
-  <h1>7. Combate</h1>
+  <span class="chapno">Jogo</span>
+  <h1>9. Combate</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
-  <div class="cols2">
-    <div>
-      <h3>Sequência de turno</h3>
-      <table>
-        <tr><th>Etapa</th><th>Regra</th></tr>
-        <tr><td>Iniciativa</td><td>d20 + mod. AGI. Ordem decrescente.</td></tr>
-        <tr><td>Ação</td><td>Atacar, conjurar, mover-se até o dobro do deslocamento, usar item, ajudar aliado.</td></tr>
-        <tr><td>Reação</td><td>Aparar, esquivar ou usar uma técnica reativa de estilo/magia, uma vez por rodada.</td></tr>
-        <tr><td>Ataque</td><td>d20 + mod. relevante (FOR corpo a corpo / AGI à distância) contra a Defesa do alvo.</td></tr>
-        <tr><td>Dano</td><td>Dado da arma ou magia + mod. relevante, reduzido pela Armadura do alvo.</td></tr>
-      </table>
-      <h3>Defesa e Pontos de Vida</h3>
-      <p><b>Defesa</b> = 10 + mod. AGI + bônus de armadura/estilo.<br>
-      <b>PV</b> = (VIG × 4) + PV extra da raça (Sangue-de-Dragão +4, demais +0) + (nível × 3).</p>
-    </div>
-    <div>
-      <svg class="ornament" width="28mm" height="28mm" style="display:block;margin:0 auto 3mm auto"><use href="#icon-d20"/></svg>
-      <h3>Regra da Casa: Impulso</h3>
-      <div class="callout">Sempre que um teste ou ataque tirar 20 natural no d20, o personagem ganha 1 <b>Ponto de
-      Impulso</b> (máx. 3). Pontos de Impulso podem ser gastos, 1 por vez, para transformar um dado em resultado
-      máximo (rolagem de dano) ou repetir uma rolagem ruim. Representa aqueles momentos de "segunda chance" tão
-      centrais ao tom da campanha.</div>
-      <h3>Condições rápidas</h3>
-      <table>
-        <tr><th>Condição</th><th>Efeito</th></tr>
-        <tr><td>Derrubado</td><td>Desvantagem em ataques corpo a corpo contra o alvo; +2 à distância.</td></tr>
-        <tr><td>Envenenado</td><td>−2 em todos os testes até ser curado (Grau 1+ de Desintoxicação remove).</td></tr>
-        <tr><td>Atordoado</td><td>Perde a reação da rodada.</td></tr>
-        <tr><td>Inconsciente</td><td>PV a 0; estabiliza com CD 10 de Medicina ou morre em 10 minutos.</td></tr>
-      </table>
-    </div>
-  </div>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-d20" x="350" y="25" width="100" height="100"/></svg>
+  <h3>Sequência de turno</h3>
+  <table class="full">
+    <tr><th>Etapa</th><th>Regra</th></tr>
+    <tr><td>Iniciativa</td><td>d20 + mod. AGI. Ordem decrescente.</td></tr>
+    <tr><td>Ação</td><td>Atacar, conjurar, usar Manobra, mover-se até o dobro do deslocamento, usar item, ajudar aliado.</td></tr>
+    <tr><td>Reação</td><td>Aparar, esquivar ou usar uma técnica reativa de estilo/magia, uma vez por rodada.</td></tr>
+    <tr><td>Ataque</td><td>d20 + mod. relevante (FOR corpo a corpo / AGI à distância) contra a Defesa do alvo.</td></tr>
+    <tr><td>Dano</td><td>Dado da arma ou magia + mod. relevante, reduzido pela Armadura do alvo.</td></tr>
+  </table>
+  <h3>Defesa e Pontos de Vida</h3>
+  <p><b>Defesa</b> = 10 + mod. AGI + bônus de armadura/estilo. <b>PV</b> = (VIG × 4) + PV extra da raça
+  (Sangue-de-Dragão +4) + (nível × 3).</p>
+
+  <h3>Condições</h3>
+  <table class="full">
+    <tr><th>Condição</th><th>Efeito</th></tr>
+    <tr><td>Derrubado</td><td>Desvantagem em ataques corpo a corpo contra o alvo; +2 à distância contra ele.</td></tr>
+    <tr><td>Envenenado</td><td>−2 em todos os testes até ser curado (Desintoxicação Grau 1+ remove).</td></tr>
+    <tr><td>Atordoado</td><td>Perde a reação da rodada.</td></tr>
+    <tr><td>Inconsciente</td><td>PV a 0; estabiliza com Medicina CD 10 ou morre em 10 minutos.</td></tr>
+  </table>
+
+  <div class="callout mestre full"><b>Pontos de Impulso.</b> Sempre que um teste ou ataque tirar 20 natural, o
+  personagem ganha 1 <b>Ponto de Impulso</b> (máx. 3). Gaste 1 por vez para transformar um dado em resultado
+  máximo (na rolagem de dano) ou para repetir uma rolagem ruim. Representa aqueles momentos de "segunda chance"
+  centrais ao tom da campanha. Regra opcional — remova se o grupo preferir um jogo mais cru.</div>
 </section>
 
-<!-- ============ 8. EQUIPAMENTOS ============ -->
+<!-- ============ 10. EQUIPAMENTOS ============ -->
 <section class="section">
-  <h1>8. Equipamentos</h1>
+  <span class="chapno">Jogo</span>
+  <h1>10. Equipamentos</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
-  <table>
-    <tr><th>Arma</th><th>Dano</th><th>Preço (Rea)</th><th>Nota</th></tr>
-    <tr><td>Adaga</td><td>1d4</td><td>5</td><td>Leve, pode ser arremessada.</td></tr>
-    <tr><td>Espada curta</td><td>1d6</td><td>15</td><td>Padrão dos três estilos de espada.</td></tr>
-    <tr><td>Espada longa</td><td>1d8</td><td>30</td><td>Requer FOR 12+ para usar sem penalidade.</td></tr>
-    <tr><td>Lança</td><td>1d8</td><td>20</td><td>Alcance 2m; pode atacar antes de inimigos corpo a corpo se avançarem.</td></tr>
-    <tr><td>Arco curto</td><td>1d6</td><td>25</td><td>Alcance 40m; usa AGI para o ataque.</td></tr>
-    <tr><td>Cajado</td><td>1d4</td><td>20</td><td>+1 Grau efetivo na primeira magia de cada combate.</td></tr>
+  <table class="full">
+    <tr><th>Arma</th><th>Dano</th><th>Preço</th><th>Nota</th></tr>
+    <tr><td>Adaga</td><td>1d4</td><td>5 Rea</td><td>Leve, pode ser arremessada.</td></tr>
+    <tr><td>Espada curta</td><td>1d6</td><td>15 Rea</td><td>Padrão dos três estilos de espada.</td></tr>
+    <tr><td>Espada longa</td><td>1d8</td><td>30 Rea</td><td>Requer FOR 12+ para usar sem penalidade.</td></tr>
+    <tr><td>Lança</td><td>1d8</td><td>20 Rea</td><td>Alcance 2m; ataca antes de inimigos que avançam.</td></tr>
+    <tr><td>Arco curto</td><td>1d6</td><td>25 Rea</td><td>Alcance 40m; usa AGI para o ataque.</td></tr>
+    <tr><td>Cajado</td><td>1d4</td><td>20 Rea</td><td>+1 Grau efetivo na primeira magia de cada combate.</td></tr>
   </table>
-  <table>
-    <tr><th>Armadura</th><th>Defesa</th><th>Preço (Rea)</th></tr>
+  <table class="full">
+    <tr><th>Armadura</th><th>Defesa</th><th>Preço</th></tr>
     <tr><td>Roupas de viagem</td><td>+0</td><td>—</td></tr>
-    <tr><td>Couro batido</td><td>+2</td><td>20</td></tr>
-    <tr><td>Cota de malha</td><td>+4</td><td>60 (−1 AGI em testes de Furtividade/Acrobacia)</td></tr>
-    <tr><td>Placas</td><td>+6</td><td>150 (−2 AGI em testes de Furtividade/Acrobacia)</td></tr>
+    <tr><td>Couro batido</td><td>+2</td><td>20 Rea</td></tr>
+    <tr><td>Cota de malha</td><td>+4</td><td>60 Rea (−1 AGI em Furtividade/Acrobacia)</td></tr>
+    <tr><td>Placas</td><td>+6</td><td>150 Rea (−2 AGI em Furtividade/Acrobacia)</td></tr>
   </table>
-  <h3>Pacotes iniciais</h3>
-  <p><b>Marcial:</b> arma do estilo escolhido + couro batido + kit de aventureiro (corda, isqueiro, ração p/ 5 dias)
-  + 10 Rea. &nbsp; <b>Arcana:</b> cajado ou adaga + roupas de viajante + grimório pessoal + 20 Rea. &nbsp;
-  <b>Híbrida:</b> espada curta + couro batido + grimório + 5 Rea.</p>
+  <h3>Pacotes iniciais por Ofício</h3>
+  <table class="full">
+    <tr><th>Ofício</th><th>Pacote</th></tr>
+    <tr><td>Guerreiro</td><td>Espada longa + escudo + couro batido + kit de aventureiro + 10 Rea.</td></tr>
+    <tr><td>Mago Elemental</td><td>Cajado + roupas de viajante + grimório pessoal + 20 Rea.</td></tr>
+    <tr><td>Arqueiro/Batedor</td><td>Arco curto + 20 flechas + couro batido + kit de rastreio + 10 Rea.</td></tr>
+    <tr><td>Curandeiro</td><td>Cajado ou adaga + roupas + kit de cura (3 usos) + 15 Rea.</td></tr>
+    <tr><td>Ladino</td><td>Duas adagas + roupas escuras + kit de arrombamento + 15 Rea.</td></tr>
+    <tr><td>Espadachim-Arcano</td><td>Espada curta + couro batido + grimório + 5 Rea.</td></tr>
+  </table>
 </section>
 
-<!-- ============ 9. BESTIÁRIO ============ -->
+<!-- ============ 11. ITENS MÁGICOS E ALQUIMIA ============ -->
 <section class="section">
-  <h1>9. Bestiário</h1>
+  <span class="chapno">Jogo</span>
+  <h1>11. Itens Mágicos e Alquimia</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
-  <p>Cinco ameaças comuns para começar uma campanha — todas genéricas o bastante para encaixar em qualquer região.</p>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-potion" x="350" y="25" width="100" height="100"/></svg>
+  <h3>Fabricar itens</h3>
+  <p class="full">Durante um descanso longo em segurança, um personagem com Alquimia treinada pode fabricar um item
+  da tabela abaixo: teste de Alquimia (CD = 10 + preço em Rea ÷ 10) consumindo materiais equivalentes à metade do
+  preço. Materiais de monstro (uma glândula de Gosma, uma garra de Lobo) podem substituir parte do custo, a
+  critério do Mestre.</p>
+  <table class="full">
+    <tr><th>Item</th><th>Efeito</th><th>Preço</th></tr>
+    <tr><td>Poção de Cura Menor</td><td>Recupera 2d4+2 PV ao beber (ação).</td><td>15 Rea</td></tr>
+    <tr><td>Poção de Mana</td><td>Recupera 10 PM ao beber.</td><td>20 Rea</td></tr>
+    <tr><td>Antídoto Universal</td><td>Remove Envenenado e uma doença comum.</td><td>15 Rea</td></tr>
+    <tr><td>Óleo de Fio</td><td>Aplicado a uma arma, dá +1 no dano por 1 combate.</td><td>10 Rea</td></tr>
+    <tr><td>Amuleto de Resistência Elemental</td><td>Escolha um elemento: dano dele é reduzido à metade.</td><td>60 Rea</td></tr>
+    <tr><td>Anel do Passo Silencioso</td><td>Vantagem permanente em Furtividade contra audição.</td><td>80 Rea</td></tr>
+    <tr><td>Capa das Sombras</td><td>Uma vez por dia, torna-se invisível por 1 rodada ao ficar imóvel.</td><td>120 Rea</td></tr>
+  </table>
+  <div class="callout lore full">Poções de cura no mundo de Mushoku Tensei RPG não substituem magia de
+  Desintoxicação — restauram vitalidade, mas nada faz contra veneno ou maldição além do próprio antídoto certo.</div>
+</section>
 
-  <div class="statblock">
-    <div class="statblock-head"><svg class="icon"><use href="#icon-wolf"/></svg><h3>Lobo das Estepes <span class="tag">Fera</span></h3></div>
-    <p>PV 12 · Defesa 13 · Ataque (mordida) +4 (1d6+2) · Costuma caçar em bando de 3 a 5.
-    Se dois lobos atacam o mesmo alvo na mesma rodada, o segundo ataque tem vantagem.</p>
-  </div>
-  <div class="statblock">
-    <div class="statblock-head"><svg class="icon"><use href="#icon-skeleton"/></svg><h3>Esqueleto Errante <span class="tag">Morto-vivo</span></h3></div>
-    <p>PV 16 · Defesa 12 · Ataque (espada enferrujada) +3 (1d8+1) · Imune a veneno e medo.
-    Desintoxicação não afeta; magia Santa ou de fogo causa dano dobrado.</p>
-  </div>
-  <div class="statblock">
-    <div class="statblock-head"><svg class="icon"><use href="#icon-golem"/></svg><h3>Golem de Pedra Rúnica <span class="tag">Construto</span></h3></div>
+<!-- ============ 12. GUILDA ============ -->
+<section class="section">
+  <span class="chapno">Jogo</span>
+  <h1>12. A Guilda de Aventureiros</h1>
+  <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-guildseal" x="350" y="25" width="100" height="100"/></svg>
+  <p class="full">Toda cidade de porte médio tem uma sede de guilda: um mural de missões, um balcão de registro e,
+  quase sempre, uma taverna anexa. O ranque de um aventureiro é a forma mais rápida de qualquer estranho avaliar
+  sua confiabilidade e seu poder — para o bem e para o mal.</p>
+  <table class="full">
+    <tr><th>Ranque</th><th>Nível sugerido</th><th>Tipo de missão</th><th>Pagamento típico</th></tr>
+    <tr><td>F</td><td>1</td><td>Coleta, mensagens, extermínio de pragas.</td><td>5–15 Rea</td></tr>
+    <tr><td>E</td><td>1–2</td><td>Escolta curta, caça a monstros menores.</td><td>15–30 Rea</td></tr>
+    <tr><td>D</td><td>2–3</td><td>Investigação, monstros de bando.</td><td>30–60 Rea</td></tr>
+    <tr><td>C</td><td>3–4</td><td>Masmorras curtas, escolta longa, monstros isolados fortes.</td><td>60–120 Rea</td></tr>
+    <tr><td>B</td><td>4–5</td><td>Ameaças regionais, monstros-líder.</td><td>120–250 Rea</td></tr>
+    <tr><td>A</td><td>5+</td><td>Crises que envolvem nobreza ou fronteiras.</td><td>250–500 Rea</td></tr>
+    <tr><td>S</td><td>lendário</td><td>Reservado às Sete Grandes Potências e catástrofes.</td><td>negociável</td></tr>
+  </table>
+  <p class="small full">Subir de ranque exige completar um número de missões daquele nível (a critério do Mestre,
+  tipicamente 3 a 5) e nunca abandonar uma sem justificativa registrada — reputação de guilda é rápida de perder
+  e lenta de reconstruir.</p>
+</section>
+
+<!-- ============ 13. BESTIÁRIO ============ -->
+<section class="section">
+  <span class="chapno">Mestre</span>
+  <h1>13. Bestiário</h1>
+  <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/>
+    <use href="#icon-wolf" x="90" y="35" width="80" height="80"/>
+    <use href="#icon-skeleton" x="220" y="30" width="80" height="90"/>
+    <use href="#icon-golem" x="350" y="30" width="80" height="90"/>
+    <use href="#icon-harpy" x="480" y="35" width="80" height="80"/>
+    <use href="#icon-drakeling" x="610" y="35" width="80" height="80"/>
+  </svg>
+  <p class="full">Oito ameaças comuns para começar uma campanha — genéricas o bastante para encaixar em qualquer
+  região do mapa.</p>
+
+  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-wolf"/></svg><h3>Lobo das Estepes <span class="tag">Fera</span></h3></div>
+    <p>PV 12 · Defesa 13 · Ataque (mordida) +4 (1d6+2) · Caça em bando de 3 a 5. Se dois lobos atacam o mesmo alvo
+    na mesma rodada, o segundo ataque tem vantagem.</p></div>
+
+  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-skeleton"/></svg><h3>Esqueleto Errante <span class="tag">Morto-vivo</span></h3></div>
+    <p>PV 16 · Defesa 12 · Ataque (espada enferrujada) +3 (1d8+1) · Imune a veneno e medo. Desintoxicação não
+    afeta; magia de fogo ou Santa causa dano dobrado.</p></div>
+
+  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-golem"/></svg><h3>Golem de Pedra Rúnica <span class="tag">Construto</span></h3></div>
     <p>PV 40 · Defesa 16 · Ataque (soco) +6 (2d8+3) · Lento (metade do deslocamento). Resistência a dano físico
-    (metade do dano de armas, mas não de magia). Ideal como "chefe" de uma masmorra curta.</p>
-  </div>
-  <div class="statblock">
-    <div class="statblock-head"><svg class="icon"><use href="#icon-slime"/></svg><h3>Gosma Ácida <span class="tag">Monstro Menor</span></h3></div>
-    <p>PV 8 · Defesa 10 · Ataque (toque ácido) +2 (1d4, e −1 de Defesa da armadura atingida até ser reparada).
-    Se reduzida a 0 PV por dano cortante, divide-se em 2 gosmas com metade do PV (só uma vez).</p>
-  </div>
-  <div class="statblock">
-    <div class="statblock-head"><svg class="icon"><use href="#icon-harpy"/></svg><h3>Harpia da Névoa <span class="tag">Fera Voadora</span></h3></div>
-    <p>PV 18 · Defesa 15 (voando) · Ataque (garras) +5 (1d6+2) · Pode usar a ação para gritar: todos num raio de
-    9m fazem teste de VON (CD 13) ou ficam Atordoados por 1 rodada.</p>
-  </div>
+    (metade do dano de armas, não de magia). Ideal como "chefe" de uma masmorra curta.</p></div>
+
+  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-slime"/></svg><h3>Gosma Ácida <span class="tag">Monstro Menor</span></h3></div>
+    <p>PV 8 · Defesa 10 · Ataque (toque ácido) +2 (1d4, e −1 de Defesa da armadura atingida até ser reparada). Se
+    reduzida a 0 PV por dano cortante, divide-se em 2 gosmas com metade do PV (só uma vez).</p></div>
+
+  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-harpy"/></svg><h3>Harpia da Névoa <span class="tag">Fera Voadora</span></h3></div>
+    <p>PV 18 · Defesa 15 (voando) · Ataque (garras) +5 (1d6+2) · Pode gritar como ação: todos num raio de 9m fazem
+    VON (CD 13) ou ficam Atordoados por 1 rodada.</p></div>
+
+  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-drakeling"/></svg><h3>Dracônico Jovem <span class="tag">Réptil</span></h3></div>
+    <p>PV 30 · Defesa 15 · Ataque (mordida) +6 (2d6+3) ou sopro elemental (recarrega com 1-2 num d6 a cada rodada):
+    linha de 9m, 3d6 de dano do elemento escolhido na criação da criatura, metade se o alvo passar em AGI CD 14.</p></div>
+
+  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-bandit"/></svg><h3>Batedor Bandido <span class="tag">Humanoide</span></h3></div>
+    <p>PV 14 · Defesa 14 · Ataque (adaga) +4 (1d4+2) ou arco curto +4 (1d6+2) · Furtividade +5. Prefere emboscadas
+    e foge com menos de um quarto do PV, salvo ordens contrárias de um líder.</p></div>
+
+  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-spirit"/></svg><h3>Espírito das Águas <span class="tag">Elemental Menor</span></h3></div>
+    <p>PV 20 · Defesa 14 · Ataque (jato) +5 (2d6, dano de água) · Imune a dano de água, vulnerável a Vento (dano
+    dobrado). Pode se mover através de qualquer corpo d'água instantaneamente uma vez por combate.</p></div>
 </section>
 
-<!-- ============ 10. AVENTURA ============ -->
+<!-- ============ 14. ALIADOS ============ -->
 <section class="section">
-  <h1>10. Aventura: O Selo do Bosque Cinza</h1>
+  <span class="chapno">Mestre</span>
+  <h1>14. Aliados de Exemplo</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
-  <p class="lede">Gancho pronto para uma primeira sessão de 3 a 4 horas, nível inicial, 3 a 5 jogadores.</p>
+  <p class="full">Dois PNJs prontos para acompanhar o grupo, aparecer em uma missão da guilda, ou servir de
+  contato recorrente numa cidade.</p>
+  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-bow"/></svg><h3>Elinor, Batedora da Guilda</h3></div>
+    <p><i>"Eu já vi essa marca de garra antes — e não gostei de onde isso terminou da última vez."</i><br>
+    PV 22 · Defesa 15 · Ataque (arco) +6 (1d6+3) · Percepção +6, Sobrevivência +6. Direta, pragmática, coleciona
+    dívidas e favores como moeda. Vínculo em potencial: já perdeu um grupo inteiro numa missão mal calculada e
+    agora pesa cada decisão duas vezes.</p></div>
+  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-shield"/></svg><h3>Grommash, Ex-Soldado Anão</h3></div>
+    <p><i>"Aguentei coisa pior com metade da armadura que vocês têm. Fica atrás de mim e respira fundo."</i><br>
+    PV 34 · Defesa 17 · Ataque (machado) +6 (1d10+3) · Resistência a medo, veneno. Ex-veterano de uma guerra de
+    fronteira que não gosta de falar; leal até o osso com quem prova ser digno de confiança devagar.</p></div>
+</section>
+
+<!-- ============ 15. AVENTURA ============ -->
+<section class="section">
+  <span class="chapno">Mestre</span>
+  <h1>15. Aventura: O Selo do Bosque Cinza</h1>
+  <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
+  <p class="lede">Gancho pronto para 3–4 horas de jogo, nível inicial, 3 a 5 jogadores.</p>
+  <div class="readaloud full">A estrada termina onde começa o Bosque Cinza — árvores tortas demais para serem
+  naturais, silêncio demais para ter pássaros. Um velho poste de pedra marca a entrada, com um símbolo gasto que
+  ninguém no grupo reconhece por completo.</div>
+
   <h3>Situação</h3>
   <p>A vila de Coalvale fica à beira do Bosque Cinza, onde um selo antigo mantém adormecida uma fera de pedra
-  (use o Golem de Pedra Rúnica como chefe final). Nos últimos dias, Gosmas Ácidas e um bando de Lobos das Estepes
-  têm saído da floresta com mais frequência — sinal de que o selo está enfraquecendo. A guilda local oferece
-  30 Rea por cabeça e 100 Rea para quem descobrir (e resolver) a causa.</p>
-  <h3>Estrutura em três cenas</h3>
-  <table>
-    <tr><th>Cena</th><th>O que acontece</th></tr>
-    <tr><td>1 — A vila</td><td>Investigação social: falar com a guilda, o ferreiro (vende equipamentos) e um
-      caçador idoso que sabe do selo (teste de Persuasão CD 12 para ele contar a história completa).</td></tr>
-    <tr><td>2 — O bosque</td><td>Combate/exploração: emboscada de 2 Lobos + 1 Gosma no caminho até as ruínas
-      do selo; teste de Sobrevivência CD 13 para achar o caminho mais curto e evitar um segundo encontro.</td></tr>
-    <tr><td>3 — As ruínas</td><td>O selo tem uma rachadura que pode ser reparada com um teste de Arcanismo CD 15
-      (2 tentativas, cada personagem só tenta uma vez) <i>ou</i> derrotando o Golem quando ele desperta ao meio
-      da tentativa de reparo — o que for mais divertido para sua mesa.</td></tr>
-  </table>
-  <div class="callout mestre"><b>Gancho para continuação:</b> a rachadura no selo tinha marcas de ferramenta —
-  alguém a forçou de propósito. Quem, e por quê, fica para a próxima aventura.</div>
+  (use o <b>Golem de Pedra Rúnica</b>, Cap. 13, como chefe final). Nos últimos dias, Gosmas Ácidas e um bando de
+  Lobos das Estepes têm saído da floresta com mais frequência — sinal de que o selo está enfraquecendo. A guilda
+  local (ranque F–E) oferece 30 Rea por cabeça e 100 Rea para quem descobrir e resolver a causa.</p>
+
+  <h3>Cena 1 — A vila</h3>
+  <p>Investigação social: falar com a guilda, o ferreiro (vende equipamentos do Cap. 10) e um caçador idoso que
+  sabe do selo (Persuasão CD 12 para ele contar a história completa: o selo foi erguido há três gerações após um
+  incidente que a vila prefere não repetir em detalhe).</p>
+
+  <h3>Cena 2 — O bosque</h3>
+  <p>Emboscada de 2 Lobos + 1 Gosma no caminho até as ruínas do selo. Sobrevivência CD 13 acha o caminho mais
+  curto e evita um segundo encontro. Se o grupo demorar mais de uma cena investigando na vila, adicione um
+  <b>Batedor Bandido</b> observando de longe — ele é quem forçou a rachadura (veja Cena 3).</p>
+
+  <h3>Cena 3 — As ruínas</h3>
+  <svg class="worldmap" viewBox="0 0 500 200" style="max-width:110mm; margin:2mm auto; display:block;">
+    <rect x="0" y="0" width="500" height="200" fill="#e7d8b3"/>
+    <rect x="30" y="70" width="90" height="70" fill="#c9b689" stroke="#4a3a28" stroke-width="2"/>
+    <text x="45" y="110" font-size="11" font-family="Liberation Serif,serif">1. Entrada</text>
+    <rect x="200" y="30" width="100" height="60" fill="#c9b689" stroke="#4a3a28" stroke-width="2"/>
+    <text x="215" y="65" font-size="11" font-family="Liberation Serif,serif">2. Câmara</text>
+    <rect x="200" y="120" width="100" height="60" fill="#c9b689" stroke="#4a3a28" stroke-width="2"/>
+    <text x="212" y="155" font-size="11" font-family="Liberation Serif,serif">3. Cripta</text>
+    <rect x="380" y="75" width="90" height="60" fill="#dcae7a" stroke="#7a2222" stroke-width="2.5"/>
+    <text x="392" y="110" font-size="11" font-family="Liberation Serif,serif">4. Selo</text>
+    <rect x="120" y="95" width="80" height="16" fill="#c9b689" stroke="#4a3a28" stroke-width="1.5"/>
+    <rect x="240" y="90" width="16" height="30" fill="#c9b689" stroke="#4a3a28" stroke-width="1.5"/>
+    <rect x="300" y="95" width="80" height="16" fill="#c9b689" stroke="#4a3a28" stroke-width="1.5"/>
+  </svg>
+  <p class="small full center">Mapa das ruínas: 1. Entrada coberta de raízes → 2. Câmara com escombros (o
+  Batedor pode emboscar aqui) → 3. Cripta lateral opcional (itens, Cap. 11) → 4. Câmara do Selo.</p>
+  <p class="full">O selo tem uma rachadura com marcas de ferramenta — <b>alguém a forçou de propósito</b>. O grupo
+  pode reparar a rachadura com Arcanismo CD 15 (2 tentativas, cada personagem tenta apenas uma vez) <i>ou</i>
+  enfrentar o Golem quando ele desperta no meio do reparo — o que for mais divertido para sua mesa.</p>
+  <div class="callout mestre full">Gancho para continuação: o Batedor Bandido foi pago para forçar o selo, mas
+  não sabia sequer o que estava dentro. Quem contratou, e por quê, fica para a próxima aventura.</div>
 </section>
 
-<!-- ============ 11. GUIA DO MESTRE ============ -->
+<!-- ============ 16. GUIA DO MESTRE ============ -->
 <section class="section">
-  <h1>11. Guia do Mestre</h1>
+  <span class="chapno">Mestre</span>
+  <h1>16. Guia do Mestre</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
-  <div class="cols2">
-    <div>
-      <h3>Ritmo de campanha</h3>
-      <p>Trate os graus de magia e espada (Cap. 4–5) como marcos narrativos, não como "level up" automático:
-      um personagem sobe de Intermediário para Avançado quando a história justificar — depois de meses de
-      treino, um duelo decisivo, ou a superação de um trauma pessoal.</p>
-      <h3>Progressão de nível</h3>
-      <table>
-        <tr><th>Nível</th><th>XP necessário</th><th>Ganho</th></tr>
-        <tr><td>1→2</td><td>300</td><td>+1 perícia treinada</td></tr>
-        <tr><td>2→3</td><td>900</td><td>+1 atributo (máx. 16)</td></tr>
-        <tr><td>3→4</td><td>1800</td><td>Novo grau de magia OU espada disponível para treino</td></tr>
-        <tr><td>4→5</td><td>3200</td><td>+1 atributo (máx. 16); técnica especial de estilo/elemento</td></tr>
-      </table>
-    </div>
-    <div>
-      <h3>Dando XP</h3>
-      <p>100–300 XP por sessão dependendo de dificuldade dos combates e qualidade do roleplay, dividido
-      igualmente entre o grupo. Vitórias inteligentes (evitar um combate ruim, negociar bem) valem tanto
-      quanto vitórias em combate.</p>
-      <h3>Ajustando a dificuldade</h3>
-      <p>Regra rápida: some o total de PV dos monstros de um encontro. Se passar de <b>PV total × 1,5</b> em
-      relação à soma de PV do grupo, o combate está pesado — considere reduzir o número de inimigos.</p>
-      <h3>Sobre reencarnação e tom</h3>
-      <p>O tema de "segunda chance" é o coração do cenário. Vale a pena, de tempos em tempos, perguntar
-      diretamente ao jogador: "o que seu personagem faria diferente desta vez?" — e deixar a resposta influenciar
-      a sessão.</p>
-    </div>
-  </div>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-book" x="350" y="25" width="100" height="100"/></svg>
+  <h3>Ritmo de campanha</h3>
+  <p>Trate os graus de magia e espada (Cap. 5–6) como marcos narrativos, não como "level up" automático: um
+  personagem sobe de Intermediário para Avançado quando a história justificar — meses de treino, um duelo
+  decisivo, a superação de um trauma pessoal.</p>
+  <h3>Progressão de nível</h3>
+  <table class="full">
+    <tr><th>Nível</th><th>XP necessário</th><th>Ganho</th></tr>
+    <tr><td>1→2</td><td>300</td><td>+1 perícia treinada</td></tr>
+    <tr><td>2→3</td><td>900</td><td>+1 atributo (máx. 16)</td></tr>
+    <tr><td>3→4</td><td>1800</td><td>Novo grau de magia OU espada disponível para treino</td></tr>
+    <tr><td>4→5</td><td>3200</td><td>+1 atributo (máx. 16); habilidade de nível 5 do Ofício (Cap. 4)</td></tr>
+  </table>
+  <h3>Dando XP</h3>
+  <p>100–300 XP por sessão dependendo de dificuldade dos combates e qualidade do roleplay, dividido igualmente
+  entre o grupo. Vitórias inteligentes (evitar um combate ruim, negociar bem) valem tanto quanto vitórias em
+  combate.</p>
+  <h3>Ajustando a dificuldade</h3>
+  <p>Some o total de PV dos monstros de um encontro. Se passar de <b>PV total × 1,5</b> em relação à soma de PV
+  do grupo, o combate está pesado — considere reduzir o número de inimigos ou dar ao grupo uma vantagem de
+  terreno.</p>
+  <h3>Sobre reencarnação e tom</h3>
+  <p>O tema de "segunda chance" é o coração do cenário. Vale a pena, de tempos em tempos, perguntar diretamente
+  ao jogador: "o que seu personagem faria diferente desta vez?" — e deixar a resposta influenciar a sessão.</p>
+  <div class="callout dica full">Um NPC recorrente que erra, aprende e volta diferente vale mais do que dez NPCs
+  novos. Reaproveite Elinor e Grommash (Cap. 14) em mais de uma aventura antes de introduzir substitutos.</div>
 </section>
 
-<!-- ============ 12. FICHA DE PERSONAGEM ============ -->
-<section class="section">
-  <h1>12. Ficha de Personagem</h1>
+<!-- ============ 17. FICHA ============ -->
+<section class="section nocol">
+  <h1>17. Ficha de Personagem</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <div class="sheet-grid">
     <div class="sheet-box"><label>Nome</label><div class="sheet-line"></div></div>
     <div class="sheet-box"><label>Raça</label><div class="sheet-line"></div></div>
     <div class="sheet-box"><label>Origem (Nativo/Reencarnado)</label><div class="sheet-line"></div></div>
-    <div class="sheet-box"><label>Trilha</label><div class="sheet-line"></div></div>
+    <div class="sheet-box"><label>Ofício</label><div class="sheet-line"></div></div>
     <div class="sheet-box"><label>Nível</label><div class="sheet-line"></div></div>
     <div class="sheet-box"><label>XP</label><div class="sheet-line"></div></div>
   </div>
@@ -571,17 +936,59 @@
   </div>
   <div class="sheet-grid">
     <div class="sheet-box"><label>PV</label><div class="sheet-line"></div></div>
-    <div class="sheet-box"><label>PM</label><div class="sheet-line"></div></div>
+    <div class="sheet-box"><label>PM (Mana)</label><div class="sheet-line"></div></div>
+    <div class="sheet-box"><label>FL (Fôlego)</label><div class="sheet-line"></div></div>
     <div class="sheet-box"><label>Defesa</label><div class="sheet-line"></div></div>
     <div class="sheet-box"><label>Pontos de Impulso</label><div class="sheet-line"></div></div>
     <div class="sheet-box"><label>Estilo de espada</label><div class="sheet-line"></div></div>
-    <div class="sheet-box"><label>Elemento(s)</label><div class="sheet-line"></div></div>
   </div>
-  <div class="sheet-box" style="min-height:24mm;margin-top:3mm"><label>Perícias treinadas</label><div class="sheet-line"></div><div class="sheet-line" style="margin-top:3mm"></div></div>
-  <div class="sheet-box" style="min-height:24mm;margin-top:3mm"><label>Equipamento</label><div class="sheet-line"></div><div class="sheet-line" style="margin-top:3mm"></div></div>
-  <div class="sheet-box" style="min-height:30mm;margin-top:3mm"><label>Objetivo pessoal / Cicatriz do Passado / Vínculo</label>
+  <div class="sheet-grid">
+    <div class="sheet-box"><label>Elemento(s)</label><div class="sheet-line"></div></div>
+    <div class="sheet-box"><label>Ranque de Guilda</label><div class="sheet-line"></div></div>
+    <div class="sheet-box"><label>Rea (dinheiro)</label><div class="sheet-line"></div></div>
+  </div>
+  <div class="sheet-box" style="min-height:22mm;margin-top:3mm"><label>Perícias treinadas</label><div class="sheet-line"></div><div class="sheet-line" style="margin-top:3mm"></div></div>
+  <div class="sheet-box" style="min-height:22mm;margin-top:3mm"><label>Manobras / Magias / Técnicas conhecidas</label><div class="sheet-line"></div><div class="sheet-line" style="margin-top:3mm"></div></div>
+  <div class="sheet-box" style="min-height:22mm;margin-top:3mm"><label>Equipamento</label><div class="sheet-line"></div><div class="sheet-line" style="margin-top:3mm"></div></div>
+  <div class="sheet-box" style="min-height:26mm;margin-top:3mm"><label>Objetivo pessoal / Cicatriz do Passado / Vínculo</label>
     <div class="sheet-line"></div><div class="sheet-line" style="margin-top:3mm"></div><div class="sheet-line" style="margin-top:3mm"></div></div>
-  <p class="small center" style="margin-top:6mm">Mushoku Tensei RPG — Livro Básico · Fan sourcebook não-oficial · Uso pessoal e não-comercial</p>
+</section>
+
+<!-- ============ 18. REFERÊNCIA RÁPIDA ============ -->
+<section class="section">
+  <span class="chapno">Apêndices</span>
+  <h1>18. Referência Rápida</h1>
+  <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
+  <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-scroll" x="350" y="25" width="100" height="100"/></svg>
+  <table class="full">
+    <tr><th>Modificador de atributo</th><th colspan="8">8=-1 · 10-11=+0 · 12-13=+1 · 14-15=+2 · 16-17=+3 · 18=+4</th></tr>
+  </table>
+  <div class="cols2">
+    <div>
+      <h3>Dificuldades (CD)</h3>
+      <table><tr><th>Nível</th><th>CD</th></tr><tr><td>Fácil</td><td>10</td></tr><tr><td>Moderado</td><td>15</td></tr>
+      <tr><td>Difícil</td><td>20</td></tr><tr><td>Quase impossível</td><td>25</td></tr></table>
+      <h3>Recursos</h3>
+      <table><tr><th>Recurso</th><th>Fórmula</th></tr>
+      <tr><td>PV</td><td>VIG×4 + nível×3</td></tr>
+      <tr><td>PM</td><td>INT×3 + nível×2</td></tr>
+      <tr><td>FL</td><td>(FOR+VIG mod.)×2 + nível×2</td></tr>
+      <tr><td>Defesa</td><td>10 + AGI + armadura</td></tr></table>
+    </div>
+    <div>
+      <h3>Ação em combate</h3>
+      <ul><li>1 Ação: atacar, conjurar, manobra, mover x2, item</li>
+      <li>1 Reação: aparar, esquivar, técnica reativa</li>
+      <li>20 natural = crítico (dano dobrado)</li>
+      <li>1 natural = complicação (d6, Cap. 9)</li></ul>
+      <h3>Condições</h3>
+      <ul><li><b>Derrubado</b> — desv. corpo a corpo / +2 à distância contra</li>
+      <li><b>Envenenado</b> — −2 em tudo</li>
+      <li><b>Atordoado</b> — sem reação</li>
+      <li><b>Inconsciente</b> — 0 PV, Medicina CD 10</li></ul>
+    </div>
+  </div>
+  <p class="full small center" style="margin-top:4mm">Mushoku Tensei RPG — Livro do Jogador · Fan sourcebook não-oficial · Uso pessoal e não-comercial</p>
 </section>
 
 </body>
