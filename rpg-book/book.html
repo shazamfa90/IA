@@ -14,7 +14,7 @@
   html,body{margin:0;padding:0;background:var(--parchment);color:var(--ink);
     font-family:"DejaVu Sans","Liberation Sans",sans-serif; font-size:11.3pt; line-height:1.5;}
   h1,h2,h3,h4{font-family:"Liberation Serif","DejaVu Serif",serif; color:var(--wine); margin:0 0 3mm 0;}
-  h1{font-size:25pt; letter-spacing:0.5px; text-align:center; column-span:all;}
+  h1{font-size:25pt; letter-spacing:0.5px; text-align:center; column-span:all; break-after:avoid;}
   h2{font-size:16.5pt; border-bottom:2px solid var(--gold); padding-bottom:1.5mm; margin-top:2mm; break-after:avoid;}
   h3{font-size:13pt; color:var(--forest); margin-top:3mm; break-after:avoid;}
   h4{font-size:11.8pt; margin:0 0 1mm 0; break-after:avoid;}
@@ -28,17 +28,18 @@
   .section.nocol{column-count:1;}
   .full{column-span:all;}
   .banner{display:block; width:100%; height:auto; margin:1mm 0 4mm 0; column-span:all;}
-  .ornament{display:block; margin:1mm auto 4mm auto; column-span:all;}
+  .ornament{display:block; margin:1mm auto 4mm auto; column-span:all; break-after:avoid;}
   .subtitle-bar{column-span:all; text-align:center; font-family:"Liberation Serif",serif; font-size:12.5pt; color:var(--forest); margin:-2mm 0 4mm 0;}
 
   .lede{font-style:italic; color:#4a3a28; border-left:3px solid var(--gold); padding-left:4mm; margin:2mm 0 4mm 0; break-inside:avoid;}
   .readaloud{background:#eee3c4; border:0.75pt solid var(--gold); border-radius:1.5mm; padding:3mm 4mm; margin:3mm 0; font-style:italic; break-inside:avoid;}
   .readaloud::before{content:"“ Leia em voz alta ”"; display:block; font-style:normal; font-size:8pt; letter-spacing:1px; text-transform:uppercase; color:var(--gold); margin-bottom:1.5mm;}
 
-  table{width:100%; border-collapse:collapse; margin:2.5mm 0 4mm 0; font-size:10.3pt; break-inside:avoid;}
+  table{width:100%; border-collapse:collapse; margin:2.5mm 0 4mm 0; font-size:10.3pt;}
   th,td{border:0.5pt solid #b7a173; padding:1.6mm 2.6mm; text-align:left; vertical-align:top;}
   th{background:var(--wine); color:var(--parchment); font-family:"Liberation Serif",serif; font-weight:bold;}
   tr{break-inside:avoid;}
+  tr:first-child{break-after:avoid;}
   tr:nth-child(even) td{background:var(--parchment-dark);}
   table.full{column-span:all;}
 
@@ -53,11 +54,17 @@
   .callout.lore::before{content:"Você sabia?"; color:var(--forest);}
 
   .icon{width:9mm; height:9mm; flex:none;}
+  .icon.photo{object-fit:cover; border-radius:1.5mm; border:0.75pt solid var(--gold); filter:sepia(.35) saturate(1.15) contrast(1.08) brightness(.97);}
   .grid2.full{column-span:all; display:flex; flex-wrap:wrap; gap:3mm; margin:3mm 0;}
   .card{width:47%; display:flex; gap:3mm; align-items:flex-start; border:0.5pt solid #b7a173; padding:3mm 3.5mm; background:rgba(255,255,255,.28); break-inside:avoid;}
   .card h4{color:var(--wine); font-size:11.8pt;}
   .card p{margin:0; font-size:10.2pt; text-align:left;}
   .card .icon{width:11mm;height:11mm;}
+  .card .icon.photo{width:24mm; height:24mm;}
+  .illustration{column-span:all; display:block; margin:2mm auto 4mm auto; max-height:70mm; width:auto; max-width:100%; object-fit:cover; border:2px solid var(--gold); outline:1px solid var(--wine); outline-offset:2px; filter:sepia(.35) saturate(1.15) contrast(1.08) brightness(.97);}
+  .worldmap-wrap{position:relative; column-span:all;}
+  .worldmap-wrap .texture{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.22; filter:sepia(.4);}
+  .worldmap-wrap .worldmap{position:relative;}
 
   .elem-row{display:flex; gap:3mm; margin:3mm 0; flex-wrap:wrap; column-span:all;}
   .elem-badge{display:flex; align-items:center; gap:2mm; border:0.5pt solid #b7a173; border-radius:3mm; padding:2mm 3.5mm; font-size:10pt; background:rgba(255,255,255,.3);}
@@ -66,6 +73,7 @@
   .statblock{border:0.9pt solid var(--wine); background:rgba(255,255,255,.35); padding:3mm 4mm; margin:0 0 4mm 0; break-inside:avoid;}
   .statblock-head{display:flex; align-items:center; gap:3mm; border-bottom:1px solid var(--gold); padding-bottom:1.5mm; margin-bottom:2mm;}
   .statblock-head .icon{width:12mm;height:12mm;}
+  .statblock-head .icon.photo{width:22mm;height:22mm;}
   .statblock-head h3{margin:0; font-size:13pt;}
   .statblock p{font-size:10.2pt; margin:0;}
   .tag{display:inline-block; background:var(--forest); color:var(--parchment); font-size:8.3pt; padding:0.6mm 2.2mm; border-radius:2mm; margin-left:2mm; font-family:"DejaVu Sans",sans-serif; font-weight:normal;}
@@ -75,7 +83,8 @@
   .sheet-box label{display:block; font-size:8.3pt; text-transform:uppercase; color:var(--wine); letter-spacing:0.5px; margin-bottom:1mm;}
   .sheet-line{border-bottom:0.5pt solid #7a6a4d; height:5mm;}
 
-  .cover{height:255mm; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:relative; column-count:1;}
+  .cover{height:255mm; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; position:relative; column-count:1;
+    background: linear-gradient(rgba(243,233,210,.87),rgba(243,233,210,.87)), url('images/cover_knight.jpg') center 15%/cover no-repeat;}
   .cover .bigcircle{width:100mm; height:100mm;}
   .cover h1{font-size:36pt; margin-top:5mm;}
   .cover .subtitle{font-family:"Liberation Serif",serif; font-size:14.5pt; color:var(--forest); margin-top:1mm;}
@@ -94,7 +103,8 @@
   .rankladder div{flex:1; text-align:center; font-size:8.6pt; border-top:2px solid var(--gold); padding-top:1.5mm; margin:0 0.5mm;}
   .rankladder div b{display:block; font-family:"Liberation Serif",serif; font-size:10pt; color:var(--wine);}
 
-  .chapno{display:block; text-align:center; font-family:"Liberation Serif",serif; color:var(--gold); letter-spacing:3px; font-size:10pt; text-transform:uppercase; column-span:all; margin-bottom:-1mm;}
+  .chapno{display:block; text-align:center; font-family:"Liberation Serif",serif; color:var(--gold); letter-spacing:3px; font-size:10pt; text-transform:uppercase; column-span:all; margin-bottom:-1mm; break-after:avoid;}
+  .chapno.chap-divider{ margin-top:7mm; padding-top:4mm; border-top:1.2pt solid var(--gold); break-before:auto; }
 </style>
 </head>
 <body>
@@ -203,9 +213,10 @@
   <p class="small" style="max-width:130mm">Reencarnação, mana e a segunda chance em um mundo de espadas e magia.<br>
   Um sourcebook de fã — completo, ilustrado e pronto para jogar em mesa.</p>
   <div class="disclaimer">Obra de fã, não-oficial e sem fins lucrativos. Inspirada no universo de <i>Mushoku Tensei: Jobless Reincarnation</i>,
-  criado por Rifujin na Magonote. Todas as ilustrações deste livro são vetoriais e originais, desenhadas para esta edição — nenhuma
-  imagem oficial ou de terceiros foi utilizada. Nomes, personagens e trama da obra original pertencem aos seus respectivos autores e
-  editoras. Não afiliado nem endossado por eles.</div>
+  criado por Rifujin na Magonote. As ilustrações vetoriais deste livro são originais, desenhadas para esta edição; as demais imagens
+  são obras de domínio público ou licenciadas sob Creative Commons — nenhuma arte oficial da obra original ou de terceiros sem
+  licença foi utilizada (veja os Créditos de Arte no fim do livro). Nomes, personagens e trama da obra original pertencem aos seus
+  respectivos autores e editoras. Não afiliado nem endossado por eles.</div>
 </section>
 
 <!-- ============ SUMÁRIO ============ -->
@@ -215,29 +226,29 @@
   <ul class="toc-list">
     <li class="grp"><span>Introdução</span><span></span></li>
     <li><span>0. Como Usar Este Livro</span><span>04</span></li>
-    <li><span>1. O Mundo</span><span>05</span></li>
+    <li><span>1. O Mundo</span><span>04</span></li>
     <li class="grp"><span>Personagem</span><span></span></li>
     <li><span>2. Criação de Personagem</span><span>07</span></li>
-    <li><span>3. Raças</span><span>09</span></li>
-    <li><span>4. Ofícios</span><span>11</span></li>
+    <li><span>3. Raças</span><span>08</span></li>
+    <li><span>4. Ofícios</span><span>10</span></li>
     <li class="grp"><span>Poder</span><span></span></li>
-    <li><span>5. Sistema de Magia e Grimório</span><span>13</span></li>
-    <li><span>6. Estilos de Espada</span><span>16</span></li>
-    <li><span>7. Fôlego e Manobras de Combate</span><span>18</span></li>
-    <li><span>8. Perícias</span><span>20</span></li>
+    <li><span>5. Sistema de Magia e Grimório</span><span>12</span></li>
+    <li><span>6. Estilos de Espada</span><span>14</span></li>
+    <li><span>7. Fôlego e Manobras de Combate</span><span>16</span></li>
+    <li><span>8. Perícias</span><span>17</span></li>
     <li class="grp"><span>Jogo</span><span></span></li>
-    <li><span>9. Combate</span><span>21</span></li>
-    <li><span>10. Equipamentos</span><span>23</span></li>
-    <li><span>11. Itens Mágicos e Alquimia</span><span>25</span></li>
-    <li><span>12. A Guilda de Aventureiros</span><span>27</span></li>
+    <li><span>9. Combate</span><span>18</span></li>
+    <li><span>10. Equipamentos</span><span>19</span></li>
+    <li><span>11. Itens Mágicos e Alquimia</span><span>20</span></li>
+    <li><span>12. A Guilda de Aventureiros</span><span>21</span></li>
     <li class="grp"><span>Mestre</span><span></span></li>
-    <li><span>13. Bestiário</span><span>28</span></li>
-    <li><span>14. Aliados de Exemplo</span><span>31</span></li>
-    <li><span>15. Aventura: O Selo do Bosque Cinza</span><span>32</span></li>
-    <li><span>16. Guia do Mestre</span><span>35</span></li>
+    <li><span>13. Bestiário</span><span>22</span></li>
+    <li><span>14. Aliados de Exemplo</span><span>23</span></li>
+    <li><span>15. Aventura: O Selo do Bosque Cinza</span><span>24</span></li>
+    <li><span>16. Guia do Mestre</span><span>25</span></li>
     <li class="grp"><span>Apêndices</span><span></span></li>
-    <li><span>17. Ficha de Personagem</span><span>37</span></li>
-    <li><span>18. Referência Rápida</span><span>38</span></li>
+    <li><span>17. Ficha de Personagem</span><span>27</span></li>
+    <li><span>18. Referência Rápida</span><span>28</span></li>
   </ul>
 </section>
 
@@ -265,11 +276,9 @@
   <h3>O que você precisa</h3>
   <p>Um conjunto de dados poliédricos (d4, d6, d8, d10, d12, d20) por jogador — ou um par de d20 e alguns d6, que
   cobrem quase tudo — lápis, borracha, fichas de personagem (Cap. 17) e fichas em branco de monstro para o Mestre.</p>
-</section>
 
 <!-- ============ 1. O MUNDO ============ -->
-<section class="section">
-  <span class="chapno">Introdução</span>
+  <span class="chapno chap-divider">Introdução</span>
   <h1>1. O Mundo</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <p class="lede">"Ninguém escolhe onde nasce a segunda vez — mas todos escolhem o que fazem com ela."</p>
@@ -372,11 +381,9 @@
     <tr><td>Carisma</td><td>CAR</td><td>Negociação, liderança, presença de espírito, animais e familiares.</td></tr>
   </table>
   <p class="small">Modificador = (valor do atributo − 10) ÷ 2, arredondado para baixo. Ex.: FOR 14 → +2; FOR 9 → -1.</p>
-</section>
 
 <!-- ============ 3. RAÇAS ============ -->
-<section class="section">
-  <span class="chapno">Personagem</span>
+  <span class="chapno chap-divider">Personagem</span>
   <h1>3. Raças</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/>
@@ -391,17 +398,17 @@
   <p class="full">Sete povos dividem o mundo conhecido. Nenhuma raça é estritamente melhor que outra — cada uma joga
   um jogo diferente, e cada bônus tem um custo social ou situacional em algum lugar da ficha.</p>
   <div class="grid2 full">
-    <div class="card"><svg class="icon"><use href="#icon-human"/></svg>
+    <div class="card"><img class="icon photo" src="images/race_human.jpg" alt="Humano">
       <div><h4>Humano</h4><p><b>+1 em dois atributos à escolha.</b> Aprende perícias e Ofícios em metade do tempo
       (vantagem em testes de treino fora de combate). A raça mais numerosa e adaptável; sem afinidade elemental
       fixa, mas também sem restrição alguma.</p></div>
     </div>
-    <div class="card"><svg class="icon"><use href="#icon-elf"/></svg>
+    <div class="card"><img class="icon photo" src="images/race_elf.jpg" alt="Elfo">
       <div><h4>Elfo</h4><p><b>+2 AGI, +1 INT.</b> Vantagem em Percepção e Furtividade em florestas. Vivem
       centenas de anos e envelhecem devagar — bons para personagens "sábios" mesmo jovens em nível. Comunidades
       élficas raramente saem de suas florestas natais, o que rende olhares curiosos alhures.</p></div>
     </div>
-    <div class="card"><svg class="icon"><use href="#icon-dwarf"/></svg>
+    <div class="card"><img class="icon photo" src="images/race_dwarf.jpg" alt="Anão">
       <div><h4>Anão</h4><p><b>+2 FOR, +1 VIG.</b> Resistência a veneno e a efeitos de medo. Bônus para identificar
       metais, forjar e avaliar itens (útil no Cap. 11). Povo de mineradores e ferreiros, comum no Continente
       Central, orgulhoso e de palavra firme.</p></div>
@@ -427,11 +434,9 @@
       quiser começar em desvantagem social e vantagem de combate.</p></div>
     </div>
   </div>
-</section>
 
 <!-- ============ 4. OFÍCIOS ============ -->
-<section class="section">
-  <span class="chapno">Personagem</span>
+  <span class="chapno chap-divider">Personagem</span>
   <h1>4. Ofícios</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/>
@@ -489,6 +494,7 @@
   <h1>5. Sistema de Magia e Grimório</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-magiccircle" x="340" y="15" width="120" height="120"/></svg>
+  <img class="illustration" src="images/banner_magic.jpg" alt="Alquimista trabalhando em sua forja mágica">
   <p class="full">Magia é mana moldada por vontade e forma. Todo personagem com INT 10+ pode conjurar; a diferença
   entre um mago de rua e um Rei Mago está em quanto mana ele tem e quantas vezes já treinou a forma exata do
   feitiço.</p>
@@ -550,14 +556,13 @@
     <tr><td>Mãos que Curam</td><td>Desintox. · 1</td><td>2 PM</td><td>Cura 1d6 + mod. INT por toque.</td></tr>
     <tr><td>Onda Vital</td><td>Desintox. · 2</td><td>4 PM</td><td>Cura 2d6 distribuídos entre até 3 alvos a 3m entre si.</td></tr>
   </table>
-</section>
 
 <!-- ============ 6. ESTILOS DE ESPADA ============ -->
-<section class="section">
-  <span class="chapno">Poder</span>
+  <span class="chapno chap-divider">Poder</span>
   <h1>6. Estilos de Espada</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-swordcross" x="350" y="25" width="100" height="100"/></svg>
+  <img class="illustration" src="images/banner_sword.jpg" alt="Gravura antiga de duelistas de espada em um salão">
   <p class="full">Assim como a magia tem graus, a espada tem estilos. Um personagem escolhe um dos três grandes
   estilos na criação (independente de Ofício — até um Mago pode ter treino formal de espada). Trocar de estilo
   depois exige treino do zero.</p>
@@ -587,11 +592,9 @@
     <tr><td>Imperador</td><td>Onda de Corte: um ataque atinge todos os inimigos adjacentes ao alvo.</td></tr>
     <tr><td>Deus</td><td>Marca de Mestre: uma vez por sessão, um ataque é automaticamente um acerto crítico.</td></tr>
   </table>
-</section>
 
 <!-- ============ 7. FÔLEGO E MANOBRAS ============ -->
-<section class="section">
-  <span class="chapno">Poder</span>
+  <span class="chapno chap-divider">Poder</span>
   <h1>7. Fôlego e Manobras de Combate</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-boot" x="350" y="30" width="100" height="90"/></svg>
@@ -627,11 +630,9 @@
     <tr><td>5</td><td>Machuca-se levemente: sofre 1 ponto de dano.</td></tr>
     <tr><td>6</td><td>Chama atenção indesejada — um som alto, um grito, algo se move nas sombras.</td></tr>
   </table>
-</section>
 
 <!-- ============ 8. PERÍCIAS ============ -->
-<section class="section">
-  <span class="chapno">Poder</span>
+  <span class="chapno chap-divider">Poder</span>
   <h1>8. Perícias</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <p>Perícia treinada dá +2 no teste (d20 + mod. do atributo + bônus de treino, contra uma Dificuldade definida
@@ -681,11 +682,9 @@
   personagem ganha 1 <b>Ponto de Impulso</b> (máx. 3). Gaste 1 por vez para transformar um dado em resultado
   máximo (na rolagem de dano) ou para repetir uma rolagem ruim. Representa aqueles momentos de "segunda chance"
   centrais ao tom da campanha. Regra opcional — remova se o grupo preferir um jogo mais cru.</div>
-</section>
 
 <!-- ============ 10. EQUIPAMENTOS ============ -->
-<section class="section">
-  <span class="chapno">Jogo</span>
+  <span class="chapno chap-divider">Jogo</span>
   <h1>10. Equipamentos</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <table class="full">
@@ -714,11 +713,9 @@
     <tr><td>Ladino</td><td>Duas adagas + roupas escuras + kit de arrombamento + 15 Rea.</td></tr>
     <tr><td>Espadachim-Arcano</td><td>Espada curta + couro batido + grimório + 5 Rea.</td></tr>
   </table>
-</section>
 
 <!-- ============ 11. ITENS MÁGICOS E ALQUIMIA ============ -->
-<section class="section">
-  <span class="chapno">Jogo</span>
+  <span class="chapno chap-divider">Jogo</span>
   <h1>11. Itens Mágicos e Alquimia</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-potion" x="350" y="25" width="100" height="100"/></svg>
@@ -739,11 +736,9 @@
   </table>
   <div class="callout lore full">Poções de cura no mundo de Mushoku Tensei RPG não substituem magia de
   Desintoxicação — restauram vitalidade, mas nada faz contra veneno ou maldição além do próprio antídoto certo.</div>
-</section>
 
 <!-- ============ 12. GUILDA ============ -->
-<section class="section">
-  <span class="chapno">Jogo</span>
+  <span class="chapno chap-divider">Jogo</span>
   <h1>12. A Guilda de Aventureiros</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-guildseal" x="350" y="25" width="100" height="100"/></svg>
@@ -788,7 +783,7 @@
     <p>PV 16 · Defesa 12 · Ataque (espada enferrujada) +3 (1d8+1) · Imune a veneno e medo. Desintoxicação não
     afeta; magia de fogo ou Santa causa dano dobrado.</p></div>
 
-  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-golem"/></svg><h3>Golem de Pedra Rúnica <span class="tag">Construto</span></h3></div>
+  <div class="statblock"><div class="statblock-head"><img class="icon photo" src="images/bestiary_golem.jpg" alt="Golem"><h3>Golem de Pedra Rúnica <span class="tag">Construto</span></h3></div>
     <p>PV 40 · Defesa 16 · Ataque (soco) +6 (2d8+3) · Lento (metade do deslocamento). Resistência a dano físico
     (metade do dano de armas, não de magia). Ideal como "chefe" de uma masmorra curta.</p></div>
 
@@ -796,26 +791,24 @@
     <p>PV 8 · Defesa 10 · Ataque (toque ácido) +2 (1d4, e −1 de Defesa da armadura atingida até ser reparada). Se
     reduzida a 0 PV por dano cortante, divide-se em 2 gosmas com metade do PV (só uma vez).</p></div>
 
-  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-harpy"/></svg><h3>Harpia da Névoa <span class="tag">Fera Voadora</span></h3></div>
+  <div class="statblock"><div class="statblock-head"><img class="icon photo" src="images/bestiary_harpy.jpg" alt="Harpia"><h3>Harpia da Névoa <span class="tag">Fera Voadora</span></h3></div>
     <p>PV 18 · Defesa 15 (voando) · Ataque (garras) +5 (1d6+2) · Pode gritar como ação: todos num raio de 9m fazem
     VON (CD 13) ou ficam Atordoados por 1 rodada.</p></div>
 
-  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-drakeling"/></svg><h3>Dracônico Jovem <span class="tag">Réptil</span></h3></div>
+  <div class="statblock"><div class="statblock-head"><img class="icon photo" src="images/bestiary_drakeling.jpg" alt="Dracônico Jovem"><h3>Dracônico Jovem <span class="tag">Réptil</span></h3></div>
     <p>PV 30 · Defesa 15 · Ataque (mordida) +6 (2d6+3) ou sopro elemental (recarrega com 1-2 num d6 a cada rodada):
     linha de 9m, 3d6 de dano do elemento escolhido na criação da criatura, metade se o alvo passar em AGI CD 14.</p></div>
 
-  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-bandit"/></svg><h3>Batedor Bandido <span class="tag">Humanoide</span></h3></div>
+  <div class="statblock"><div class="statblock-head"><img class="icon photo" src="images/bestiary_bandit.jpg" alt="Batedor Bandido"><h3>Batedor Bandido <span class="tag">Humanoide</span></h3></div>
     <p>PV 14 · Defesa 14 · Ataque (adaga) +4 (1d4+2) ou arco curto +4 (1d6+2) · Furtividade +5. Prefere emboscadas
     e foge com menos de um quarto do PV, salvo ordens contrárias de um líder.</p></div>
 
-  <div class="statblock"><div class="statblock-head"><svg class="icon"><use href="#icon-spirit"/></svg><h3>Espírito das Águas <span class="tag">Elemental Menor</span></h3></div>
+  <div class="statblock"><div class="statblock-head"><img class="icon photo" src="images/bestiary_waterspirit.jpg" alt="Espírito das Águas"><h3>Espírito das Águas <span class="tag">Elemental Menor</span></h3></div>
     <p>PV 20 · Defesa 14 · Ataque (jato) +5 (2d6, dano de água) · Imune a dano de água, vulnerável a Vento (dano
     dobrado). Pode se mover através de qualquer corpo d'água instantaneamente uma vez por combate.</p></div>
-</section>
 
 <!-- ============ 14. ALIADOS ============ -->
-<section class="section">
-  <span class="chapno">Mestre</span>
+  <span class="chapno chap-divider">Mestre</span>
   <h1>14. Aliados de Exemplo</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <p class="full">Dois PNJs prontos para acompanhar o grupo, aparecer em uma missão da guilda, ou servir de
@@ -829,11 +822,9 @@
     <p><i>"Aguentei coisa pior com metade da armadura que vocês têm. Fica atrás de mim e respira fundo."</i><br>
     PV 34 · Defesa 17 · Ataque (machado) +6 (1d10+3) · Resistência a medo, veneno. Ex-veterano de uma guerra de
     fronteira que não gosta de falar; leal até o osso com quem prova ser digno de confiança devagar.</p></div>
-</section>
 
 <!-- ============ 15. AVENTURA ============ -->
-<section class="section">
-  <span class="chapno">Mestre</span>
+  <span class="chapno chap-divider">Mestre</span>
   <h1>15. Aventura: O Selo do Bosque Cinza</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <p class="lede">Gancho pronto para 3–4 horas de jogo, nível inicial, 3 a 5 jogadores.</p>
@@ -879,11 +870,9 @@
   enfrentar o Golem quando ele desperta no meio do reparo — o que for mais divertido para sua mesa.</p>
   <div class="callout mestre full">Gancho para continuação: o Batedor Bandido foi pago para forçar o selo, mas
   não sabia sequer o que estava dentro. Quem contratou, e por quê, fica para a próxima aventura.</div>
-</section>
 
 <!-- ============ 16. GUIA DO MESTRE ============ -->
-<section class="section">
-  <span class="chapno">Mestre</span>
+  <span class="chapno chap-divider">Mestre</span>
   <h1>16. Guia do Mestre</h1>
   <svg class="ornament" width="220" height="18"><use href="#flourish"/></svg>
   <svg class="banner" viewBox="0 0 800 150"><use href="#banner-bg"/><use href="#icon-book" x="350" y="25" width="100" height="100"/></svg>
@@ -988,7 +977,24 @@
       <li><b>Inconsciente</b> — 0 PV, Medicina CD 10</li></ul>
     </div>
   </div>
-  <p class="full small center" style="margin-top:4mm">Mushoku Tensei RPG — Livro do Jogador · Fan sourcebook não-oficial · Uso pessoal e não-comercial</p>
+  <div class="full small" style="margin-top:4mm; border-top:0.75pt solid #b7a173; padding-top:2mm;">
+    <h3 style="margin-top:0">Créditos de Arte</h3>
+    <p style="text-align:left">Além das ilustrações vetoriais originais deste livro, algumas imagens são obras de domínio público
+    ou licenciadas sob Creative Commons, usadas por transparência e cortesia:</p>
+    <p style="text-align:left; margin:0">
+    — Capa: Albrecht Dürer, <i>O Cavaleiro, a Morte e o Diabo</i> (1513), National Gallery of Art — domínio público (CC0).<br>
+    — Retratos de Humano, Elfo e Anão: Ravenmore (dycha.net), OpenGameArt.org — CC BY 3.0.<br>
+    — Sistema de Magia: "A wizard-like alchemist at his alembic", gravura de Dalziel, Wellcome Collection — CC BY 4.0.<br>
+    — Estilos de Espada: "Men fencing", gravura de Boetius a Bolswert, Wellcome Collection — CC BY 4.0.<br>
+    — Golem de Pedra Rúnica: Mikoláš Aleš, <i>O Maharal de Praga e o Golem</i> (1899) — domínio público.<br>
+    — Harpia da Névoa: Gustave Doré, ilustração para <i>O Inferno</i> de Dante, Canto XIII (1861) — domínio público.<br>
+    — Dracônico Jovem: miniatura do Bestiário de Hugh of Fouilloy, c. 1270, The Getty Museum — domínio público.<br>
+    — Batedor Bandido: gravura inglesa do séc. XIX, "Highwayman" — domínio público.<br>
+    — Espírito das Águas: Katsushika Hokusai, <i>A Grande Onda de Kanagawa</i> (c. 1831) — domínio público.
+    </p>
+    <p style="text-align:left">Nenhuma arte oficial de <i>Mushoku Tensei</i>, nem de terceiros sem licença adequada, foi utilizada.</p>
+  </div>
+  <p class="full small center" style="margin-top:3mm">Mushoku Tensei RPG — Livro do Jogador · Fan sourcebook não-oficial · Uso pessoal e não-comercial</p>
 </section>
 
 </body>
