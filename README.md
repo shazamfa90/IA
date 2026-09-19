@@ -44,7 +44,10 @@ O Rollem não entra nesse caminho: ele ignora mensagens de webhook por design
 
 ## Publicar
 
-`.github/workflows/deploy.yml` roda os testes e publica no GitHub Pages a cada push na `main`.
+`.github/workflows/deploy.yml` roda os testes e o build em todo push, em qualquer branch.
+O que estiver na branch padrão do repositório é publicado no GitHub Pages — o workflow lê o nome
+da branch padrão do próprio GitHub, então não quebra se ela não se chamar `main`.
+
 Só é preciso ligar uma vez em *Settings → Pages → Source: GitHub Actions*.
 
 ## Limites conhecidos

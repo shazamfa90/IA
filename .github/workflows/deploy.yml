@@ -1,8 +1,7 @@
-name: Deploy
+name: CI
 
 on:
   push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -11,11 +10,11 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,13 +25,14 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
-      - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
 
+  # Publica só o que estiver na branch padrão, qualquer que seja o nome dela.
   deploy:
-    needs: build
+    needs: test
+    if: github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     environment:
       name: github-pages
