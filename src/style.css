@@ -1,0 +1,30 @@
+:root { color-scheme: dark; --bg: #16161a; --card: #22222a; --line: #34343f; --ink: #ececf0; --dim: #9b9baa; --accent: #b08cff; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
+main { max-width: 720px; margin: 0 auto; padding: 16px 16px 120px; }
+h1 { font-size: 1.4rem; margin: 16px 0; }
+h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin: 0 0 12px; }
+nav { display: flex; gap: 8px; position: sticky; top: 0; background: var(--bg); padding: 12px 0; z-index: 2; }
+.tab { flex: 1; padding: 10px; background: var(--card); color: var(--dim); border: 1px solid var(--line); border-radius: 10px; text-transform: capitalize; font-size: 1rem; }
+.tab.on { color: var(--ink); border-color: var(--accent); }
+section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.field { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.field:last-child { border-bottom: 0; }
+.field.wide, section .field.wide { display: block; }
+.field span { color: var(--dim); font-size: .9rem; }
+input, textarea, button { font: inherit; }
+input, textarea { background: #1b1b21; color: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+.field input[type=text], .field input[type=number] { width: 90px; text-align: center; }
+.field.wide input, .field.wide textarea, textarea { width: 100%; margin-top: 6px; }
+input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--accent); }
+.name { width: 100%; font-size: 1.1rem; margin-bottom: 12px; }
+.json { width: 100%; min-height: 320px; font-family: ui-monospace, monospace; font-size: .85rem; }
+.rolls { display: flex; flex-wrap: wrap; gap: 8px; }
+.roll { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1 1 45%; padding: 12px; background: #2b2b36; color: var(--ink); border: 1px solid var(--line); border-radius: 10px; text-align: left; }
+.roll:active { border-color: var(--accent); }
+.roll small { color: var(--dim); font-family: ui-monospace, monospace; font-size: .75rem; }
+.hint { color: var(--dim); font-size: .9rem; }
+.hint code, aside code { background: #1b1b21; padding: 1px 5px; border-radius: 5px; font-size: .85em; }
+.result { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--accent); padding: 14px 16px; }
+.result div { font-family: ui-monospace, monospace; margin-top: 4px; }
+.err, .result.err { border-color: #ff7b72; color: #ff9d96; }
