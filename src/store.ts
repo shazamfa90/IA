@@ -1,20 +1,49 @@
-export type Field = { id: string; label: string; type: 'number' | 'text' | 'textarea' | 'check' };
-export type Section = { title: string; fields: Field[] };
-export type RollDef = { label: string; notation: string };
+export type FieldType = 'number' | 'text' | 'textarea' | 'check';
+export type Field = { id: string; label: string; type: FieldType };
+export type Section = { id: string; title: string; fields: Field[] };
+export type RollDef = { id: string; label: string; notation: string };
 
-/** O "tipo de ficha/sessão": o mestre define seções, campos e botões de rolagem. */
-export type Template = { name: string; sections: Section[]; rolls: RollDef[] };
+/** O "tipo de sessão": o mestre define seções, campos e botões de rolagem. */
+export type Template = { id: string; name: string; sections: Section[]; rolls: RollDef[] };
+
+export type Character = {
+  id: string;
+  templateId: string;
+  name: string;
+  avatarUrl: string;
+  values: Record<string, string | boolean>;
+};
 
 export type State = {
-  template: Template;
-  character: { name: string; avatarUrl: string; values: Record<string, string | boolean> };
+  templates: Template[];
+  characters: Character[];
+  currentId: string | null;
   webhookUrl: string;
 };
 
-export const EXAMPLE: Template = {
+export const uid = () => Math.random().toString(36).slice(2, 10);
+
+/** Vira o rótulo em id usável numa notação: "Força de Vontade" -> "forcadevontade". */
+export function slug(label: string, taken: string[] = []): string {
+  const base =
+    label
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '')
+      .slice(0, 24) || 'campo';
+  if (!taken.includes(base)) return base;
+  let n = 2;
+  while (taken.includes(`${base}${n}`)) n++;
+  return `${base}${n}`;
+}
+
+export const EXAMPLE = (): Template => ({
+  id: uid(),
   name: 'Exemplo d20',
   sections: [
     {
+      id: uid(),
       title: 'Atributos',
       fields: [
         { id: 'forca', label: 'Força', type: 'number' },
@@ -23,6 +52,7 @@ export const EXAMPLE: Template = {
       ],
     },
     {
+      id: uid(),
       title: 'Estado',
       fields: [
         { id: 'pv', label: 'Pontos de vida', type: 'number' },
@@ -33,30 +63,76 @@ export const EXAMPLE: Template = {
     },
   ],
   rolls: [
-    { label: 'Teste de Força', notation: 'd20+@forca' },
-    { label: 'Teste de Destreza', notation: 'd20+@destreza' },
-    { label: 'Iniciativa', notation: 'd20+@destreza' },
-    { label: 'Rolar atributos', notation: '6#4d6kh3' },
+    { id: uid(), label: 'Teste de Força', notation: 'd20+@forca' },
+    { id: uid(), label: 'Teste de Destreza', notation: 'd20+@destreza' },
+    { id: uid(), label: 'Iniciativa', notation: 'd20+@destreza' },
+    { id: uid(), label: 'Rolar atributos', notation: '6#4d6kh3' },
   ],
+});
+
+export function newCharacter(templateId: string, name = ''): Character {
+  return { id: uid(), templateId, name, avatarUrl: '', values: {} };
+}
+
+// --- compartilhamento de template por link -------------------------------
+// base64url sobre UTF-8: btoa sozinho quebra em "Força", "Inspiração".
+
+const toB64 = (s: string) => {
+  const bytes = new TextEncoder().encode(s);
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 };
+
+const fromB64 = (s: string) => {
+  const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/'));
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+};
+
+/** ponytail: template vai inteiro na URL. Trocar por link curto de servidor se passar de ~30KB. */
+export const encodeTemplate = (t: Template) => toB64(JSON.stringify(t));
+
+export function decodeTemplate(code: string): Template {
+  const t = JSON.parse(fromB64(code)) as Template;
+  if (!t?.name || !Array.isArray(t.sections) || !Array.isArray(t.rolls)) {
+    throw new Error('Link de ficha inválido.');
+  }
+  return { ...t, id: uid() }; // id novo: não sobrescreve um sistema já salvo
+}
+
+// --- persistência ---------------------------------------------------------
 
 const KEY = 'ficha-rpg';
 
-const BLANK: State = {
-  template: EXAMPLE,
-  character: { name: '', avatarUrl: '', values: {} },
-  webhookUrl: '',
-};
+function blank(): State {
+  const t = EXAMPLE();
+  const c = newCharacter(t.id);
+  return { templates: [t], characters: [c], currentId: c.id, webhookUrl: '' };
+}
+
+/** Formato antigo: um template e um personagem soltos na raiz. */
+function migrate(old: any): State {
+  const t: Template = {
+    id: uid(),
+    name: old.template?.name ?? 'Importado',
+    sections: (old.template?.sections ?? []).map((s: any) => ({ id: uid(), ...s })),
+    rolls: (old.template?.rolls ?? []).map((r: any) => ({ id: uid(), ...r })),
+  };
+  const c: Character = { id: uid(), templateId: t.id, values: {}, avatarUrl: '', name: '', ...old.character };
+  return { templates: [t], characters: [c], currentId: c.id, webhookUrl: old.webhookUrl ?? '' };
+}
 
 export function load(): State {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? { ...BLANK, ...JSON.parse(raw) } : BLANK;
+    if (!raw) return blank();
+    const parsed = JSON.parse(raw);
+    if (parsed.template) return migrate(parsed);
+    if (!Array.isArray(parsed.templates) || !parsed.templates.length) return blank();
+    return parsed as State;
   } catch {
-    return BLANK;
+    return blank();
   }
 }
 
-export function save(state: State): void {
-  localStorage.setItem(KEY, JSON.stringify(state));
-}
+export const save = (s: State) => localStorage.setItem(KEY, JSON.stringify(s));
