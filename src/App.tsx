@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { roll } from './dice.ts';
+import { resolve, roll } from './dice.ts';
 import { postRoll } from './discord.ts';
 import { load, save, EXAMPLE, type State, type Template } from './store.ts';
 
@@ -16,22 +16,24 @@ export default function App() {
     setState((s) => ({ ...s, character: { ...s.character, values: { ...s.character.values, [id]: v } } }));
 
   async function doRoll(label: string, notation: string) {
+    // A mesa vê a notação já resolvida (d20+4), não a da ficha (d20+@forca).
+    const expr = resolve(notation, state.character.values);
     let rolls;
     try {
       rolls = roll(notation, state.character.values);
     } catch (e) {
-      setLast({ label, notation, text: (e as Error).message, error: true });
+      setLast({ label, notation: expr, text: (e as Error).message, error: true });
       return;
     }
 
     const text = rolls.map((r) => `${r.detail.replace(/~~(\d+)~~/g, '$1̶')} = ${r.total}`).join('   ');
-    setLast({ label, notation, text });
+    setLast({ label, notation: expr, text });
 
     if (!state.webhookUrl) return;
     try {
-      await postRoll(state.webhookUrl, state.character, label, notation, rolls);
+      await postRoll(state.webhookUrl, state.character, label, expr, rolls);
     } catch (e) {
-      setLast({ label, notation, text: `${text}  —  não postou: ${(e as Error).message}`, error: true });
+      setLast({ label, notation: expr, text: `${text}  —  não postou: ${(e as Error).message}`, error: true });
     }
   }
 
