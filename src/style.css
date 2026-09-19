@@ -1,0 +1,63 @@
+:root { color-scheme: dark; --bg: #16161a; --card: #22222a; --line: #34343f; --ink: #ececf0; --dim: #9b9baa; --accent: #b08cff; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
+main { max-width: 760px; margin: 0 auto; padding: 0 16px 140px; }
+h1 { font-size: 1.4rem; margin: 16px 0; }
+h2 { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin: 0 0 12px; }
+code { font-family: ui-monospace, monospace; }
+
+nav { display: flex; gap: 6px; position: sticky; top: 0; background: var(--bg); padding: 12px 0; z-index: 2; }
+.tab { flex: 1; padding: 10px 4px; background: var(--card); color: var(--dim); border: 1px solid var(--line); border-radius: 10px; font-size: .85rem; }
+.tab.on { color: var(--ink); border-color: var(--accent); }
+
+section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+input, textarea, select, button { font: inherit; color: var(--ink); }
+input, textarea, select { background: #1b1b21; border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+button { cursor: pointer; }
+
+.field { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.field:last-of-type { border-bottom: 0; }
+.field span { color: var(--dim); font-size: .9rem; }
+.field.wide { display: block; }
+.field input[type=text], .field input[type=number] { width: 92px; text-align: center; }
+.field.wide input, .field.wide textarea { width: 100%; margin-top: 6px; }
+input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--accent); }
+.name { width: 100%; font-size: 1.1rem; margin: 16px 0 4px; }
+.sys { margin: 0 0 12px; }
+
+.grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.roll { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1 1 45%; padding: 12px; background: #2b2b36; border: 1px solid var(--line); border-radius: 10px; text-align: left; }
+.roll:active { border-color: var(--accent); }
+.roll small { color: var(--dim); font-family: ui-monospace, monospace; font-size: .75rem; }
+.roll.compact { flex: 0 0 auto; align-items: center; padding: 10px 16px; }
+.avulsa { display: flex; gap: 8px; margin-top: 12px; }
+.avulsa input { flex: 1; min-width: 0; }
+
+.row { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--line); }
+.row:last-child { border-bottom: 0; }
+.row.on .pick strong { color: var(--accent); }
+.pick { flex: 1; display: flex; flex-direction: column; align-items: flex-start; background: none; border: 0; padding: 12px 0; text-align: left; min-width: 0; }
+.pick small { color: var(--dim); font-size: .8rem; }
+.icon { background: none; border: 0; color: var(--dim); font-size: 1.1rem; padding: 10px; border-radius: 8px; }
+.icon:hover { color: var(--ink); background: #2b2b36; }
+
+.bar { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.bar .name { margin: 0; }
+.flat { flex: 1; min-width: 0; background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 8px 2px; }
+.flat:focus { outline: 0; border-bottom-color: var(--accent); }
+.edit { display: flex; align-items: center; gap: 6px; padding: 6px 0; flex-wrap: wrap; }
+.edit .grow { flex: 1 1 120px; }
+.edit select { padding: 6px; font-size: .85rem; }
+.mono { font-family: ui-monospace, monospace; font-size: .85rem; }
+.ref { color: var(--dim); font-size: .75rem; }
+.add { background: none; border: 1px dashed var(--line); color: var(--dim); border-radius: 8px; padding: 8px 14px; margin-top: 8px; font-size: .85rem; }
+.add:hover { color: var(--ink); border-color: var(--accent); }
+.add.wide { display: block; width: 100%; margin-bottom: 12px; }
+
+.hint { color: var(--dim); font-size: .9rem; }
+.hint code { background: #1b1b21; padding: 1px 5px; border-radius: 5px; font-size: .85em; }
+.break { overflow-wrap: anywhere; }
+.result { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--accent); padding: 14px 16px; cursor: pointer; }
+.result code { background: #1b1b21; padding: 1px 5px; border-radius: 5px; font-size: .85em; }
+.result div { font-family: ui-monospace, monospace; margin-top: 4px; overflow-wrap: anywhere; }
+.err, .result.err { border-color: #ff7b72; color: #ff9d96; }
