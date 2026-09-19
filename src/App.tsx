@@ -4,7 +4,7 @@ import { postRoll } from './discord.ts';
 import Sheet from './Sheet.tsx';
 import Characters from './Characters.tsx';
 import Templates from './Templates.tsx';
-import { decodeTemplate, load, newCharacter, save, type Character, type State } from './store.ts';
+import { DEFAULT_WEBHOOK, decodeTemplate, load, newCharacter, save, type Character, type State } from './store.ts';
 
 const TABS = [
   ['ficha', 'Ficha'],
@@ -180,6 +180,14 @@ function Sessao({
             onChange={(e) => setState((s) => ({ ...s, webhookUrl: e.target.value }))}
           />
         </label>
+        {DEFAULT_WEBHOOK &&
+          (state.webhookUrl === DEFAULT_WEBHOOK ? (
+            <p className="hint">Usando o canal padrão da mesa. Só mexa aqui pra apontar pra outro canal.</p>
+          ) : (
+            <button className="add" onClick={() => setState((s) => ({ ...s, webhookUrl: DEFAULT_WEBHOOK }))}>
+              Voltar pro canal padrão da mesa
+            </button>
+          ))}
         <p className="hint">
           Trate como senha: quem tiver essa URL posta no canal com qualquer nome. Fica só neste aparelho.
         </p>

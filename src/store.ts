@@ -104,10 +104,17 @@ export function decodeTemplate(code: string): Template {
 
 const KEY = 'ficha-rpg';
 
+/**
+ * Canal padrão da mesa, injetado no build a partir de VITE_WEBHOOK_URL.
+ * Fica fora do repositório: num app estático o valor acaba no bundle de
+ * qualquer jeito, mas assim dá pra trocar sem reescrever o histórico do git.
+ */
+export const DEFAULT_WEBHOOK = import.meta.env?.VITE_WEBHOOK_URL ?? '';
+
 function blank(): State {
   const t = EXAMPLE();
   const c = newCharacter(t.id);
-  return { templates: [t], characters: [c], currentId: c.id, webhookUrl: '' };
+  return { templates: [t], characters: [c], currentId: c.id, webhookUrl: DEFAULT_WEBHOOK };
 }
 
 /** Formato antigo: um template e um personagem soltos na raiz. */
@@ -119,7 +126,7 @@ function migrate(old: any): State {
     rolls: (old.template?.rolls ?? []).map((r: any) => ({ id: uid(), ...r })),
   };
   const c: Character = { id: uid(), templateId: t.id, values: {}, avatarUrl: '', name: '', ...old.character };
-  return { templates: [t], characters: [c], currentId: c.id, webhookUrl: old.webhookUrl ?? '' };
+  return { templates: [t], characters: [c], currentId: c.id, webhookUrl: old.webhookUrl || DEFAULT_WEBHOOK };
 }
 
 export function load(): State {
@@ -129,7 +136,8 @@ export function load(): State {
     const parsed = JSON.parse(raw);
     if (parsed.template) return migrate(parsed);
     if (!Array.isArray(parsed.templates) || !parsed.templates.length) return blank();
-    return parsed as State;
+    // Quem já usava o app antes de existir canal padrão também passa a herdá-lo.
+    return { ...parsed, webhookUrl: parsed.webhookUrl || DEFAULT_WEBHOOK } as State;
   } catch {
     return blank();
   }

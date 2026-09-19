@@ -32,7 +32,8 @@ pra não quebrar as rolagens que já apontam pra ele.
 
 ## Discord
 
-*Editar canal → Integrações → Webhooks → Novo webhook → Copiar URL*, e cole na aba **Sessão**.
+*Editar canal → Integrações → Webhooks → Novo webhook → Copiar URL*, e cole na aba **Sessão**
+(ou configure o canal padrão abaixo, e ninguém precisa colar nada).
 A rolagem aparece no canal com o nome e o avatar do personagem, e com a notação já resolvida
 (`d20+4`, não `d20+@forca`), pra mesa entender.
 
@@ -41,6 +42,24 @@ O Rollem não entra nesse caminho: ele ignora mensagens de webhook por design
 
 > A URL do webhook é uma senha: quem a tiver posta no seu canal com qualquer nome. Ela fica só
 > no aparelho, no `localStorage`. Não coloque em print nem no repositório.
+
+### Canal padrão
+
+Pra mesa não ter que colar a URL em cada aparelho, o app aceita um canal padrão definido no
+build, em `VITE_WEBHOOK_URL`. O campo da aba Sessão já abre preenchido com ele, e continua
+editável: quem quiser apontar pra outro canal edita, e um botão devolve o padrão.
+
+- **Local:** copie `.env.example` para `.env.local` e ponha a URL. O git ignora `.env*`.
+- **No ar:** crie o secret `DISCORD_WEBHOOK` em *Settings → Secrets and variables → Actions*.
+  O workflow injeta no build; a URL não entra no repositório.
+
+Sem nenhum dos dois, o app funciona igual — só volta a pedir que cada jogador cole a URL.
+
+> Isso mantém a URL fora do histórico do git, e permite trocá-la sem reescrever commits. Mas
+> **não** a torna secreta: este é um app estático, então o valor fica no bundle JavaScript, que
+> é público. Qualquer um que abra o site consegue extraí-lo. Esconder de verdade exigiria um
+> servidor intermediário que guardasse o webhook e recebesse as rolagens. Se o canal for
+> incomodado, troque o webhook no Discord e atualize o secret.
 
 ## Publicar
 
