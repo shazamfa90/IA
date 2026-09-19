@@ -52,7 +52,7 @@ test('migra a ficha do formato antigo sem perder valores', () => {
   const old = JSON.stringify({
     template: { name: 'Antigo', sections: [{ title: 'A', fields: [{ id: 'forca', label: 'Força', type: 'number' }] }], rolls: [{ label: 'T', notation: 'd20+@forca' }] },
     character: { name: 'Thorin', avatarUrl: 'http://x', values: { forca: '4' } },
-    webhookUrl: 'https://discord.com/api/webhooks/1/abc',
+    webhookUrl: 'https://discord.example/webhook',
   });
   withStorage(old, () => {
     const s = load();
@@ -63,12 +63,48 @@ test('migra a ficha do formato antigo sem perder valores', () => {
     assert.equal(s.characters[0].values.forca, '4');
     assert.equal(s.characters[0].templateId, s.templates[0].id);
     assert.equal(s.currentId, s.characters[0].id);
-    assert.equal(s.webhookUrl, 'https://discord.com/api/webhooks/1/abc');
+    assert.equal(s.webhookUrl, 'https://discord.example/webhook');
+    // a migração tem que dar um perfil dono, senão a ficha some da lista
+    assert.equal(s.profiles.length, 1);
+    assert.equal(s.characters[0].profileId, s.profiles[0].id);
+    assert.equal(s.currentProfileId, s.profiles[0].id);
   });
+});
+
+test('estado sem perfis adota todas as fichas num perfil só', () => {
+  const semPerfil = JSON.stringify({
+    templates: [{ id: 't1', name: 'X', sections: [], rolls: [] }],
+    characters: [
+      { id: 'c1', templateId: 't1', name: 'Um', avatarUrl: '', values: {} },
+      { id: 'c2', templateId: 't1', name: 'Dois', avatarUrl: '', values: {} },
+    ],
+    currentId: 'c2',
+    webhookUrl: '',
+  });
+  withStorage(semPerfil, () => {
+    const s = load();
+    assert.equal(s.profiles.length, 1);
+    assert.equal(s.characters.length, 2, 'nenhuma ficha pode se perder na adoção');
+    assert.ok(s.characters.every((c) => c.profileId === s.profiles[0].id));
+    assert.equal(s.currentId, 'c2');
+  });
+});
+
+test('perfil atual apagado cai no primeiro em vez de abrir vazio', () => {
+  const orfao = JSON.stringify({
+    profiles: [{ id: 'p1', name: 'A', theme: 'escuro', accent: '#fff' }],
+    currentProfileId: 'p-que-nao-existe',
+    templates: [{ id: 't1', name: 'X', sections: [], rolls: [] }],
+    characters: [],
+    currentId: null,
+    webhookUrl: '',
+  });
+  withStorage(orfao, () => assert.equal(load().currentProfileId, 'p1'));
 });
 
 test('storage vazio ou corrompido cai no estado inicial', () => {
   withStorage(null, () => assert.equal(load().templates.length, 1));
   withStorage('{{{', () => assert.ok(load().currentId));
   withStorage('{"templates":[]}', () => assert.equal(load().templates.length, 1));
+  withStorage(null, () => assert.equal(load().profiles.length, 1));
 });

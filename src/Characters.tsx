@@ -3,15 +3,16 @@ import { newCharacter, uid } from './store.ts';
 
 type Props = {
   characters: Character[];
+  profileId: string;
   templates: Template[];
   currentId: string | null;
   onPick: (id: string) => void;
   onSet: (characters: Character[], currentId?: string) => void;
 };
 
-export default function Characters({ characters, templates, currentId, onPick, onSet }: Props) {
+export default function Characters({ characters, profileId, templates, currentId, onPick, onSet }: Props) {
   function create(templateId: string) {
-    const c = newCharacter(templateId);
+    const c = newCharacter(templateId, profileId);
     onSet([...characters, c]);
     onPick(c.id); // criar leva direto pra ficha nova
   }

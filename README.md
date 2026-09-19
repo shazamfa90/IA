@@ -20,6 +20,9 @@ npm run build   # gera dist/
 - **Personagens** — vários por aparelho, cada um preso a um sistema. Dá pra duplicar e apagar.
 - **Rolagens** — botões definidos no sistema, mais um campo de rolagem avulsa pra qualquer
   notação na hora.
+- **Perfis** — cada pessoa que usa o aparelho tem o seu: fichas separadas e aparência própria
+  (5 temas e uma cor de destaque). São locais, sem senha e sem servidor — servem pra dividir um
+  tablet na mesa, não pra entrar da sua conta noutro aparelho.
 
 ## Notação de dados
 
