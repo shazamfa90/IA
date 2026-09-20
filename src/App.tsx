@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { resolve, roll } from './dice.ts';
 import { postRoll } from './discord.ts';
 import { pushSheet, sheetSignature } from './liveSheet.ts';
+import ImageField from './ImageField.tsx';
 import Sheet from './Sheet.tsx';
 import Characters from './Characters.tsx';
 import Templates from './Templates.tsx';
@@ -376,14 +377,12 @@ function Sessao({
       <section>
         <h2>Aparência no canal</h2>
         {character ? (
-          <label className="field wide">
-            <span>Avatar de {character.name || 'personagem sem nome'} (URL de imagem)</span>
-            <input
-              placeholder="https://..."
-              value={character.avatarUrl}
-              onChange={(e) => patchCharacter({ avatarUrl: e.target.value })}
-            />
-          </label>
+          <ImageField
+            label={`Avatar de ${character.name || 'personagem sem nome'}`}
+            value={character.avatarUrl}
+            onChange={(avatarUrl) => patchCharacter({ avatarUrl })}
+            hint="Serve qualquer endereço direto de imagem — .jpg, .png, .gif ou .webp, de qualquer site. O que não serve é link de página: de um pin do Pinterest, por exemplo, copie o endereço da imagem, não o do pin."
+          />
         ) : (
           <p className="hint">Abra uma ficha pra definir o avatar dela.</p>
         )}

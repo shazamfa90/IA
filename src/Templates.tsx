@@ -1,18 +1,18 @@
 import { useState } from 'react';
 import type { Field, FieldType, Template } from './store.ts';
 import { EXAMPLE, decodeTemplate, encodeTemplate, slug, uid } from './store.ts';
+import ImageField from './ImageField.tsx';
 
 const conta = (n: number, um: string, muitos = `${um}s`) => `${n} ${n === 1 ? um : muitos}`;
 
 const iniciais = (nome: string) =>
   nome.trim().split(/\s+/).slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase() || '?';
 
-/** Capa do sistema. Sem imagem, ou se a URL falhar, mostra as iniciais do nome. */
-function Capa({ t, grande }: { t: Template; grande?: boolean }) {
+/** Capa na lista. Sem imagem, ou se a URL falhar, mostra as iniciais do nome. */
+function Capa({ t }: { t: Template }) {
   const [quebrou, setQuebrou] = useState(false);
-  const cls = grande ? 'capa grande' : 'capa';
-  if (!t.image || quebrou) return <div className={cls}>{iniciais(t.name)}</div>;
-  return <img className={cls} src={t.image} alt="" onError={() => setQuebrou(true)} />;
+  if (!t.image || quebrou) return <div className="capa">{iniciais(t.name)}</div>;
+  return <img className="capa" src={t.image} alt="" referrerPolicy="no-referrer" onError={() => setQuebrou(true)} />;
 }
 
 const TYPES: { v: FieldType; label: string }[] = [
@@ -157,20 +157,12 @@ function Editor({
 
       <section>
         <h2>Capa</h2>
-        <div className="capa-edit">
-          <Capa t={t} grande />
-          <label className="field wide">
-            <span>Imagem do sistema (URL)</span>
-            <input
-              type="url"
-              inputMode="url"
-              placeholder="https://..."
-              value={t.image ?? ''}
-              onChange={(e) => onChange({ ...t, image: e.target.value })}
-            />
-          </label>
-        </div>
-        <p className="hint">Vai junto no link que você manda pros jogadores.</p>
+        <ImageField
+          label="Imagem do sistema"
+          value={t.image ?? ''}
+          onChange={(image) => onChange({ ...t, image })}
+          hint="Vai junto no link que você manda pros jogadores. Sem ela, a lista mostra as iniciais do nome."
+        />
       </section>
 
       {t.sections.map((sec) => (
