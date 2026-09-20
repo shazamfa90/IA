@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load } from './store.ts';
+import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues } from './store.ts';
 
 test('slug tira acento e espaço', () => {
   assert.equal(slug('Força'), 'forca');
@@ -107,4 +107,75 @@ test('storage vazio ou corrompido cai no estado inicial', () => {
   withStorage('{{{', () => assert.ok(load().currentId));
   withStorage('{"templates":[]}', () => assert.equal(load().templates.length, 1));
   withStorage(null, () => assert.equal(load().profiles.length, 1));
+});
+
+// --- renomear campo: o @id acompanha o rótulo -----------------------------
+
+const tpl = () => ({
+  id: 't',
+  name: 'Sistema',
+  sections: [{ id: 's', title: 'Atributos', fields: [{ id: 'campo', label: 'Campo', type: 'number' as const }] }],
+  rolls: [{ id: 'r', label: 'Teste', notation: 'd20+@campo' }],
+});
+
+test('campo novo renomeado ganha o @id do rótulo', () => {
+  const { template, newId } = renameField(tpl(), 's', 'campo', 'Destreza');
+  assert.equal(newId, 'destreza');
+  assert.equal(template.sections[0].fields[0].id, 'destreza');
+  assert.equal(template.sections[0].fields[0].label, 'Destreza');
+});
+
+test('minúsculo, sem acento, ç vira c', () => {
+  const casos: [string, string][] = [
+    ['Destreza', 'destreza'],
+    ['Força', 'forca'],
+    ['Coração', 'coracao'],
+    ['CONSTITUIÇÃO', 'constituicao'],
+    ['Pontos de Vida', 'pontosdevida'],
+    ['Ação Heróica', 'acaoheroica'],
+  ];
+  for (const [rotulo, esperado] of casos) {
+    assert.equal(renameField(tpl(), 's', 'campo', rotulo).newId, esperado, rotulo);
+  }
+});
+
+test('a rolagem acompanha o id novo, senão apontaria pro nada', () => {
+  const { template } = renameField(tpl(), 's', 'campo', 'Destreza');
+  assert.equal(template.rolls[0].notation, 'd20+@destreza');
+});
+
+test('@forca não engole o começo de @forcadevontade', () => {
+  const t = {
+    id: 't', name: 'S',
+    sections: [{ id: 's', title: 'A', fields: [
+      { id: 'forca', label: 'Força', type: 'number' as const },
+      { id: 'forcadevontade', label: 'Força de Vontade', type: 'number' as const },
+    ] }],
+    rolls: [{ id: 'r', label: 'T', notation: 'd20+@forca+@forcadevontade' }],
+  };
+  const { template } = renameField(t, 's', 'forca', 'Vigor');
+  assert.equal(template.rolls[0].notation, 'd20+@vigor+@forcadevontade');
+});
+
+test('rótulos iguais não colidem em um id só', () => {
+  const t = {
+    id: 't', name: 'S',
+    sections: [{ id: 's', title: 'A', fields: [
+      { id: 'forca', label: 'Força', type: 'number' as const },
+      { id: 'campo', label: 'Campo', type: 'number' as const },
+    ] }],
+    rolls: [],
+  };
+  assert.equal(renameField(t, 's', 'campo', 'Força').newId, 'forca2');
+});
+
+test('valor já preenchido acompanha a renomeação', () => {
+  assert.deepEqual(migrateValues({ campo: '4', pv: '10' }, 'campo', 'destreza'), { destreza: '4', pv: '10' });
+  assert.deepEqual(migrateValues({ pv: '10' }, 'campo', 'destreza'), { pv: '10' }, 'campo sem valor não inventa chave');
+  assert.deepEqual(migrateValues({ campo: '4' }, 'campo', 'campo'), { campo: '4' }, 'id igual não mexe em nada');
+});
+
+test('renomear preserva a ordem dos campos na ficha', () => {
+  const v = migrateValues({ a: '1', campo: '2', z: '3' }, 'campo', 'destreza');
+  assert.deepEqual(Object.keys(v), ['a', 'destreza', 'z']);
 });

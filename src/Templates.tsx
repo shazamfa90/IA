@@ -26,9 +26,11 @@ type Props = {
   templates: Template[];
   onSet: (templates: Template[]) => void;
   inUse: (templateId: string) => number;
+  /** Renomear passa pelo App: ele também move os valores já preenchidos nas fichas. */
+  onRenameField: (templateId: string, sectionId: string, fieldId: string, label: string) => void;
 };
 
-export default function Templates({ templates, onSet, inUse }: Props) {
+export default function Templates({ templates, onSet, inUse, onRenameField }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
   const [link, setLink] = useState('');
@@ -73,6 +75,7 @@ export default function Templates({ templates, onSet, inUse }: Props) {
         onChange={update}
         onBack={() => setEditing(null)}
         onShare={() => share(current)}
+        onRename={(sectionId, fieldId, label) => onRenameField(current.id, sectionId, fieldId, label)}
         notice={notice}
       />
     );
@@ -127,12 +130,14 @@ function Editor({
   onChange,
   onBack,
   onShare,
+  onRename,
   notice,
 }: {
   t: Template;
   onChange: (t: Template) => void;
   onBack: () => void;
   onShare: () => void;
+  onRename: (sectionId: string, fieldId: string, label: string) => void;
   notice: string;
 }) {
   const refs = t.sections.flatMap((s) => s.fields).map((f) => f.id);
@@ -172,16 +177,14 @@ function Editor({
             <button className="icon" title="Apagar seção" onClick={() => setSections(t.sections.filter((s) => s.id !== sec.id))}>✕</button>
           </div>
 
-          {sec.fields.map((f) => (
-            <div key={f.id} className="edit">
+          {/* key por posição, não por id: o id muda a cada tecla ao renomear,
+              e uma key nova remontaria o input, roubando o foco de quem digita. */}
+          {sec.fields.map((f, i) => (
+            <div key={i} className="edit">
               <input
                 className="flat grow"
                 value={f.label}
-                onChange={(e) =>
-                  patchSection(sec.id, {
-                    fields: sec.fields.map((x) => (x.id === f.id ? { ...x, label: e.target.value } : x)),
-                  })
-                }
+                onChange={(e) => onRename(sec.id, f.id, e.target.value)}
               />
               <select
                 value={f.type}
