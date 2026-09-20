@@ -4,7 +4,14 @@ export type Section = { id: string; title: string; fields: Field[] };
 export type RollDef = { id: string; label: string; notation: string };
 
 /** O "tipo de sessão": o mestre define seções, campos e botões de rolagem. */
-export type Template = { id: string; name: string; sections: Section[]; rolls: RollDef[] };
+export type Template = {
+  id: string;
+  name: string;
+  /** Imagem de capa (URL). Opcional: sem ela a lista mostra as iniciais do nome. */
+  image?: string;
+  sections: Section[];
+  rolls: RollDef[];
+};
 
 export type Character = {
   id: string;
@@ -13,6 +20,8 @@ export type Character = {
   name: string;
   avatarUrl: string;
   values: Record<string, string | boolean>;
+  /** Mensagem desta ficha no canal do mestre, reescrita a cada mudança. */
+  messageId?: string;
 };
 
 export const THEMES = ['escuro', 'claro', 'pergaminho', 'sangue', 'floresta'] as const;
@@ -28,6 +37,8 @@ export type State = {
   characters: Character[];
   currentId: string | null;
   webhookUrl: string;
+  /** Canal só do mestre, onde as fichas vivem. Vazio = recurso desligado. */
+  gmWebhookUrl: string;
 };
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
@@ -126,6 +137,7 @@ const KEY = 'ficha-rpg';
  * qualquer jeito, mas assim dá pra trocar sem reescrever o histórico do git.
  */
 export const DEFAULT_WEBHOOK = import.meta.env?.VITE_WEBHOOK_URL ?? '';
+export const DEFAULT_GM_WEBHOOK = import.meta.env?.VITE_GM_WEBHOOK_URL ?? '';
 
 function blank(): State {
   const p = newProfile();
@@ -138,6 +150,7 @@ function blank(): State {
     characters: [c],
     currentId: c.id,
     webhookUrl: DEFAULT_WEBHOOK,
+    gmWebhookUrl: DEFAULT_GM_WEBHOOK,
   };
 }
 
@@ -166,6 +179,7 @@ function migrateV1(old: any): State {
     characters: [{ ...c, profileId: p.id, templateId: t.id }],
     currentId: c.id,
     webhookUrl: old.webhookUrl || DEFAULT_WEBHOOK,
+    gmWebhookUrl: DEFAULT_GM_WEBHOOK,
   };
 }
 
@@ -178,6 +192,7 @@ function adoptIntoProfile(s: any): State {
     currentProfileId: p.id,
     characters: (s.characters ?? []).map((c: Character) => ({ ...c, profileId: c.profileId || p.id })),
     webhookUrl: s.webhookUrl || DEFAULT_WEBHOOK,
+    gmWebhookUrl: s.gmWebhookUrl || DEFAULT_GM_WEBHOOK,
   };
 }
 
@@ -191,7 +206,11 @@ export function load(): State {
     if (!Array.isArray(parsed.profiles) || !parsed.profiles.length) return adoptIntoProfile(parsed);
     // Perfil apagado por outra aba: cai no primeiro em vez de abrir vazio.
     const current = parsed.profiles.find((p: Profile) => p.id === parsed.currentProfileId);
-    return { ...parsed, currentProfileId: current?.id ?? parsed.profiles[0].id } as State;
+    return {
+      ...parsed,
+      currentProfileId: current?.id ?? parsed.profiles[0].id,
+      gmWebhookUrl: parsed.gmWebhookUrl || DEFAULT_GM_WEBHOOK,
+    } as State;
   } catch {
     return blank();
   }

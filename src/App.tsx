@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { resolve, roll } from './dice.ts';
 import { postRoll } from './discord.ts';
+import { pushSheet, sheetSignature } from './liveSheet.ts';
 import Sheet from './Sheet.tsx';
 import Characters from './Characters.tsx';
 import Templates from './Templates.tsx';
 import {
+  DEFAULT_GM_WEBHOOK,
   DEFAULT_WEBHOOK,
   THEMES,
   decodeTemplate,
@@ -74,6 +76,31 @@ export default function App() {
       ...s,
       characters: s.characters.map((c) => (c.id === character?.id ? { ...c, ...patch } : c)),
     }));
+
+  // --- ficha viva no canal do mestre -------------------------------------
+  // Guarda o que já foi enviado por personagem: salvar o messageId muda o
+  // objeto e reentra neste efeito, o que sem esta trava viraria laço infinito.
+  const enviado = useRef<Record<string, string>>({});
+  const [erroFicha, setErroFicha] = useState('');
+
+  useEffect(() => {
+    if (!state.gmWebhookUrl || !character || !template || !character.name.trim()) return;
+    const sig = sheetSignature(template, character);
+    if (enviado.current[character.id] === sig) return;
+
+    // Espera a digitação parar: o Discord limita requisições por webhook.
+    const timer = setTimeout(async () => {
+      try {
+        const id = await pushSheet(state.gmWebhookUrl, template, character);
+        enviado.current[character.id] = sig;
+        setErroFicha('');
+        if (id !== character.messageId) patchCharacter({ messageId: id });
+      } catch (e) {
+        setErroFicha((e as Error).message); // sem assinatura gravada: tenta de novo na próxima edição
+      }
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [state.gmWebhookUrl, character, template]);
 
   async function doRoll(label: string, notation: string) {
     // A mesa vê a notação já resolvida (d20+4), não a da ficha (d20+@forca).
@@ -159,6 +186,7 @@ export default function App() {
           profile={profile}
           character={character}
           patchCharacter={patchCharacter}
+          erroFicha={erroFicha}
         />
       )}
 
@@ -207,12 +235,14 @@ function Sessao({
   profile,
   character,
   patchCharacter,
+  erroFicha,
 }: {
   state: State;
   setState: React.Dispatch<React.SetStateAction<State>>;
   profile: Profile;
   character: Character | null;
   patchCharacter: (patch: Partial<Character>) => void;
+  erroFicha: string;
 }) {
   const patchProfile = (patch: Partial<Profile>) =>
     setState((s) => ({ ...s, profiles: s.profiles.map((p) => (p.id === profile.id ? { ...p, ...patch } : p)) }));
@@ -318,6 +348,29 @@ function Sessao({
         <p className="hint">
           Trate como senha: quem tiver essa URL posta no canal com qualquer nome. Fica só neste aparelho.
         </p>
+      </section>
+
+      <section>
+        <h2>Ficha viva</h2>
+        <p className="hint">
+          Num canal só do mestre, cada personagem ocupa uma mensagem que se reescreve sozinha conforme a ficha muda —
+          assim o mestre acompanha a mesa sem pedir print. Atualiza alguns segundos depois de você parar de digitar.
+        </p>
+        <label className="field wide">
+          <span>Webhook do canal do mestre</span>
+          <input
+            type="password"
+            placeholder="deixe vazio pra desligar"
+            value={state.gmWebhookUrl}
+            onChange={(e) => setState((s) => ({ ...s, gmWebhookUrl: e.target.value }))}
+          />
+        </label>
+        {erroFicha && <p className="hint err">{erroFicha}</p>}
+        {DEFAULT_GM_WEBHOOK && state.gmWebhookUrl !== DEFAULT_GM_WEBHOOK && (
+          <button className="add" onClick={() => setState((s) => ({ ...s, gmWebhookUrl: DEFAULT_GM_WEBHOOK }))}>
+            Voltar pro canal do mestre da mesa
+          </button>
+        )}
       </section>
 
       <section>

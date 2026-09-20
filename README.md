@@ -15,8 +15,10 @@ npm run build   # gera dist/
 - **Sistemas** — o mestre monta a ficha num editor visual: seções, campos (número, texto,
   texto longo, marcador) e botões de rolagem. Nenhum sistema vem embutido; o "Exemplo d20"
   é só um ponto de partida que dá pra apagar.
-- **Compartilhar** — o botão ↗ copia um link com a ficha inteira dentro. O jogador abre o
-  link e o sistema aparece no aparelho dele. Sem conta, sem servidor.
+- **Capa** — cada sistema aceita uma imagem por URL, trocável a qualquer momento. Sem imagem,
+  ou se a URL quebrar, aparecem as iniciais do nome.
+- **Compartilhar** — o botão ↗ copia um link com a ficha inteira dentro, capa incluída. O
+  jogador abre o link e o sistema aparece no aparelho dele. Sem conta, sem servidor.
 - **Personagens** — vários por aparelho, cada um preso a um sistema. Dá pra duplicar e apagar.
 - **Rolagens** — botões definidos no sistema, mais um campo de rolagem avulsa pra qualquer
   notação na hora.
@@ -45,6 +47,24 @@ O Rollem não entra nesse caminho: ele ignora mensagens de webhook por design
 
 > A URL do webhook é uma senha: quem a tiver posta no seu canal com qualquer nome. Ela fica só
 > no aparelho, no `localStorage`. Não coloque em print nem no repositório.
+
+## Ficha viva
+
+Num canal só do mestre, cada personagem ocupa **uma** mensagem, que o app reescreve conforme a
+ficha muda — em vez de despejar uma mensagem nova a cada alteração. O mestre abre o canal e
+acompanha a mesa inteira sem pedir print.
+
+- Atualiza alguns segundos depois de você parar de digitar, pra respeitar o limite de
+  requisições do Discord, e só quando algo que aparece na mensagem realmente mudou.
+- Se alguém apagar a mensagem no canal, a próxima mudança cria outra.
+- Campo vazio na aba Perfil desliga o recurso.
+
+Configure em `VITE_GM_WEBHOOK_URL` (secret `DISCORD_GM_WEBHOOK`), do mesmo jeito que o canal
+padrão abaixo.
+
+> Aponte pra um canal que só o mestre leia. E note que um webhook é **só de escrita**: quem
+> extrair a URL do bundle consegue escrever no canal, mas não consegue ler as fichas que estão
+> lá.
 
 ### Canal padrão
 

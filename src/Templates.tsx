@@ -4,6 +4,17 @@ import { EXAMPLE, decodeTemplate, encodeTemplate, slug, uid } from './store.ts';
 
 const conta = (n: number, um: string, muitos = `${um}s`) => `${n} ${n === 1 ? um : muitos}`;
 
+const iniciais = (nome: string) =>
+  nome.trim().split(/\s+/).slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase() || '?';
+
+/** Capa do sistema. Sem imagem, ou se a URL falhar, mostra as iniciais do nome. */
+function Capa({ t, grande }: { t: Template; grande?: boolean }) {
+  const [quebrou, setQuebrou] = useState(false);
+  const cls = grande ? 'capa grande' : 'capa';
+  if (!t.image || quebrou) return <div className={cls}>{iniciais(t.name)}</div>;
+  return <img className={cls} src={t.image} alt="" onError={() => setQuebrou(true)} />;
+}
+
 const TYPES: { v: FieldType; label: string }[] = [
   { v: 'number', label: 'Número' },
   { v: 'text', label: 'Texto' },
@@ -73,6 +84,7 @@ export default function Templates({ templates, onSet, inUse }: Props) {
       <section>
         {templates.map((t) => (
           <div key={t.id} className="row">
+            <Capa t={t} />
             <button className="pick" onClick={() => setEditing(t.id)}>
               <strong>{t.name}</strong>
               <small>{conta(t.sections.reduce((n, s) => n + s.fields.length, 0), 'campo')} · {conta(t.rolls.length, 'rolagem', 'rolagens')}</small>
@@ -142,6 +154,24 @@ function Editor({
         <button className="icon" title="Compartilhar" onClick={onShare}>↗</button>
       </div>
       {notice && <p className="hint break">{notice}</p>}
+
+      <section>
+        <h2>Capa</h2>
+        <div className="capa-edit">
+          <Capa t={t} grande />
+          <label className="field wide">
+            <span>Imagem do sistema (URL)</span>
+            <input
+              type="url"
+              inputMode="url"
+              placeholder="https://..."
+              value={t.image ?? ''}
+              onChange={(e) => onChange({ ...t, image: e.target.value })}
+            />
+          </label>
+        </div>
+        <p className="hint">Vai junto no link que você manda pros jogadores.</p>
+      </section>
 
       {t.sections.map((sec) => (
         <section key={sec.id}>
