@@ -49,3 +49,24 @@ test('notação inválida lança erro legível', () => {
   assert.throws(() => rollOnce('9999d6'), /fora do limite/);
   assert.throws(() => rollOnce('d1'), /Lados fora do limite/);
 });
+
+test('a rolagem soma o modificador, não o valor do atributo', () => {
+  // Força 12 em d20 vale +1: d20+@forca.mod tem que dar 2..21, não 13..32.
+  const vals = { forca: '12', 'forca.mod': '1' };
+  assert.equal(resolve('d20+@forca.mod', vals), 'd20+1');
+  assert.equal(resolve('d20+@forca', vals), 'd20+12', 'o valor cheio continua acessível');
+  for (let i = 0; i < 200; i++) {
+    const t = roll('d20+@forca.mod', vals)[0].total;
+    assert.ok(t >= 2 && t <= 21, `total ${t}`);
+  }
+});
+
+test('modificador negativo entra como subtração', () => {
+  assert.equal(resolve('d20+@forca.mod', { 'forca.mod': '-2' }), 'd20-2', 'nada de "d20+-2" na cara da mesa');
+  assert.equal(resolve('d20-@forca.mod', { 'forca.mod': '-2' }), 'd20+2', 'menos com menos dá mais');
+  assert.equal(resolve('d20+@forca.mod', { 'forca.mod': '2' }), 'd20+2', 'positivo segue igual');
+  for (let i = 0; i < 100; i++) {
+    const t = roll('d20+@forca.mod', { 'forca.mod': '-2' })[0].total;
+    assert.ok(t >= -1 && t <= 18, `total ${t}`);
+  }
+});

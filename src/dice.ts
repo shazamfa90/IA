@@ -11,10 +11,17 @@ const d = (sides: number) => Math.floor(Math.random() * sides) + 1;
 
 /** Troca @campo pelo valor da ficha. Campo vazio ou não-numérico vira 0. */
 export function resolve(notation: string, values: Record<string, unknown> = {}): string {
-  return notation.replace(/@([\w-]+)/g, (_, id) => {
-    const n = Number(values[id]);
-    return String(Number.isFinite(n) ? n : 0);
-  });
+  return (
+    notation
+      .replace(/@([\w.-]+)/g, (_, id) => {
+        const n = Number(values[id]);
+        return String(Number.isFinite(n) ? n : 0);
+      })
+      // Modificador negativo geraria "d20+-3": aritmética certa, leitura ruim,
+      // e é isto que a mesa vê no Discord.
+      .replace(/\+\s*-/g, '-')
+      .replace(/-\s*-/g, '+')
+  );
 }
 
 function rollTerm(term: string): { value: number; detail: string } {
