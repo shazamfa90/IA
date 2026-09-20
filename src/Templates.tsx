@@ -227,8 +227,9 @@ function Editor({
             </select>
           </label>
           <p className="hint">
-            Vale pros campos do tipo <em>Atributo</em>. Numa rolagem, <code>@forca</code> é o valor e{' '}
-            <code>@forca.mod</code> é o modificador — em d20, Força 12 dá <code>+1</code>.
+            Vale pros campos do tipo <em>Atributo</em>. Numa rolagem, <code>@forca</code> já é o{' '}
+            <strong>modificador</strong> — em d20, Força 12 soma <code>+1</code>, não <code>+12</code>. Se precisar do
+            valor cheio do atributo, use <code>@forca.valor</code>.
           </p>
         </section>
       )}

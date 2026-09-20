@@ -39,10 +39,14 @@ Mesma do Rollem: `d20+5`, `2d8-1`, `4d6kh3` (mantém os 3 maiores), `4d6dl1` (de
 Dentro de uma rolagem, `@id` lê um campo da ficha — ex.: `d20+@forca`. O editor mostra o `@id`
 de cada campo ao lado dele.
 
-Um campo do tipo **Atributo** guarda o valor do atributo, e `@id.mod` dá o modificador dele:
-com Força 16 numa mesa d20, `@forca` é `16` e `@forca.mod` é `+3`. Quem rola é
-`d20+@forca.mod`. A conta vem da regra do sistema, escolhida no editor: `(valor − 10) ÷ 2`,
-metade do valor, ou nenhuma (o valor já é o modificador).
+Um campo do tipo **Atributo** guarda o atributo, e numa rolagem `@forca` já é o **modificador**
+dele — com Força 16 numa mesa d20, `d20+@forca` soma `+3`, não `+16`. É o que se quer escrever
+sem pensar. O atributo cheio continua acessível como `@forca.valor`, e `@forca.mod` é um apelido
+explícito do modificador.
+
+A conta vem da regra do sistema, escolhida no editor: `(valor − 10) ÷ 2`, metade do valor, ou
+nenhuma (o valor já é o modificador). A ficha guarda sempre o atributo; a conversão só acontece
+na hora de rolar.
 
 Uma rolagem também pode dizer **onde o resultado cai**: no editor você marca numa lista os
 campos que ela preenche, e a ordem aparece numerada. `3#4d6kh3` marcando Força, Destreza e

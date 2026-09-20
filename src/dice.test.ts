@@ -51,10 +51,11 @@ test('notação inválida lança erro legível', () => {
 });
 
 test('a rolagem soma o modificador, não o valor do atributo', () => {
-  // Força 12 em d20 vale +1: d20+@forca.mod tem que dar 2..21, não 13..32.
-  const vals = { forca: '12', 'forca.mod': '1' };
+  // Força 12 em d20 vale +1: d20+@forca tem que dar 2..21, não 13..32.
+  const vals = { forca: '1', 'forca.mod': '1', 'forca.valor': '12' };
   assert.equal(resolve('d20+@forca.mod', vals), 'd20+1');
-  assert.equal(resolve('d20+@forca', vals), 'd20+12', 'o valor cheio continua acessível');
+  assert.equal(resolve('d20+@forca', vals), 'd20+1', 'o padrão é o modificador');
+  assert.equal(resolve('d20+@forca.valor', vals), 'd20+12', 'o atributo cheio, quando alguém quiser');
   for (let i = 0; i < 200; i++) {
     const t = roll('d20+@forca.mod', vals)[0].total;
     assert.ok(t >= 2 && t <= 21, `total ${t}`);
