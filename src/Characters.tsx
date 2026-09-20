@@ -1,5 +1,6 @@
 import type { Character, Template } from './store.ts';
 import { newCharacter, uid } from './store.ts';
+import Foto from './Foto.tsx';
 
 type Props = {
   characters: Character[];
@@ -36,6 +37,7 @@ export default function Characters({ characters, profileId, templates, currentId
           const t = templates.find((t) => t.id === c.templateId);
           return (
             <div key={c.id} className={c.id === currentId ? 'row on' : 'row'}>
+              <Foto src={c.avatarUrl} nome={c.name || 'Sem nome'} />
               <button className="pick" onClick={() => onPick(c.id)}>
                 <strong>{c.name || 'Sem nome'}</strong>
                 <small>{t?.name ?? 'sistema apagado'}</small>

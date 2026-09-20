@@ -1,7 +1,13 @@
 export type FieldType = 'number' | 'text' | 'textarea' | 'check';
 export type Field = { id: string; label: string; type: FieldType };
 export type Section = { id: string; title: string; fields: Field[] };
-export type RollDef = { id: string; label: string; notation: string };
+export type RollDef = {
+  id: string;
+  label: string;
+  notation: string;
+  /** Campos que recebem o resultado, em ordem: "@forca @destreza". Ex.: rolar atributos. */
+  assign?: string;
+};
 
 /** O "tipo de sessão": o mestre define seções, campos e botões de rolagem. */
 export type Template = {
@@ -93,7 +99,7 @@ export const EXAMPLE = (): Template => ({
     { id: uid(), label: 'Teste de Força', notation: 'd20+@forca' },
     { id: uid(), label: 'Teste de Destreza', notation: 'd20+@destreza' },
     { id: uid(), label: 'Iniciativa', notation: 'd20+@destreza' },
-    { id: uid(), label: 'Rolar atributos', notation: '6#4d6kh3' },
+    { id: uid(), label: 'Rolar atributos', notation: '3#4d6kh3', assign: '@forca @destreza @constituicao' },
   ],
 });
 
@@ -120,9 +126,40 @@ export function renameField(t: Template, sectionId: string, fieldId: string, lab
 
   // (?![\w-]) impede que @forca engula o começo de @forcadevontade.
   const ref = new RegExp(`@${fieldId}(?![\\w-])`, 'g');
-  const rolls = t.rolls.map((r) => ({ ...r, notation: r.notation.replace(ref, `@${novo}`) }));
+  const rolls = t.rolls.map((r) => ({
+    ...r,
+    notation: r.notation.replace(ref, `@${novo}`),
+    // o destino também aponta por @id: sem isto, renomear quebraria o preenchimento
+    ...(r.assign ? { assign: r.assign.replace(ref, `@${novo}`) } : {}),
+  }));
   return { template: { ...t, sections, rolls }, oldId: fieldId, newId: novo };
 }
+
+/** Campos de destino de uma rolagem, na ordem escrita: "@forca @destreza" -> ['forca','destreza']. */
+export const parseAssign = (assign = ''): string[] => [...assign.matchAll(/@([\w-]+)/g)].map((m) => m[1]);
+
+/** Quais destinos não existem no sistema — o editor avisa antes de a mesa usar. */
+export const unknownTargets = (assign: string | undefined, t: Template): string[] => {
+  const existem = new Set(t.sections.flatMap((s) => s.fields).map((f) => f.id));
+  return parseAssign(assign).filter((id) => !existem.has(id));
+};
+
+/** Escreve os totais nos campos, em ordem. Sobra de um lado ou do outro é ignorada. */
+export function applyRoll(
+  values: Character['values'],
+  ids: string[],
+  totals: number[],
+): Character['values'] {
+  const next = { ...values };
+  ids.forEach((id, i) => {
+    if (i < totals.length) next[id] = String(totals[i]);
+  });
+  return next;
+}
+
+/** Destinos que já têm valor: sobrescrever sem avisar apagaria a ficha de alguém. */
+export const filledTargets = (values: Character['values'], ids: string[]) =>
+  ids.filter((id) => String(values[id] ?? '').trim() !== '');
 
 /** Move o valor já preenchido para a nova chave, preservando a ordem dos campos. */
 export function migrateValues(values: Character['values'], oldId: string, newId: string): Character['values'] {

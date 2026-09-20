@@ -22,7 +22,9 @@ npm run build   # gera dist/
   jogador abre o link e o sistema aparece no aparelho dele. Sem conta, sem servidor.
 - **Personagens** — vários por aparelho, cada um preso a um sistema. Dá pra duplicar e apagar.
 - **Rolagens** — botões definidos no sistema, mais um campo de rolagem avulsa pra qualquer
-  notação na hora.
+  notação na hora. O dado gira na tela por um instante e some mostrando o resultado.
+- **Rolar atributos** — uma rolagem pode declarar em quais campos o resultado cai, e o app
+  preenche a ficha sozinho. Se os campos já tiverem valor, ele pergunta antes de substituir.
 - **Perfis** — cada pessoa que usa o aparelho tem o seu: fichas separadas e aparência própria
   (5 temas e uma cor de destaque). São locais, sem senha e sem servidor — servem pra dividir um
   tablet na mesa, não pra entrar da sua conta noutro aparelho.
@@ -34,6 +36,10 @@ Mesma do Rollem: `d20+5`, `2d8-1`, `4d6kh3` (mantém os 3 maiores), `4d6dl1` (de
 
 Dentro de uma rolagem, `@id` lê um campo da ficha — ex.: `d20+@forca`. O editor mostra o `@id`
 de cada campo ao lado dele.
+
+Uma rolagem também pode dizer **onde o resultado cai**, no campo "preencher" do editor:
+`3#4d6kh3` com destino `@forca @destreza @constituicao` rola três vezes e escreve os totais nos
+três atributos, na ordem. Sobra de dados ou de campos é ignorada.
 
 O id acompanha o rótulo: minúsculo, sem acento e sem cedilha ("Coração" vira `@coracao`).
 Renomear é seguro porque leva junto quem apontava pro id antigo — as notações das rolagens e os
