@@ -18,6 +18,18 @@ test('o caso que motivou tudo: link de pin, não de imagem', () => {
   }
 });
 
+test('pin.it diz que é encurtador — quem cola um veio do celular', () => {
+  const d = dicaDeImagem('https://pin.it/1a2b3c4d5');
+  assert.match(d, /encurtador/);
+  assert.match(d, /nunca uma imagem/);
+});
+
+test('a instrução serve no celular, onde não há botão direito', () => {
+  for (const u of ['https://pin.it/abc', 'https://br.pinterest.com/pin/1/', 'https://imgur.com/abc', 'https://site.com/x']) {
+    assert.match(dicaDeImagem(u), /toque e segure/, u);
+  }
+});
+
 test('cada host errado ganha a instrução dele', () => {
   assert.match(dicaDeImagem('https://imgur.com/abc'), /i\.imgur\.com/);
   assert.match(dicaDeImagem('https://drive.google.com/file/d/x/view'), /Drive/);
