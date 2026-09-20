@@ -15,8 +15,10 @@ npm run build   # gera dist/
 - **Sistemas** — o mestre monta a ficha num editor visual: seções, campos (número, texto,
   texto longo, marcador) e botões de rolagem. Nenhum sistema vem embutido; o "Exemplo d20"
   é só um ponto de partida que dá pra apagar.
-- **Compartilhar** — o botão ↗ copia um link com a ficha inteira dentro. O jogador abre o
-  link e o sistema aparece no aparelho dele. Sem conta, sem servidor.
+- **Capa** — cada sistema aceita uma imagem por URL, trocável a qualquer momento. Sem imagem,
+  ou se a URL quebrar, aparecem as iniciais do nome.
+- **Compartilhar** — o botão ↗ copia um link com a ficha inteira dentro, capa incluída. O
+  jogador abre o link e o sistema aparece no aparelho dele. Sem conta, sem servidor.
 - **Personagens** — vários por aparelho, cada um preso a um sistema. Dá pra duplicar e apagar.
 - **Rolagens** — botões definidos no sistema, mais um campo de rolagem avulsa pra qualquer
   notação na hora.

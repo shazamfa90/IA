@@ -4,7 +4,14 @@ export type Section = { id: string; title: string; fields: Field[] };
 export type RollDef = { id: string; label: string; notation: string };
 
 /** O "tipo de sessão": o mestre define seções, campos e botões de rolagem. */
-export type Template = { id: string; name: string; sections: Section[]; rolls: RollDef[] };
+export type Template = {
+  id: string;
+  name: string;
+  /** Imagem de capa (URL). Opcional: sem ela a lista mostra as iniciais do nome. */
+  image?: string;
+  sections: Section[];
+  rolls: RollDef[];
+};
 
 export type Character = {
   id: string;
