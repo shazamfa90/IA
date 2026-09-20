@@ -101,6 +101,35 @@ export function newCharacter(templateId: string, profileId: string, name = ''): 
   return { id: uid(), profileId, templateId, name, avatarUrl: '', values: {} };
 }
 
+/**
+ * Renomeia um campo e faz o `@id` acompanhar o rótulo.
+ *
+ * Renomear só é seguro porque leva junto quem aponta pro id antigo: as
+ * notações das rolagens aqui, e os valores já preenchidos nas fichas em
+ * `migrateValues`. Sem isso, renomear deixaria rolagem apontando pro nada e
+ * apagaria o que o jogador digitou.
+ */
+export function renameField(t: Template, sectionId: string, fieldId: string, label: string) {
+  const taken = t.sections.flatMap((s) => s.fields).filter((f) => f.id !== fieldId).map((f) => f.id);
+  const novo = slug(label, taken);
+
+  const sections = t.sections.map((s) =>
+    s.id !== sectionId ? s : { ...s, fields: s.fields.map((f) => (f.id === fieldId ? { ...f, label, id: novo } : f)) },
+  );
+  if (novo === fieldId) return { template: { ...t, sections }, oldId: fieldId, newId: novo };
+
+  // (?![\w-]) impede que @forca engula o começo de @forcadevontade.
+  const ref = new RegExp(`@${fieldId}(?![\\w-])`, 'g');
+  const rolls = t.rolls.map((r) => ({ ...r, notation: r.notation.replace(ref, `@${novo}`) }));
+  return { template: { ...t, sections, rolls }, oldId: fieldId, newId: novo };
+}
+
+/** Move o valor já preenchido para a nova chave, preservando a ordem dos campos. */
+export function migrateValues(values: Character['values'], oldId: string, newId: string): Character['values'] {
+  if (oldId === newId || !(oldId in values)) return values;
+  return Object.fromEntries(Object.entries(values).map(([k, v]) => [k === oldId ? newId : k, v]));
+}
+
 // --- compartilhamento de template por link -------------------------------
 // base64url sobre UTF-8: btoa sozinho quebra em "Força", "Inspiração".
 

@@ -33,8 +33,12 @@ Mesma do Rollem: `d20+5`, `2d8-1`, `4d6kh3` (mantém os 3 maiores), `4d6dl1` (de
 `6#4d6kh3` (repete 6 vezes). Também `kl` e `dh`.
 
 Dentro de uma rolagem, `@id` lê um campo da ficha — ex.: `d20+@forca`. O editor mostra o `@id`
-de cada campo ao lado dele. O id nasce do rótulo e **não muda** se você renomear o campo depois,
-pra não quebrar as rolagens que já apontam pra ele.
+de cada campo ao lado dele.
+
+O id acompanha o rótulo: minúsculo, sem acento e sem cedilha ("Coração" vira `@coracao`).
+Renomear é seguro porque leva junto quem apontava pro id antigo — as notações das rolagens e os
+valores já preenchidos nas fichas. Dois campos com o mesmo nome ganham ids distintos
+(`@destreza`, `@destreza2`).
 
 ## Discord
 

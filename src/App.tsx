@@ -13,7 +13,9 @@ import {
   decodeTemplate,
   load,
   newCharacter,
+  migrateValues,
   newProfile,
+  renameField,
   save,
   type Character,
   type Profile,
@@ -177,6 +179,21 @@ export default function App() {
           templates={state.templates}
           onSet={(templates) => setState((s) => ({ ...s, templates }))}
           inUse={(id) => state.characters.filter((c) => c.templateId === id).length}
+          // O @id segue o rótulo; as fichas deste sistema levam o valor junto.
+          onRenameField={(templateId, sectionId, fieldId, label) =>
+            setState((s) => {
+              const alvo = s.templates.find((t) => t.id === templateId);
+              if (!alvo) return s;
+              const { template, oldId, newId } = renameField(alvo, sectionId, fieldId, label);
+              return {
+                ...s,
+                templates: s.templates.map((t) => (t.id === templateId ? template : t)),
+                characters: s.characters.map((c) =>
+                  c.templateId === templateId ? { ...c, values: migrateValues(c.values, oldId, newId) } : c,
+                ),
+              };
+            })
+          }
         />
       )}
 
