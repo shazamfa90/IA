@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues } from './store.ts';
+import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets } from './store.ts';
 
 test('slug tira acento e espaço', () => {
   assert.equal(slug('Força'), 'forca');
@@ -178,4 +178,49 @@ test('valor já preenchido acompanha a renomeação', () => {
 test('renomear preserva a ordem dos campos na ficha', () => {
   const v = migrateValues({ a: '1', campo: '2', z: '3' }, 'campo', 'destreza');
   assert.deepEqual(Object.keys(v), ['a', 'destreza', 'z']);
+});
+
+// --- rolagem que preenche a ficha ----------------------------------------
+
+test('destinos são lidos na ordem escrita', () => {
+  assert.deepEqual(parseAssign('@forca @destreza @constituicao'), ['forca', 'destreza', 'constituicao']);
+  assert.deepEqual(parseAssign('@forca, @destreza'), ['forca', 'destreza'], 'vírgula é só enfeite');
+  assert.deepEqual(parseAssign(''), []);
+  assert.deepEqual(parseAssign(undefined), []);
+});
+
+test('os totais caem nos campos, em ordem', () => {
+  assert.deepEqual(applyRoll({}, ['forca', 'destreza'], [14, 9]), { forca: '14', destreza: '9' });
+});
+
+test('sobra de qualquer lado não inventa nem apaga campo', () => {
+  assert.deepEqual(applyRoll({}, ['a', 'b', 'c'], [1, 2]), { a: '1', b: '2' }, 'dados a menos: c fica intocado');
+  assert.deepEqual(applyRoll({}, ['a'], [1, 2, 3]), { a: '1' }, 'dados a mais são descartados');
+});
+
+test('preencher não mexe no resto da ficha', () => {
+  assert.deepEqual(applyRoll({ pv: '10', forca: '3' }, ['forca'], [18]), { pv: '10', forca: '18' });
+});
+
+test('destino que não existe é apontado antes de a mesa usar', () => {
+  const t = { id: 't', name: 'S', sections: [{ id: 's', title: 'A', fields: [{ id: 'forca', label: 'F', type: 'number' as const }] }], rolls: [] };
+  assert.deepEqual(unknownTargets('@forca @destreza', t), ['destreza']);
+  assert.deepEqual(unknownTargets('@forca', t), []);
+  assert.deepEqual(unknownTargets(undefined, t), []);
+});
+
+test('avisa quais destinos já têm valor, pra não apagar ficha em uso', () => {
+  assert.deepEqual(filledTargets({ forca: '3', destreza: '' }, ['forca', 'destreza']), ['forca']);
+  assert.deepEqual(filledTargets({ forca: '   ' }, ['forca']), [], 'só espaço não conta como preenchido');
+  assert.deepEqual(filledTargets({}, ['forca']), []);
+});
+
+test('renomear campo leva o destino junto, senão o preenchimento quebra', () => {
+  const t = {
+    id: 't', name: 'S',
+    sections: [{ id: 's', title: 'A', fields: [{ id: 'forca', label: 'Força', type: 'number' as const }] }],
+    rolls: [{ id: 'r', label: 'Atributos', notation: '6#4d6kh3', assign: '@forca @outro' }],
+  };
+  const { template } = renameField(t, 's', 'forca', 'Vigor');
+  assert.equal(template.rolls[0].assign, '@vigor @outro');
 });

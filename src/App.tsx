@@ -13,8 +13,11 @@ import {
   decodeTemplate,
   load,
   newCharacter,
+  applyRoll,
+  filledTargets,
   migrateValues,
   newProfile,
+  parseAssign,
   renameField,
   save,
   type Character,
@@ -36,10 +39,28 @@ type Result = { id: number; label: string; notation: string; text?: string; part
 let seq = 0;
 const result = (r: Omit<Result, 'id'>): Result => ({ ...r, id: ++seq });
 
+/** Quem pediu menos movimento na tela não espera pelo suspense. */
+const DURACAO_GIRO = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 700;
+
+function Girando({ label }: { label: string }) {
+  const [face, setFace] = useState(1);
+  useEffect(() => {
+    const t = setInterval(() => setFace(1 + Math.floor(Math.random() * 20)), 70);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="girando" role="status" aria-label={`Rolando ${label}`}>
+      <div className="dado">{face}</div>
+      <strong>{label}</strong>
+    </div>
+  );
+}
+
 export default function App() {
   const [state, setState] = useState<State>(load);
   const [tab, setTab] = useState<Tab>('ficha');
   const [last, setLast] = useState<Result | null>(null);
+  const [girando, setGirando] = useState<string | null>(null);
 
   useEffect(() => save(state), [state]);
 
@@ -105,7 +126,7 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [state.gmWebhookUrl, character, template]);
 
-  async function doRoll(label: string, notation: string) {
+  async function doRoll(label: string, notation: string, assign?: string) {
     // A mesa vê a notação já resolvida (d20+4), não a da ficha (d20+@forca).
     const values = character?.values ?? {};
     const expr = resolve(notation, values);
@@ -117,8 +138,25 @@ export default function App() {
       return;
     }
 
+    // O dado gira antes de revelar. O resultado já está sorteado: a animação
+    // é só o tempo de suspense, não faz parte do sorteio.
+    setLast(null);
+    setGirando(label);
+    if (DURACAO_GIRO) await new Promise((r) => setTimeout(r, DURACAO_GIRO));
+    setGirando(null);
+
     const parts = rolls.map((r) => ({ detail: r.detail.replace(/~~(\d+)~~/g, '$1̶'), total: r.total }));
     setLast(result({ label, notation: expr, parts }));
+
+    // Rolagem de atributos: o sistema diz quais campos recebem os totais.
+    const ids = parseAssign(assign);
+    if (ids.length && character) {
+      const ocupados = filledTargets(character.values, ids);
+      const pode =
+        ocupados.length === 0 ||
+        confirm(`Isto substitui ${ocupados.length === 1 ? 'um campo já preenchido' : `${ocupados.length} campos já preenchidos`}. Continuar?`);
+      if (pode) patchCharacter({ values: applyRoll(character.values, ids, rolls.map((r) => r.total)) });
+    }
 
     if (!state.webhookUrl || !character) return;
     try {
@@ -207,6 +245,8 @@ export default function App() {
           erroFicha={erroFicha}
         />
       )}
+
+      {girando && <Girando label={girando} />}
 
       {last && (
         // key: remonta a cada rolagem pra animação tocar de novo.

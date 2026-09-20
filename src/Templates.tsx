@@ -1,19 +1,10 @@
 import { useState } from 'react';
 import type { Field, FieldType, Template } from './store.ts';
-import { EXAMPLE, decodeTemplate, encodeTemplate, slug, uid } from './store.ts';
+import { EXAMPLE, decodeTemplate, encodeTemplate, slug, uid, unknownTargets } from './store.ts';
 import ImageField from './ImageField.tsx';
+import Foto from './Foto.tsx';
 
 const conta = (n: number, um: string, muitos = `${um}s`) => `${n} ${n === 1 ? um : muitos}`;
-
-const iniciais = (nome: string) =>
-  nome.trim().split(/\s+/).slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase() || '?';
-
-/** Capa na lista. Sem imagem, ou se a URL falhar, mostra as iniciais do nome. */
-function Capa({ t }: { t: Template }) {
-  const [quebrou, setQuebrou] = useState(false);
-  if (!t.image || quebrou) return <div className="capa">{iniciais(t.name)}</div>;
-  return <img className="capa" src={t.image} alt="" referrerPolicy="no-referrer" onError={() => setQuebrou(true)} />;
-}
 
 const TYPES: { v: FieldType; label: string }[] = [
   { v: 'number', label: 'Número' },
@@ -87,7 +78,7 @@ export default function Templates({ templates, onSet, inUse, onRenameField }: Pr
       <section>
         {templates.map((t) => (
           <div key={t.id} className="row">
-            <Capa t={t} />
+            <Foto src={t.image} nome={t.name} />
             <button className="pick" onClick={() => setEditing(t.id)}>
               <strong>{t.name}</strong>
               <small>{conta(t.sections.reduce((n, s) => n + s.fields.length, 0), 'campo')} · {conta(t.rolls.length, 'rolagem', 'rolagens')}</small>
@@ -235,6 +226,17 @@ function Editor({
               onChange={(e) => onChange({ ...t, rolls: t.rolls.map((x) => (x.id === r.id ? { ...x, notation: e.target.value } : x)) })}
             />
             <button className="icon" title="Apagar" onClick={() => onChange({ ...t, rolls: t.rolls.filter((x) => x.id !== r.id) })}>✕</button>
+            <input
+              className="flat mono grow"
+              placeholder="preencher: @forca @destreza…"
+              value={r.assign ?? ''}
+              onChange={(e) => onChange({ ...t, rolls: t.rolls.map((x) => (x.id === r.id ? { ...x, assign: e.target.value } : x)) })}
+            />
+            {unknownTargets(r.assign, t).length > 0 && (
+              <p className="hint err break">
+                Não existe neste sistema: {unknownTargets(r.assign, t).map((id) => `@${id}`).join(', ')}
+              </p>
+            )}
           </div>
         ))}
         <button className="add" onClick={() => onChange({ ...t, rolls: [...t.rolls, { id: uid(), label: 'Nova rolagem', notation: 'd20' }] })}>

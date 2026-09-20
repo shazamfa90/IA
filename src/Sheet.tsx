@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import type { Character, Template } from './store.ts';
+import Foto from './Foto.tsx';
 
 type Props = {
   template: Template;
   character: Character;
   onChange: (patch: Partial<Character>) => void;
-  onRoll: (label: string, notation: string) => void;
+  onRoll: (label: string, notation: string, assign?: string) => void;
 };
 
 export default function Sheet({ template, character, onChange, onRoll }: Props) {
@@ -16,13 +17,18 @@ export default function Sheet({ template, character, onChange, onRoll }: Props) 
 
   return (
     <>
-      <input
-        className="name"
-        placeholder="Nome do personagem"
-        value={character.name}
-        onChange={(e) => onChange({ name: e.target.value })}
-      />
-      <p className="hint sys">{template.name}</p>
+      <div className="cabeca">
+        <Foto src={character.avatarUrl} nome={character.name || 'Sem nome'} grande />
+        <div className="cabeca-txt">
+          <input
+            className="name"
+            placeholder="Nome do personagem"
+            value={character.name}
+            onChange={(e) => onChange({ name: e.target.value })}
+          />
+          <p className="hint sys">{template.name}</p>
+        </div>
+      </div>
 
       {template.sections.map((sec) => (
         <section key={sec.id}>
@@ -60,7 +66,7 @@ export default function Sheet({ template, character, onChange, onRoll }: Props) 
         {template.rolls.length === 0 && <p className="hint">Nenhuma rolagem neste sistema ainda.</p>}
         <div className="grid">
           {template.rolls.map((r) => (
-            <button key={r.id} className="roll" onClick={() => onRoll(r.label, r.notation)}>
+            <button key={r.id} className="roll" onClick={() => onRoll(r.label, r.notation, r.assign)}>
               {r.label}
               <small>{r.notation}</small>
             </button>
