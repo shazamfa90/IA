@@ -59,7 +59,8 @@ export const THEMES = ['escuro', 'claro', 'pergaminho', 'sangue', 'floresta', 'n
 export type Theme = (typeof THEMES)[number];
 
 /** Perfil local: separa as fichas e a aparência de cada pessoa no aparelho. */
-export type Profile = { id: string; name: string; theme: Theme; accent: string };
+/** `avatars`: imagens guardadas nos slots. Ausente nos perfis antigos. */
+export type Profile = { id: string; name: string; theme: Theme; accent: string; avatars?: string[] };
 
 export type State = {
   profiles: Profile[];

@@ -3,6 +3,7 @@ import { resolve, roll } from './dice.ts';
 import { postRoll } from './discord.ts';
 import { pushSheet, sheetSignature } from './liveSheet.ts';
 import ImageField from './ImageField.tsx';
+import Slots from './Slots.tsx';
 import Sheet from './Sheet.tsx';
 import Characters from './Characters.tsx';
 import Templates from './Templates.tsx';
@@ -441,12 +442,24 @@ function Sessao({
       <section>
         <h2>Aparência no canal</h2>
         {character ? (
-          <ImageField
-            label={`Avatar de ${character.name || 'personagem sem nome'}`}
-            value={character.avatarUrl}
-            onChange={(avatarUrl) => patchCharacter({ avatarUrl })}
-            hint="Serve qualquer endereço direto de imagem — .jpg, .png, .gif ou .webp, de qualquer site. O que não serve é link de página: de um pin do Pinterest, por exemplo, copie o endereço da imagem, não o do pin."
-          />
+          <>
+            <ImageField
+              label={`Avatar de ${character.name || 'personagem sem nome'}`}
+              value={character.avatarUrl}
+              onChange={(avatarUrl) => patchCharacter({ avatarUrl })}
+              hint="Serve qualquer endereço direto de imagem — .jpg, .png, .gif ou .webp, de qualquer site. O que não serve é link de página: de um pin do Pinterest, por exemplo, copie o endereço da imagem, não o do pin."
+            />
+            <Slots
+              value={character.avatarUrl}
+              slots={profile.avatars ?? []}
+              onChange={(avatarUrl) => patchCharacter({ avatarUrl })}
+              onSlots={(avatars) => patchProfile({ avatars })}
+            />
+            <p className="hint">
+              O <b>+</b> guarda a imagem atual num slot; tocar num slot troca na hora. Os slots são deste perfil, então
+              valem pra qualquer ficha sua.
+            </p>
+          </>
         ) : (
           <p className="hint">Abra uma ficha pra definir o avatar dela.</p>
         )}

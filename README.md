@@ -18,6 +18,8 @@ npm run build   # gera dist/
 - **Imagens** — capa do sistema e avatar do personagem aceitam qualquer endereço direto de
   imagem, de qualquer site. Os campos mostram uma prévia: se ela carregar, o Discord também
   carrega. Quando falha, o app explica o motivo em vez de deixar você adivinhar.
+- **Slots de imagem** — na aba *Perfil*, o avatar em uso pode ser guardado num slot, e trocar
+  entre os guardados é um toque. Os slots são do perfil, então valem pra todas as fichas dele.
 - **Compartilhar** — o botão ↗ copia um link com a ficha inteira dentro, capa incluída. O
   jogador abre o link e o sistema aparece no aparelho dele. Sem conta, sem servidor.
 - **Personagens** — vários por aparelho, cada um preso a um sistema. Dá pra duplicar e apagar.
@@ -101,6 +103,10 @@ A confusão mais comum é colar o link da **página** em vez do da **imagem**:
 
 Em qualquer site: **toque e segure** na imagem (ou botão direito, no PC) → *Copiar endereço da
 imagem*.
+
+Achar a URL certa dá trabalho, então a aba *Perfil* guarda as que você usa em **slots**: o `+`
+guarda a imagem atual, e tocar num slot troca na hora. Trocar também guarda sozinho a imagem que
+sai, pra sempre dar pra voltar. São oito slots por perfil; passando disso, a mais antiga sai.
 
 Encurtadores (`pin.it`, e afins) nunca servem: por definição eles devolvem um redirecionamento
 para uma página, não os bytes de uma imagem.
