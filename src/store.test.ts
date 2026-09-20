@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets } from './store.ts';
+import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets, modifierOf, formatMod, withMods } from './store.ts';
 
 test('slug tira acento e espaço', () => {
   assert.equal(slug('Força'), 'forca');
@@ -223,4 +223,44 @@ test('renomear campo leva o destino junto, senão o preenchimento quebra', () =>
   };
   const { template } = renameField(t, 's', 'forca', 'Vigor');
   assert.equal(template.rolls[0].assign, '@vigor @outro');
+});
+
+// --- atributo x modificador ----------------------------------------------
+
+test('em d20, 12 vale +1 — o atributo não é o modificador', () => {
+  const casos: [number, number][] = [[3, -4], [8, -1], [10, 0], [11, 0], [12, 1], [14, 2], [16, 3], [18, 4], [20, 5]];
+  for (const [attr, mod] of casos) assert.equal(modifierOf(attr, 'd20'), mod, `${attr}`);
+});
+
+test('outras regras de sistema', () => {
+  assert.equal(modifierOf(13, 'metade'), 6);
+  assert.equal(modifierOf(4, 'nenhum'), 4, 'sistemas em que o valor já é o modificador');
+  assert.equal(modifierOf(12), 1, 'sem regra declarada, vale d20');
+});
+
+test('campo vazio não tem modificador, e zero não é vazio', () => {
+  assert.equal(modifierOf('', 'd20'), null);
+  assert.equal(modifierOf('   ', 'd20'), null);
+  assert.equal(modifierOf(undefined, 'd20'), null);
+  assert.equal(modifierOf('abc', 'd20'), null);
+  assert.equal(modifierOf(0, 'd20'), -5, '0 é um valor válido, não vazio');
+});
+
+test('o sinal aparece só no positivo', () => {
+  assert.equal(formatMod(3), '+3');
+  assert.equal(formatMod(0), '0');
+  assert.equal(formatMod(-2), '-2');
+});
+
+test('@id.mod fica disponível pra rolagem, sem tocar no valor do atributo', () => {
+  const t = EXAMPLE();
+  const v = withMods(t, { forca: '16', pv: '30' });
+  assert.equal(v.forca, '16', 'o atributo continua sendo o atributo');
+  assert.equal(v['forca.mod'], '3');
+  assert.equal(v.pv, '30');
+  assert.equal(v['pv.mod'], undefined, 'campo comum não ganha modificador');
+});
+
+test('atributo em branco vira modificador 0 na rolagem, não NaN', () => {
+  assert.equal(withMods(EXAMPLE(), {})['forca.mod'], '0');
 });

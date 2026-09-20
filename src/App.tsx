@@ -20,6 +20,7 @@ import {
   parseAssign,
   renameField,
   save,
+  withMods,
   type Character,
   type Profile,
   type State,
@@ -128,7 +129,8 @@ export default function App() {
 
   async function doRoll(label: string, notation: string, assign?: string) {
     // A mesa vê a notação já resolvida (d20+4), não a da ficha (d20+@forca).
-    const values = character?.values ?? {};
+    // withMods acrescenta @id.mod: a rolagem soma o modificador, não o atributo.
+    const values = character && template ? withMods(template, character.values) : {};
     const expr = resolve(notation, values);
     let rolls;
     try {

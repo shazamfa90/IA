@@ -1,13 +1,63 @@
 import { useState } from 'react';
 import type { Field, FieldType, Template } from './store.ts';
-import { EXAMPLE, decodeTemplate, encodeTemplate, slug, uid, unknownTargets } from './store.ts';
+import { EXAMPLE, MOD_RULES, decodeTemplate, encodeTemplate, parseAssign, slug, uid, unknownTargets } from './store.ts';
+import type { ModRule } from './store.ts';
 import ImageField from './ImageField.tsx';
 import Foto from './Foto.tsx';
 
 const conta = (n: number, um: string, muitos = `${um}s`) => `${n} ${n === 1 ? um : muitos}`;
 
+/** Texto do botão que abre o seletor de destinos. */
+function resumoDestinos(t: Template, assign?: string): string {
+  const nomes = t.sections.flatMap((s) => s.fields);
+  const sel = parseAssign(assign).map((id) => nomes.find((f) => f.id === id)?.label ?? id);
+  return sel.length ? `preenche: ${sel.join(', ')}` : '+ preencher a ficha';
+}
+
+/**
+ * Escolhe quais campos a rolagem preenche, na ordem em que forem marcados.
+ * Guarda como "@forca @destreza": mesmo formato de antes, então sistemas
+ * montados na mão continuam valendo e o rename segue reescrevendo o destino.
+ */
+function Destinos({ t, assign, onChange }: { t: Template; assign?: string; onChange: (v: string) => void }) {
+  const campos = t.sections.flatMap((s) => s.fields);
+  const sel = parseAssign(assign);
+  const toggle = (id: string) => {
+    const novo = sel.includes(id) ? sel.filter((x) => x !== id) : [...sel, id];
+    onChange(novo.map((x) => `@${x}`).join(' '));
+  };
+
+  if (!campos.length) return <p className="hint">Crie campos antes de escolher onde o resultado cai.</p>;
+  return (
+    <>
+      <div className="destinos">
+        {campos.map((f) => {
+          const i = sel.indexOf(f.id);
+          return (
+            <button
+              key={f.id}
+              className={i >= 0 ? 'chip on' : 'chip'}
+              aria-pressed={i >= 0}
+              onClick={() => toggle(f.id)}
+            >
+              {i >= 0 && <b>{i + 1}</b>}
+              {f.label}
+            </button>
+          );
+        })}
+      </div>
+      <p className="hint">
+        {sel.length
+          ? `Os resultados caem nesses campos, nessa ordem. Toque pra desmarcar.`
+          : 'Marque os campos que esta rolagem preenche. Sem nenhum, ela só mostra o resultado.'}
+      </p>
+    </>
+  );
+}
+
 const TYPES: { v: FieldType; label: string }[] = [
   { v: 'number', label: 'Número' },
+  { v: 'attr', label: 'Atributo' },
   { v: 'text', label: 'Texto' },
   { v: 'textarea', label: 'Texto longo' },
   { v: 'check', label: 'Marcador' },
@@ -132,6 +182,7 @@ function Editor({
   notice: string;
 }) {
   const refs = t.sections.flatMap((s) => s.fields).map((f) => f.id);
+  const [abrindo, setAbrindo] = useState<string | null>(null);
 
   const setSections = (sections: Template['sections']) => onChange({ ...t, sections });
   const patchSection = (id: string, patch: Partial<Template['sections'][0]>) =>
@@ -160,6 +211,27 @@ function Editor({
           hint="Vai junto no link que você manda pros jogadores. Sem ela, a lista mostra as iniciais do nome."
         />
       </section>
+
+      {t.sections.some((sec) => sec.fields.some((f) => f.type === 'attr')) && (
+        <section>
+          <h2>Modificador</h2>
+          <label className="field">
+            <span>Como o atributo vira modificador</span>
+            <select
+              value={t.modRule ?? 'd20'}
+              onChange={(e) => onChange({ ...t, modRule: e.target.value as ModRule })}
+            >
+              {Object.entries(MOD_RULES).map(([k, v]) => (
+                <option key={k} value={k}>{v.label}</option>
+              ))}
+            </select>
+          </label>
+          <p className="hint">
+            Vale pros campos do tipo <em>Atributo</em>. Numa rolagem, <code>@forca</code> é o valor e{' '}
+            <code>@forca.mod</code> é o modificador — em d20, Força 12 dá <code>+1</code>.
+          </p>
+        </section>
+      )}
 
       {t.sections.map((sec) => (
         <section key={sec.id}>
@@ -226,15 +298,20 @@ function Editor({
               onChange={(e) => onChange({ ...t, rolls: t.rolls.map((x) => (x.id === r.id ? { ...x, notation: e.target.value } : x)) })}
             />
             <button className="icon" title="Apagar" onClick={() => onChange({ ...t, rolls: t.rolls.filter((x) => x.id !== r.id) })}>✕</button>
-            <input
-              className="flat mono grow"
-              placeholder="preencher: @forca @destreza…"
-              value={r.assign ?? ''}
-              onChange={(e) => onChange({ ...t, rolls: t.rolls.map((x) => (x.id === r.id ? { ...x, assign: e.target.value } : x)) })}
-            />
+
+            <button className="add" onClick={() => setAbrindo(abrindo === r.id ? null : r.id)}>
+              {resumoDestinos(t, r.assign)}
+            </button>
+            {abrindo === r.id && (
+              <Destinos
+                t={t}
+                assign={r.assign}
+                onChange={(assign) => onChange({ ...t, rolls: t.rolls.map((x) => (x.id === r.id ? { ...x, assign } : x)) })}
+              />
+            )}
             {unknownTargets(r.assign, t).length > 0 && (
               <p className="hint err break">
-                Não existe neste sistema: {unknownTargets(r.assign, t).map((id) => `@${id}`).join(', ')}
+                Campo que não existe mais: {unknownTargets(r.assign, t).map((id) => `@${id}`).join(', ')}
               </p>
             )}
           </div>

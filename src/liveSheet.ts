@@ -1,4 +1,5 @@
 import type { Character, Template } from './store.ts';
+import { formatMod, modifierOf } from './store.ts';
 
 /**
  * Ficha viva: cada personagem ocupa UMA mensagem no canal do mestre, que o app
@@ -13,8 +14,12 @@ const VAZIO = '—'; // o Discord rejeita campo com valor vazio
 
 const corta = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
-function valor(v: string | boolean | undefined, tipo: string): string {
+function valor(v: string | boolean | undefined, tipo: string, rule?: Template['modRule']): string {
   if (tipo === 'check') return v ? 'Sim' : VAZIO;
+  if (tipo === 'attr') {
+    const m = modifierOf(v, rule);
+    return m === null ? VAZIO : `${v} (${formatMod(m)})`;
+  }
   const s = String(v ?? '').trim();
   return s ? corta(s, MAX_VALUE) : VAZIO;
 }
@@ -23,7 +28,7 @@ export function sheetEmbed(template: Template, character: Character) {
   const campos = template.sections.flatMap((sec) =>
     sec.fields.map((f) => ({
       name: corta(`${f.label}`, MAX_NAME),
-      value: valor(character.values[f.id], f.type),
+      value: valor(character.values[f.id], f.type, template.modRule),
       inline: f.type !== 'textarea',
     })),
   );

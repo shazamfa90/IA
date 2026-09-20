@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Character, Template } from './store.ts';
+import { formatMod, modifierOf } from './store.ts';
 import Foto from './Foto.tsx';
 
 type Props = {
@@ -42,6 +43,21 @@ export default function Sheet({ template, character, onChange, onRoll }: Props) 
                   value={String(character.values[f.id] ?? '')}
                   onChange={(e) => setValue(f.id, e.target.value)}
                 />
+              ) : f.type === 'attr' ? (
+                <span className="attr">
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    value={String(character.values[f.id] ?? '')}
+                    onChange={(e) => setValue(f.id, e.target.value)}
+                  />
+                  <b className="mod" title="modificador">
+                    {(() => {
+                      const m = modifierOf(character.values[f.id], template.modRule);
+                      return m === null ? '—' : formatMod(m);
+                    })()}
+                  </b>
+                </span>
               ) : f.type === 'check' ? (
                 <input
                   type="checkbox"

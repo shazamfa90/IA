@@ -1,4 +1,25 @@
-export type FieldType = 'number' | 'text' | 'textarea' | 'check';
+export type FieldType = 'number' | 'attr' | 'text' | 'textarea' | 'check';
+
+/**
+ * Como o sistema tira o modificador do valor do atributo. É regra de RPG, não
+ * de app: em d20 um 12 vale +1, em outros sistemas o valor já é o modificador.
+ */
+export const MOD_RULES = {
+  d20: { label: '(valor − 10) ÷ 2', calc: (v: number) => Math.floor((v - 10) / 2) },
+  metade: { label: 'Metade do valor', calc: (v: number) => Math.floor(v / 2) },
+  nenhum: { label: 'O valor é o modificador', calc: (v: number) => v },
+} as const;
+export type ModRule = keyof typeof MOD_RULES;
+
+/** null quando o campo está vazio: aí não há modificador a mostrar. */
+export function modifierOf(value: unknown, rule: ModRule = 'd20'): number | null {
+  if (String(value ?? '').trim() === '') return null;
+  const n = Number(value);
+  if (!Number.isFinite(n)) return null;
+  return (MOD_RULES[rule] ?? MOD_RULES.d20).calc(n);
+}
+
+export const formatMod = (m: number) => (m > 0 ? `+${m}` : String(m));
 export type Field = { id: string; label: string; type: FieldType };
 export type Section = { id: string; title: string; fields: Field[] };
 export type RollDef = {
@@ -15,6 +36,8 @@ export type Template = {
   name: string;
   /** Imagem de capa (URL). Opcional: sem ela a lista mostra as iniciais do nome. */
   image?: string;
+  /** Regra de modificador dos campos do tipo atributo. Padrão: d20. */
+  modRule?: ModRule;
   sections: Section[];
   rolls: RollDef[];
 };
@@ -74,14 +97,15 @@ export const newProfile = (name = 'Jogador'): Profile => ({
 export const EXAMPLE = (): Template => ({
   id: uid(),
   name: 'Exemplo d20',
+  modRule: 'd20',
   sections: [
     {
       id: uid(),
       title: 'Atributos',
       fields: [
-        { id: 'forca', label: 'Força', type: 'number' },
-        { id: 'destreza', label: 'Destreza', type: 'number' },
-        { id: 'constituicao', label: 'Constituição', type: 'number' },
+        { id: 'forca', label: 'Força', type: 'attr' },
+        { id: 'destreza', label: 'Destreza', type: 'attr' },
+        { id: 'constituicao', label: 'Constituição', type: 'attr' },
       ],
     },
     {
@@ -96,12 +120,26 @@ export const EXAMPLE = (): Template => ({
     },
   ],
   rolls: [
-    { id: uid(), label: 'Teste de Força', notation: 'd20+@forca' },
-    { id: uid(), label: 'Teste de Destreza', notation: 'd20+@destreza' },
-    { id: uid(), label: 'Iniciativa', notation: 'd20+@destreza' },
+    { id: uid(), label: 'Teste de Força', notation: 'd20+@forca.mod' },
+    { id: uid(), label: 'Teste de Destreza', notation: 'd20+@destreza.mod' },
+    { id: uid(), label: 'Iniciativa', notation: 'd20+@destreza.mod' },
     { id: uid(), label: 'Rolar atributos', notation: '3#4d6kh3', assign: '@forca @destreza @constituicao' },
   ],
 });
+
+/**
+ * Acrescenta `@id.mod` pra cada atributo, pra uma rolagem poder somar o
+ * modificador (`d20+@forca.mod`) em vez do valor cheio do atributo.
+ */
+export function withMods(t: Template, values: Character['values']): Character['values'] {
+  const out: Character['values'] = { ...values };
+  for (const f of t.sections.flatMap((s) => s.fields)) {
+    if (f.type !== 'attr') continue;
+    const m = modifierOf(values[f.id], t.modRule);
+    out[`${f.id}.mod`] = m === null ? '0' : String(m);
+  }
+  return out;
+}
 
 export function newCharacter(templateId: string, profileId: string, name = ''): Character {
   return { id: uid(), profileId, templateId, name, avatarUrl: '', values: {} };
