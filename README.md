@@ -30,7 +30,7 @@ npm run build   # gera dist/
 - **Tema por sistema** — um sistema pode trazer aparência própria, e ela assume o app inteiro
   enquanto uma ficha dele está aberta.
 - **Perfis** — cada pessoa que usa o aparelho tem o seu: fichas separadas e aparência própria
-  (5 temas e uma cor de destaque). São locais, sem senha e sem servidor — servem pra dividir um
+  (6 temas e uma cor de destaque). São locais, sem senha e sem servidor — servem pra dividir um
   tablet na mesa, não pra entrar da sua conta noutro aparelho.
 
 ## Sistemas prontos
