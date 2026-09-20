@@ -38,6 +38,8 @@ export type Template = {
   image?: string;
   /** Regra de modificador dos campos do tipo atributo. Padrão: d20. */
   modRule?: ModRule;
+  /** Tema próprio do sistema. Enquanto uma ficha dele está aberta, vale este. */
+  theme?: Theme;
   sections: Section[];
   rolls: RollDef[];
 };
@@ -53,7 +55,7 @@ export type Character = {
   messageId?: string;
 };
 
-export const THEMES = ['escuro', 'claro', 'pergaminho', 'sangue', 'floresta'] as const;
+export const THEMES = ['escuro', 'claro', 'pergaminho', 'sangue', 'floresta', 'nichirin'] as const;
 export type Theme = (typeof THEMES)[number];
 
 /** Perfil local: separa as fichas e a aparência de cada pessoa no aparelho. */

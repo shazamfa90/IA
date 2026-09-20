@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { HASHIRA } from './hashira.ts';
 import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets, modifierOf, formatMod, withMods } from './store.ts';
 
 test('slug tira acento e espaço', () => {
@@ -276,4 +277,54 @@ test('atributo em branco rola como 0, não NaN', () => {
   const v = withMods(EXAMPLE(), {});
   assert.equal(v.forca, '0');
   assert.equal(v['forca.mod'], '0');
+});
+
+// --- sistema com tema e ficha próprios -----------------------------------
+
+test('Hashira: base 5e, tema próprio e capa', () => {
+  const t = HASHIRA();
+  assert.equal(t.modRule, 'd20', 'o livro adapta a 5e: modificador (valor-10)/2');
+  assert.equal(t.theme, 'nichirin');
+  assert.ok(t.image);
+});
+
+test('Hashira: os seis atributos da 5e, todos do tipo Atributo', () => {
+  const attrs = HASHIRA().sections.flatMap((s) => s.fields).filter((f) => f.type === 'attr');
+  assert.deepEqual(attrs.map((f) => f.id), ['forca', 'destreza', 'constituicao', 'inteligencia', 'sabedoria', 'carisma']);
+});
+
+test('Hashira: campos do livro que não são de 5e genérica', () => {
+  const ids = HASHIRA().sections.flatMap((s) => s.fields).map((f) => f.id);
+  for (const id of ['raca', 'classe', 'energia', 'energiamax', 'concentracao', 'continua', 'tecnicas']) {
+    assert.ok(ids.includes(id), id);
+  }
+});
+
+test('Hashira: rolar atributos preenche os seis, e só eles', () => {
+  const t = HASHIRA();
+  const r = t.rolls.find((r) => r.label === 'Rolar atributos')!;
+  assert.equal(r.notation, '6#4d6kh3', 'seis atributos, seis rolagens');
+  assert.deepEqual(parseAssign(r.assign), ['forca', 'destreza', 'constituicao', 'inteligencia', 'sabedoria', 'carisma']);
+  assert.deepEqual(unknownTargets(r.assign, t), [], 'nenhum destino aponta pro vazio');
+});
+
+test('Hashira: toda rolagem aponta só pra campos que existem', () => {
+  const t = HASHIRA();
+  const existem = new Set(t.sections.flatMap((s) => s.fields).map((f) => f.id));
+  for (const r of t.rolls) {
+    for (const [, id] of r.notation.matchAll(/@([\w]+)(?:\.\w+)?/g)) {
+      assert.ok(existem.has(id), `${r.label} aponta pra @${id}, que não existe`);
+    }
+  }
+});
+
+test('Hashira: a rolagem soma o modificador, não o atributo', () => {
+  const t = HASHIRA();
+  const v = withMods(t, { forca: '16', prof: '3' });
+  assert.equal(v.forca, '3', 'Força 16 vale +3 na 5e');
+  assert.equal(v.prof, '3', 'proficiência é número comum: entra cheia');
+});
+
+test('Hashira: cada sistema importado é uma cópia independente', () => {
+  assert.notEqual(HASHIRA().id, HASHIRA().id);
 });

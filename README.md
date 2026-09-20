@@ -27,9 +27,24 @@ npm run build   # gera dist/
   que ordem. O app preenche a ficha sozinho; se os campos já tiverem valor, pergunta antes.
 - **Atributo e modificador** — um campo do tipo *Atributo* guarda o atributo (16) e mostra o
   modificador ao lado (+3), pela regra que o sistema escolher.
+- **Tema por sistema** — um sistema pode trazer aparência própria, e ela assume o app inteiro
+  enquanto uma ficha dele está aberta.
 - **Perfis** — cada pessoa que usa o aparelho tem o seu: fichas separadas e aparência própria
   (5 temas e uma cor de destaque). São locais, sem senha e sem servidor — servem pra dividir um
   tablet na mesa, não pra entrar da sua conta noutro aparelho.
+
+## Sistemas prontos
+
+Em *Sistemas → Adicionar*:
+
+- **Exemplo d20** — três atributos e quatro rolagens, pra usar de base ou apagar.
+- **Hashira Handbook** — ficha adaptada do livro de mesmo nome (Natan, 2023), projeto de fãs sem
+  fins lucrativos que leva *Kimetsu no Yaiba* para o d20 da 5ª edição. Traz os seis atributos, os
+  campos próprios do livro (raça, respiração ou kekkijutsu, pontos de energia, Concentração
+  Total, técnicas) e tema e capa próprios.
+
+  Só a **estrutura** da ficha está aqui. Nada do texto das regras é reproduzido: as respirações,
+  talentos e kekkijutsu continuam no livro, e é dele que a mesa precisa pra jogar.
 
 ## Notação de dados
 
