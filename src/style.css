@@ -1,4 +1,9 @@
-:root { color-scheme: dark; --bg: #16161a; --card: #22222a; --line: #34343f; --ink: #ececf0; --dim: #9b9baa; --accent: #b08cff; }
+/* Temas: só trocam estas variáveis. O resto do CSS nunca cita uma cor direta. */
+:root, [data-theme=escuro] { color-scheme: dark; --bg: #16161a; --card: #22222a; --line: #34343f; --ink: #ececf0; --dim: #9b9baa; --accent: #b08cff; --sunk: #1b1b21; --raised: #2b2b36; --bad: #ff9d96; }
+[data-theme=claro] { color-scheme: light; --bg: #f4f4f7; --card: #fff; --line: #dcdce4; --ink: #1c1c22; --dim: #6b6b7b; --accent: #6d3fd4; --sunk: #f0f0f4; --raised: #eceaf6; --bad: #b3261e; }
+[data-theme=pergaminho] { color-scheme: light; --bg: #efe3cb; --card: #f8efdc; --line: #d6c3a0; --ink: #2e2213; --dim: #7c6647; --accent: #9a5b1f; --sunk: #e8dbc0; --raised: #e6d5b4; --bad: #9c2b16; }
+[data-theme=sangue] { color-scheme: dark; --bg: #170f10; --card: #241618; --line: #3d2326; --ink: #f0e3e3; --dim: #a98d8f; --accent: #d1444f; --sunk: #1d1214; --raised: #331d20; --bad: #ffb3ad; }
+[data-theme=floresta] { color-scheme: dark; --bg: #0f1713; --card: #16241d; --line: #23382c; --ink: #e2efe7; --dim: #8aa596; --accent: #4bb07a; --sunk: #121c17; --raised: #1c2f25; --bad: #ff9d96; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
 main { max-width: 760px; margin: 0 auto; padding: 0 16px 140px; }
@@ -12,7 +17,7 @@ nav { display: flex; gap: 6px; position: sticky; top: 0; background: var(--bg); 
 
 section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
 input, textarea, select, button { font: inherit; color: var(--ink); }
-input, textarea, select { background: #1b1b21; border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+input, textarea, select { background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
 button { cursor: pointer; }
 
 .field { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
@@ -26,7 +31,7 @@ input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--accent); }
 .sys { margin: 0 0 12px; }
 
 .grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.roll { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1 1 45%; padding: 12px; background: #2b2b36; border: 1px solid var(--line); border-radius: 10px; text-align: left; }
+.roll { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1 1 45%; padding: 12px; background: var(--raised); border: 1px solid var(--line); border-radius: 10px; text-align: left; }
 .roll:active { border-color: var(--accent); }
 .roll small { color: var(--dim); font-family: ui-monospace, monospace; font-size: .75rem; }
 .roll.compact { flex: 0 0 auto; align-items: center; padding: 10px 16px; }
@@ -39,7 +44,7 @@ input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--accent); }
 .pick { flex: 1; display: flex; flex-direction: column; align-items: flex-start; background: none; border: 0; padding: 12px 0; text-align: left; min-width: 0; }
 .pick small { color: var(--dim); font-size: .8rem; }
 .icon { background: none; border: 0; color: var(--dim); font-size: 1.1rem; padding: 10px; border-radius: 8px; }
-.icon:hover { color: var(--ink); background: #2b2b36; }
+.icon:hover { color: var(--ink); background: var(--raised); }
 
 .bar { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
 .bar .name { margin: 0; }
@@ -55,9 +60,22 @@ input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--accent); }
 .add.wide { display: block; width: 100%; margin-bottom: 12px; }
 
 .hint { color: var(--dim); font-size: .9rem; }
-.hint code { background: #1b1b21; padding: 1px 5px; border-radius: 5px; font-size: .85em; }
+.hint code { background: var(--sunk); padding: 1px 5px; border-radius: 5px; font-size: .85em; }
 .break { overflow-wrap: anywhere; }
-.result { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--accent); padding: 14px 16px; cursor: pointer; }
-.result code { background: #1b1b21; padding: 1px 5px; border-radius: 5px; font-size: .85em; }
+.result { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--accent); padding: 14px 16px; cursor: pointer; animation: chega .18s ease-out; }
+.result code { background: var(--sunk); padding: 1px 5px; border-radius: 5px; font-size: .85em; }
 .result div { font-family: ui-monospace, monospace; margin-top: 4px; overflow-wrap: anywhere; }
-.err, .result.err { border-color: #ff7b72; color: #ff9d96; }
+.err, .result.err { border-color: var(--bad); color: var(--bad); }
+
+/* A rolagem sobe da base; o total pulsa pra puxar o olho até ele. */
+@keyframes chega { from { transform: translateY(100%); } }
+@keyframes pulsa { from { transform: scale(1.35); } }
+.total { color: var(--accent); font-weight: 700; display: inline-block; animation: pulsa .22s ease-out; }
+@media (prefers-reduced-motion: reduce) { .result, .total { animation: none; } }
+
+/* Chips de tema */
+.temas { display: flex; flex-wrap: wrap; gap: 8px; }
+.tema { width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--line); padding: 0; overflow: hidden; display: flex; }
+.tema.on { border-color: var(--accent); }
+.tema i { flex: 1; }
+input[type=color] { width: 56px; height: 36px; padding: 2px; }

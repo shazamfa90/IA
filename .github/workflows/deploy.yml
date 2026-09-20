@@ -25,6 +25,10 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+        env:
+          # Canal padrão da mesa. Sem o secret o app ainda funciona: cada
+          # jogador cola a URL do webhook na aba Sessão.
+          VITE_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

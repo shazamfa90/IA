@@ -4,17 +4,32 @@ import { postRoll } from './discord.ts';
 import Sheet from './Sheet.tsx';
 import Characters from './Characters.tsx';
 import Templates from './Templates.tsx';
-import { decodeTemplate, load, newCharacter, save, type Character, type State } from './store.ts';
+import {
+  DEFAULT_WEBHOOK,
+  THEMES,
+  decodeTemplate,
+  load,
+  newCharacter,
+  newProfile,
+  save,
+  type Character,
+  type Profile,
+  type State,
+} from './store.ts';
 
 const TABS = [
   ['ficha', 'Ficha'],
   ['personagens', 'Personagens'],
   ['sistemas', 'Sistemas'],
-  ['sessao', 'Sessão'],
+  ['sessao', 'Perfil'],
 ] as const;
 type Tab = (typeof TABS)[number][0];
 
-type Result = { label: string; notation: string; text: string; error?: boolean };
+type Part = { detail: string; total: number };
+type Result = { id: number; label: string; notation: string; text?: string; parts?: Part[]; error?: boolean };
+
+let seq = 0;
+const result = (r: Omit<Result, 'id'>): Result => ({ ...r, id: ++seq });
 
 export default function App() {
   const [state, setState] = useState<State>(load);
@@ -22,6 +37,14 @@ export default function App() {
   const [last, setLast] = useState<Result | null>(null);
 
   useEffect(() => save(state), [state]);
+
+  const profile = state.profiles.find((p) => p.id === state.currentProfileId) ?? state.profiles[0];
+
+  // Tema e cor vivem no <html>, então valem pra página inteira sem prop drilling.
+  useEffect(() => {
+    document.documentElement.dataset.theme = profile.theme;
+    document.documentElement.style.setProperty('--accent', profile.accent);
+  }, [profile.theme, profile.accent]);
 
   // Link de ficha compartilhado pelo mestre: #t=<template>
   useEffect(() => {
@@ -32,19 +55,24 @@ export default function App() {
       const t = decodeTemplate(code);
       setState((s) => ({ ...s, templates: [...s.templates, t] }));
       setTab('sistemas');
-      setLast({ label: 'Sistema importado', notation: t.name, text: 'Crie um personagem em Personagens.' });
+      setLast(result({ label: 'Sistema importado', notation: t.name, text: 'Crie um personagem em Personagens.' }));
     } catch {
-      setLast({ label: 'Link inválido', notation: '', text: 'Peça o link de novo pro mestre.', error: true });
+      setLast(result({ label: 'Link inválido', notation: '', text: 'Peça o link de novo pro mestre.', error: true }));
     }
   }, []);
 
-  const character = state.characters.find((c) => c.id === state.currentId) ?? null;
+  const mine = state.characters.filter((c) => c.profileId === profile.id);
+  // Cai na primeira ficha do perfil: trocar de perfil, apagar um, ou abrir com
+  // um currentId de outro perfil salvo nunca deve mostrar a tela vazia à toa.
+  const character = mine.find((c) => c.id === state.currentId) ?? mine[0] ?? null;
   const template = character ? state.templates.find((t) => t.id === character.templateId) ?? null : null;
 
+  // Edita a ficha que está aberta, não `currentId`: ele pode estar defasado
+  // e apontar pra ficha de outro perfil.
   const patchCharacter = (patch: Partial<Character>) =>
     setState((s) => ({
       ...s,
-      characters: s.characters.map((c) => (c.id === s.currentId ? { ...c, ...patch } : c)),
+      characters: s.characters.map((c) => (c.id === character?.id ? { ...c, ...patch } : c)),
     }));
 
   async function doRoll(label: string, notation: string) {
@@ -55,18 +83,18 @@ export default function App() {
     try {
       rolls = roll(notation, values);
     } catch (e) {
-      setLast({ label, notation: expr, text: (e as Error).message, error: true });
+      setLast(result({ label, notation: expr, text: (e as Error).message, error: true }));
       return;
     }
 
-    const text = rolls.map((r) => `${r.detail.replace(/~~(\d+)~~/g, '$1̶')} = ${r.total}`).join('   ');
-    setLast({ label, notation: expr, text });
+    const parts = rolls.map((r) => ({ detail: r.detail.replace(/~~(\d+)~~/g, '$1̶'), total: r.total }));
+    setLast(result({ label, notation: expr, parts }));
 
     if (!state.webhookUrl || !character) return;
     try {
       await postRoll(state.webhookUrl, character, label, expr, rolls);
     } catch (e) {
-      setLast({ label, notation: expr, text: `${text}  —  não postou: ${(e as Error).message}`, error: true });
+      setLast(result({ label, notation: expr, parts, text: `não postou: ${(e as Error).message}`, error: true }));
     }
   }
 
@@ -88,7 +116,7 @@ export default function App() {
             templates={state.templates}
             onCreate={(templateId) =>
               setState((s) => {
-                const c = newCharacter(templateId);
+                const c = newCharacter(templateId, profile.id);
                 return { ...s, characters: [...s.characters, c], currentId: c.id };
               })
             }
@@ -97,15 +125,21 @@ export default function App() {
 
       {tab === 'personagens' && (
         <Characters
-          characters={state.characters}
+          characters={mine}
+          profileId={profile.id}
           templates={state.templates}
           currentId={state.currentId}
           onPick={(id) => {
             setState((s) => ({ ...s, currentId: id }));
             setTab('ficha');
           }}
+          // `mine` só traz as fichas deste perfil: recoloca as dos outros ao salvar.
           onSet={(characters, currentId) =>
-            setState((s) => ({ ...s, characters, currentId: currentId === undefined ? s.currentId : currentId ?? null }))
+            setState((s) => ({
+              ...s,
+              characters: [...s.characters.filter((c) => c.profileId !== profile.id), ...characters],
+              currentId: currentId === undefined ? s.currentId : currentId ?? null,
+            }))
           }
         />
       )}
@@ -119,13 +153,29 @@ export default function App() {
       )}
 
       {tab === 'sessao' && (
-        <Sessao state={state} setState={setState} character={character} patchCharacter={patchCharacter} />
+        <Sessao
+          state={state}
+          setState={setState}
+          profile={profile}
+          character={character}
+          patchCharacter={patchCharacter}
+        />
       )}
 
       {last && (
-        <aside className={last.error ? 'result err' : 'result'} onClick={() => setLast(null)}>
+        // key: remonta a cada rolagem pra animação tocar de novo.
+        <aside key={last.id} className={last.error ? 'result err' : 'result'} onClick={() => setLast(null)}>
           <strong>{last.label}</strong> {last.notation && <code>{last.notation}</code>}
-          <div>{last.text}</div>
+          <div>
+            {last.parts?.map((p, i) => (
+              <span key={i}>
+                {i > 0 && '   '}
+                {p.detail} = <span className="total">{p.total}</span>
+              </span>
+            ))}
+            {last.parts && last.text && '  —  '}
+            {last.text}
+          </div>
         </aside>
       )}
     </main>
@@ -154,17 +204,94 @@ function Empty({ templates, onCreate }: { templates: State['templates']; onCreat
 function Sessao({
   state,
   setState,
+  profile,
   character,
   patchCharacter,
 }: {
   state: State;
   setState: React.Dispatch<React.SetStateAction<State>>;
+  profile: Profile;
   character: Character | null;
   patchCharacter: (patch: Partial<Character>) => void;
 }) {
+  const patchProfile = (patch: Partial<Profile>) =>
+    setState((s) => ({ ...s, profiles: s.profiles.map((p) => (p.id === profile.id ? { ...p, ...patch } : p)) }));
+
+  const switchTo = (id: string) => setState((s) => ({ ...s, currentProfileId: id }));
+
+  function addProfile() {
+    const p = newProfile(`Jogador ${state.profiles.length + 1}`);
+    setState((s) => ({ ...s, profiles: [...s.profiles, p], currentProfileId: p.id, currentId: null }));
+  }
+
+  function removeProfile() {
+    const n = state.characters.filter((c) => c.profileId === profile.id).length;
+    if (!confirm(`Apagar o perfil "${profile.name}" e ${n === 1 ? 'a ficha dele' : `as ${n} fichas dele`}?`)) return;
+    setState((s) => {
+      const rest = s.profiles.filter((p) => p.id !== profile.id);
+      return {
+        ...s,
+        profiles: rest,
+        currentProfileId: rest[0].id,
+        characters: s.characters.filter((c) => c.profileId !== profile.id),
+        currentId: null,
+      };
+    });
+  }
+
   return (
     <>
-      <h1>Sessão</h1>
+      <h1>Perfil</h1>
+      <section>
+        <h2>Quem está usando</h2>
+        <div className="grid">
+          {state.profiles.map((p) => (
+            <button key={p.id} className="roll" onClick={() => switchTo(p.id)}>
+              {p.name}
+              <small>{p.id === profile.id ? 'em uso' : `${state.characters.filter((c) => c.profileId === p.id).length} fichas`}</small>
+            </button>
+          ))}
+        </div>
+        <label className="field wide">
+          <span>Nome do perfil</span>
+          <input value={profile.name} onChange={(e) => patchProfile({ name: e.target.value })} />
+        </label>
+        <div className="grid">
+          <button className="add" onClick={addProfile}>+ novo perfil</button>
+          {state.profiles.length > 1 && (
+            <button className="add" onClick={removeProfile}>Apagar este perfil</button>
+          )}
+        </div>
+        <p className="hint">
+          Perfis são deste aparelho: separam as fichas e a aparência de cada pessoa, sem senha e sem servidor.
+        </p>
+      </section>
+
+      <section>
+        <h2>Aparência</h2>
+        <div className="temas">
+          {THEMES.map((t) => (
+            <button
+              key={t}
+              title={t}
+              aria-label={`Tema ${t}`}
+              aria-pressed={profile.theme === t}
+              data-theme={t}
+              className={profile.theme === t ? 'tema on' : 'tema'}
+              onClick={() => patchProfile({ theme: t })}
+            >
+              <i style={{ background: 'var(--bg)' }} />
+              <i style={{ background: 'var(--card)' }} />
+              <i style={{ background: 'var(--accent)' }} />
+            </button>
+          ))}
+        </div>
+        <label className="field">
+          <span>Cor de destaque</span>
+          <input type="color" value={profile.accent} onChange={(e) => patchProfile({ accent: e.target.value })} />
+        </label>
+      </section>
+
       <section>
         <h2>Canal do Discord</h2>
         <p className="hint">
@@ -180,6 +307,14 @@ function Sessao({
             onChange={(e) => setState((s) => ({ ...s, webhookUrl: e.target.value }))}
           />
         </label>
+        {DEFAULT_WEBHOOK &&
+          (state.webhookUrl === DEFAULT_WEBHOOK ? (
+            <p className="hint">Usando o canal padrão da mesa. Só mexa aqui pra apontar pra outro canal.</p>
+          ) : (
+            <button className="add" onClick={() => setState((s) => ({ ...s, webhookUrl: DEFAULT_WEBHOOK }))}>
+              Voltar pro canal padrão da mesa
+            </button>
+          ))}
         <p className="hint">
           Trate como senha: quem tiver essa URL posta no canal com qualquer nome. Fica só neste aparelho.
         </p>

@@ -8,13 +8,22 @@ export type Template = { id: string; name: string; sections: Section[]; rolls: R
 
 export type Character = {
   id: string;
+  profileId: string;
   templateId: string;
   name: string;
   avatarUrl: string;
   values: Record<string, string | boolean>;
 };
 
+export const THEMES = ['escuro', 'claro', 'pergaminho', 'sangue', 'floresta'] as const;
+export type Theme = (typeof THEMES)[number];
+
+/** Perfil local: separa as fichas e a aparência de cada pessoa no aparelho. */
+export type Profile = { id: string; name: string; theme: Theme; accent: string };
+
 export type State = {
+  profiles: Profile[];
+  currentProfileId: string;
   templates: Template[];
   characters: Character[];
   currentId: string | null;
@@ -37,6 +46,13 @@ export function slug(label: string, taken: string[] = []): string {
   while (taken.includes(`${base}${n}`)) n++;
   return `${base}${n}`;
 }
+
+export const newProfile = (name = 'Jogador'): Profile => ({
+  id: uid(),
+  name,
+  theme: 'escuro',
+  accent: '#b08cff',
+});
 
 export const EXAMPLE = (): Template => ({
   id: uid(),
@@ -70,8 +86,8 @@ export const EXAMPLE = (): Template => ({
   ],
 });
 
-export function newCharacter(templateId: string, name = ''): Character {
-  return { id: uid(), templateId, name, avatarUrl: '', values: {} };
+export function newCharacter(templateId: string, profileId: string, name = ''): Character {
+  return { id: uid(), profileId, templateId, name, avatarUrl: '', values: {} };
 }
 
 // --- compartilhamento de template por link -------------------------------
@@ -104,22 +120,65 @@ export function decodeTemplate(code: string): Template {
 
 const KEY = 'ficha-rpg';
 
+/**
+ * Canal padrão da mesa, injetado no build a partir de VITE_WEBHOOK_URL.
+ * Fica fora do repositório: num app estático o valor acaba no bundle de
+ * qualquer jeito, mas assim dá pra trocar sem reescrever o histórico do git.
+ */
+export const DEFAULT_WEBHOOK = import.meta.env?.VITE_WEBHOOK_URL ?? '';
+
 function blank(): State {
+  const p = newProfile();
   const t = EXAMPLE();
-  const c = newCharacter(t.id);
-  return { templates: [t], characters: [c], currentId: c.id, webhookUrl: '' };
+  const c = newCharacter(t.id, p.id);
+  return {
+    profiles: [p],
+    currentProfileId: p.id,
+    templates: [t],
+    characters: [c],
+    currentId: c.id,
+    webhookUrl: DEFAULT_WEBHOOK,
+  };
 }
 
 /** Formato antigo: um template e um personagem soltos na raiz. */
-function migrate(old: any): State {
+function migrateV1(old: any): State {
+  const p = newProfile();
   const t: Template = {
     id: uid(),
     name: old.template?.name ?? 'Importado',
     sections: (old.template?.sections ?? []).map((s: any) => ({ id: uid(), ...s })),
     rolls: (old.template?.rolls ?? []).map((r: any) => ({ id: uid(), ...r })),
   };
-  const c: Character = { id: uid(), templateId: t.id, values: {}, avatarUrl: '', name: '', ...old.character };
-  return { templates: [t], characters: [c], currentId: c.id, webhookUrl: old.webhookUrl ?? '' };
+  const c: Character = {
+    id: uid(),
+    profileId: p.id,
+    templateId: t.id,
+    values: {},
+    avatarUrl: '',
+    name: '',
+    ...old.character,
+  };
+  return {
+    profiles: [p],
+    currentProfileId: p.id,
+    templates: [t],
+    characters: [{ ...c, profileId: p.id, templateId: t.id }],
+    currentId: c.id,
+    webhookUrl: old.webhookUrl || DEFAULT_WEBHOOK,
+  };
+}
+
+/** Estado sem perfis (antes de existirem): adota tudo num perfil só. */
+function adoptIntoProfile(s: any): State {
+  const p = s.profiles?.[0] ?? newProfile();
+  return {
+    ...s,
+    profiles: [p],
+    currentProfileId: p.id,
+    characters: (s.characters ?? []).map((c: Character) => ({ ...c, profileId: c.profileId || p.id })),
+    webhookUrl: s.webhookUrl || DEFAULT_WEBHOOK,
+  };
 }
 
 export function load(): State {
@@ -127,9 +186,12 @@ export function load(): State {
     const raw = localStorage.getItem(KEY);
     if (!raw) return blank();
     const parsed = JSON.parse(raw);
-    if (parsed.template) return migrate(parsed);
+    if (parsed.template) return migrateV1(parsed);
     if (!Array.isArray(parsed.templates) || !parsed.templates.length) return blank();
-    return parsed as State;
+    if (!Array.isArray(parsed.profiles) || !parsed.profiles.length) return adoptIntoProfile(parsed);
+    // Perfil apagado por outra aba: cai no primeiro em vez de abrir vazio.
+    const current = parsed.profiles.find((p: Profile) => p.id === parsed.currentProfileId);
+    return { ...parsed, currentProfileId: current?.id ?? parsed.profiles[0].id } as State;
   } catch {
     return blank();
   }
