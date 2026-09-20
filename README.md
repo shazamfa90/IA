@@ -15,8 +15,9 @@ npm run build   # gera dist/
 - **Sistemas** — o mestre monta a ficha num editor visual: seções, campos (número, texto,
   texto longo, marcador) e botões de rolagem. Nenhum sistema vem embutido; o "Exemplo d20"
   é só um ponto de partida que dá pra apagar.
-- **Capa** — cada sistema aceita uma imagem por URL, trocável a qualquer momento. Sem imagem,
-  ou se a URL quebrar, aparecem as iniciais do nome.
+- **Imagens** — capa do sistema e avatar do personagem aceitam qualquer endereço direto de
+  imagem, de qualquer site. Os campos mostram uma prévia: se ela carregar, o Discord também
+  carrega. Quando falha, o app explica o motivo em vez de deixar você adivinhar.
 - **Compartilhar** — o botão ↗ copia um link com a ficha inteira dentro, capa incluída. O
   jogador abre o link e o sistema aparece no aparelho dele. Sem conta, sem servidor.
 - **Personagens** — vários por aparelho, cada um preso a um sistema. Dá pra duplicar e apagar.
@@ -47,6 +48,24 @@ O Rollem não entra nesse caminho: ele ignora mensagens de webhook por design
 
 > A URL do webhook é uma senha: quem a tiver posta no seu canal com qualquer nome. Ela fica só
 > no aparelho, no `localStorage`. Não coloque em print nem no repositório.
+
+## Imagens
+
+O Discord **aceita qualquer URL de avatar sem reclamar** e cai no avatar padrão quando não
+consegue buscar a imagem — sem erro, sem aviso. Por isso os campos de imagem trazem uma prévia:
+ela é o teste real, e é o que evita descobrir o problema só depois, no canal.
+
+A confusão mais comum é colar o link da **página** em vez do da **imagem**:
+
+| Cole isto | Não isto |
+|---|---|
+| `https://i.pinimg.com/originals/…/foto.jpg` | `https://pinterest.com/pin/123…` |
+| `https://i.imgur.com/abc.png` | `https://imgur.com/abc` |
+
+Em qualquer site: botão direito na imagem → *Copiar endereço da imagem*.
+
+Links de anexo do Discord (`cdn.discordapp.com/attachments/…`) funcionam por algumas horas e
+depois expiram, junto com o avatar — o app avisa se você usar um.
 
 ## Ficha viva
 
