@@ -26,9 +26,11 @@ jobs:
       - run: npm test
       - run: npm run build
         env:
-          # Canal padrão da mesa. Sem o secret o app ainda funciona: cada
-          # jogador cola a URL do webhook na aba Sessão.
+          # Canal da mesa, onde saem as rolagens; e canal só do mestre, onde
+          # ficam as fichas vivas. Sem os secrets o app funciona igual: cada
+          # jogador cola as URLs na aba Perfil.
           VITE_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK }}
+          VITE_GM_WEBHOOK_URL: ${{ secrets.DISCORD_GM_WEBHOOK }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

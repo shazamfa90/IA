@@ -48,6 +48,24 @@ O Rollem não entra nesse caminho: ele ignora mensagens de webhook por design
 > A URL do webhook é uma senha: quem a tiver posta no seu canal com qualquer nome. Ela fica só
 > no aparelho, no `localStorage`. Não coloque em print nem no repositório.
 
+## Ficha viva
+
+Num canal só do mestre, cada personagem ocupa **uma** mensagem, que o app reescreve conforme a
+ficha muda — em vez de despejar uma mensagem nova a cada alteração. O mestre abre o canal e
+acompanha a mesa inteira sem pedir print.
+
+- Atualiza alguns segundos depois de você parar de digitar, pra respeitar o limite de
+  requisições do Discord, e só quando algo que aparece na mensagem realmente mudou.
+- Se alguém apagar a mensagem no canal, a próxima mudança cria outra.
+- Campo vazio na aba Perfil desliga o recurso.
+
+Configure em `VITE_GM_WEBHOOK_URL` (secret `DISCORD_GM_WEBHOOK`), do mesmo jeito que o canal
+padrão abaixo.
+
+> Aponte pra um canal que só o mestre leia. E note que um webhook é **só de escrita**: quem
+> extrair a URL do bundle consegue escrever no canal, mas não consegue ler as fichas que estão
+> lá.
+
 ### Canal padrão
 
 Pra mesa não ter que colar a URL em cada aparelho, o app aceita um canal padrão definido no
