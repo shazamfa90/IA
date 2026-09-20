@@ -84,7 +84,11 @@ A confusão mais comum é colar o link da **página** em vez do da **imagem**:
 | `https://i.pinimg.com/originals/…/foto.jpg` | `https://pinterest.com/pin/123…` |
 | `https://i.imgur.com/abc.png` | `https://imgur.com/abc` |
 
-Em qualquer site: botão direito na imagem → *Copiar endereço da imagem*.
+Em qualquer site: **toque e segure** na imagem (ou botão direito, no PC) → *Copiar endereço da
+imagem*.
+
+Encurtadores (`pin.it`, e afins) nunca servem: por definição eles devolvem um redirecionamento
+para uma página, não os bytes de uma imagem.
 
 Links de anexo do Discord (`cdn.discordapp.com/attachments/…`) funcionam por algumas horas e
 depois expiram, junto com o avatar — o app avisa se você usar um.

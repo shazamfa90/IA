@@ -25,10 +25,16 @@ export function dicaDeImagem(url: string): string {
   }
 
   const host = parsed.hostname.replace(/^www\./, '');
-  const COPIAR = 'clique com o botão direito na imagem → "Copiar endereço da imagem"';
+  // "toque e segure" primeiro: links pin.it vêm do compartilhar do celular,
+  // onde não existe botão direito.
+  const COPIAR = 'toque e segure na imagem (ou botão direito, no PC) → "Copiar endereço da imagem"';
+  const PINIMG = 'a boa começa com i.pinimg.com';
 
-  if (/(^|\.)pinterest\.[a-z.]+$/.test(host) || host === 'pin.it') {
-    return `Esse é o link da página do pin, não da imagem. Abra o pin, ${COPIAR} — a boa começa com i.pinimg.com`;
+  if (host === 'pin.it') {
+    return `pin.it é encurtador: ele sempre abre uma página, nunca uma imagem. Abra o pin no navegador, ${COPIAR} — ${PINIMG}`;
+  }
+  if (/(^|\.)pinterest\.[a-z.]+$/.test(host)) {
+    return `Esse é o link da página do pin, não da imagem. Abra o pin, ${COPIAR} — ${PINIMG}`;
   }
   if (host === 'imgur.com') {
     return `Esse é o link da página do Imgur. Abra a imagem, ${COPIAR} — a boa começa com i.imgur.com`;
