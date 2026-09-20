@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Katana nichirin sobre padrão quadriculado">
+  <defs>
+    <linearGradient id="lamina" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#1b1b1f"/>
+      <stop offset=".45" stop-color="#c8313c"/>
+      <stop offset="1" stop-color="#ff7a6b"/>
+    </linearGradient>
+    <linearGradient id="ceu" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1512"/>
+      <stop offset="1" stop-color="#16100f"/>
+    </linearGradient>
+    <pattern id="xadrez" width="64" height="64" patternUnits="userSpaceOnUse">
+      <rect width="32" height="32" fill="#1e3b30"/>
+      <rect x="32" y="32" width="32" height="32" fill="#1e3b30"/>
+    </pattern>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#ceu)"/>
+  <!-- quadriculado do haori, canto inferior -->
+  <rect y="320" width="512" height="192" fill="url(#xadrez)" opacity=".55"/>
+  <!-- sol nascente -->
+  <circle cx="368" cy="150" r="78" fill="#c8313c" opacity=".16"/>
+  <circle cx="368" cy="150" r="78" fill="none" stroke="#c8313c" stroke-width="2" opacity=".5"/>
+
+  <!-- katana na diagonal: lâmina, guarda e cabo -->
+  <g transform="rotate(-38 256 256)">
+    <rect x="96" y="246" width="250" height="14" rx="7" fill="url(#lamina)"/>
+    <rect x="96" y="246" width="250" height="4" rx="2" fill="#fff" opacity=".35"/>
+    <rect x="344" y="232" width="12" height="42" rx="4" fill="#d9c9a3"/>
+    <rect x="356" y="244" width="86" height="18" rx="9" fill="#232026"/>
+    <g stroke="#d9c9a3" stroke-width="3" opacity=".8">
+      <path d="M370 244l10 18M392 244l10 18M414 244l10 18"/>
+    </g>
+  </g>
+
+  <!-- respiração: traços de ar acompanhando o corte -->
+  <g fill="none" stroke="#7fd4b0" stroke-width="3" stroke-linecap="round" opacity=".45">
+    <path d="M120 400c60-26 120-60 176-110"/>
+    <path d="M96 356c56-22 112-54 164-100"/>
+  </g>
+</svg>

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { Field, FieldType, Template } from './store.ts';
-import { EXAMPLE, MOD_RULES, decodeTemplate, encodeTemplate, parseAssign, slug, uid, unknownTargets } from './store.ts';
-import type { ModRule } from './store.ts';
+import { EXAMPLE, MOD_RULES, THEMES, decodeTemplate, encodeTemplate, parseAssign, slug, uid, unknownTargets } from './store.ts';
+import type { ModRule, Theme } from './store.ts';
+import { HASHIRA } from './hashira.ts';
 import ImageField from './ImageField.tsx';
 import Foto from './Foto.tsx';
 
@@ -155,6 +156,9 @@ export default function Templates({ templates, onSet, inUse, onRenameField }: Pr
           <button className="roll" onClick={() => onSet([...templates, EXAMPLE()])}>
             Exemplo d20<small>pra usar de base</small>
           </button>
+          <button className="roll" onClick={() => onSet([...templates, HASHIRA()])}>
+            Hashira Handbook<small>Kimetsu no Yaiba em 5e</small>
+          </button>
         </div>
         <form className="avulsa" onSubmit={(e) => { e.preventDefault(); importLink(); }}>
           <input placeholder="Cole o link do mestre" value={link} onChange={(e) => setLink(e.target.value)} />
@@ -210,6 +214,21 @@ function Editor({
           onChange={(image) => onChange({ ...t, image })}
           hint="Vai junto no link que você manda pros jogadores. Sem ela, a lista mostra as iniciais do nome."
         />
+        <label className="field">
+          <span>Tema deste sistema</span>
+          <select
+            value={t.theme ?? ''}
+            onChange={(e) => onChange({ ...t, theme: (e.target.value || undefined) as Theme | undefined })}
+          >
+            <option value="">Nenhum — usa o do perfil</option>
+            {THEMES.map((v) => (
+              <option key={v} value={v}>{v}</option>
+            ))}
+          </select>
+        </label>
+        <p className="hint">
+          Com um tema aqui, o app inteiro assume essa aparência enquanto uma ficha deste sistema estiver aberta.
+        </p>
       </section>
 
       {t.sections.some((sec) => sec.fields.some((f) => f.type === 'attr')) && (

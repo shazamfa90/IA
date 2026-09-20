@@ -4,6 +4,7 @@
 [data-theme=pergaminho] { color-scheme: light; --bg: #efe3cb; --card: #f8efdc; --line: #d6c3a0; --ink: #2e2213; --dim: #7c6647; --accent: #9a5b1f; --sunk: #e8dbc0; --raised: #e6d5b4; --bad: #9c2b16; }
 [data-theme=sangue] { color-scheme: dark; --bg: #170f10; --card: #241618; --line: #3d2326; --ink: #f0e3e3; --dim: #a98d8f; --accent: #d1444f; --sunk: #1d1214; --raised: #331d20; --bad: #ffb3ad; }
 [data-theme=floresta] { color-scheme: dark; --bg: #0f1713; --card: #16241d; --line: #23382c; --ink: #e2efe7; --dim: #8aa596; --accent: #4bb07a; --sunk: #121c17; --raised: #1c2f25; --bad: #ff9d96; }
+[data-theme=nichirin] { color-scheme: dark; --bg: #0b0f0d; --card: #15201b; --line: #26382e; --ink: #edf2ee; --dim: #94a89b; --accent: #d33f48; --sunk: #0f1613; --raised: #1e2d25; --bad: #ff9d96; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
 main { max-width: 760px; margin: 0 auto; padding: 0 16px 140px; }

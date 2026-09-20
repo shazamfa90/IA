@@ -67,12 +67,6 @@ export default function App() {
 
   const profile = state.profiles.find((p) => p.id === state.currentProfileId) ?? state.profiles[0];
 
-  // Tema e cor vivem no <html>, então valem pra página inteira sem prop drilling.
-  useEffect(() => {
-    document.documentElement.dataset.theme = profile.theme;
-    document.documentElement.style.setProperty('--accent', profile.accent);
-  }, [profile.theme, profile.accent]);
-
   // Link de ficha compartilhado pelo mestre: #t=<template>
   useEffect(() => {
     const code = location.hash.startsWith('#t=') ? location.hash.slice(3) : '';
@@ -93,6 +87,17 @@ export default function App() {
   // um currentId de outro perfil salvo nunca deve mostrar a tela vazia à toa.
   const character = mine.find((c) => c.id === state.currentId) ?? mine[0] ?? null;
   const template = character ? state.templates.find((t) => t.id === character.templateId) ?? null : null;
+
+  // Tema e cor vivem no <html>, então valem pra página inteira sem prop drilling.
+  // Um sistema com tema próprio manda enquanto a ficha dele está aberta; aí a cor
+  // de destaque do perfil sai de cena, senão o tema do sistema sairia remendado.
+  const temaDoSistema = template?.theme;
+  useEffect(() => {
+    document.documentElement.dataset.theme = temaDoSistema ?? profile.theme;
+    if (temaDoSistema) document.documentElement.style.removeProperty('--accent');
+    else document.documentElement.style.setProperty('--accent', profile.accent);
+  }, [temaDoSistema, profile.theme, profile.accent]);
+
 
   // Edita a ficha que está aberta, não `currentId`: ele pode estar defasado
   // e apontar pra ficha de outro perfil.
