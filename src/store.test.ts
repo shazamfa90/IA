@@ -252,15 +252,28 @@ test('o sinal aparece só no positivo', () => {
   assert.equal(formatMod(-2), '-2');
 });
 
-test('@id.mod fica disponível pra rolagem, sem tocar no valor do atributo', () => {
-  const t = EXAMPLE();
-  const v = withMods(t, { forca: '16', pv: '30' });
-  assert.equal(v.forca, '16', 'o atributo continua sendo o atributo');
-  assert.equal(v['forca.mod'], '3');
-  assert.equal(v.pv, '30');
-  assert.equal(v['pv.mod'], undefined, 'campo comum não ganha modificador');
+test('na rolagem, @forca é o modificador — é o que o mestre escreve sem pensar', () => {
+  const v = withMods(EXAMPLE(), { forca: '16', pv: '30' });
+  assert.equal(v.forca, '3', 'd20+@forca soma +3, não +16');
+  assert.equal(v['forca.mod'], '3', 'apelido explícito do mesmo valor');
+  assert.equal(v['forca.valor'], '16', 'o atributo cheio continua alcançável');
 });
 
-test('atributo em branco vira modificador 0 na rolagem, não NaN', () => {
-  assert.equal(withMods(EXAMPLE(), {})['forca.mod'], '0');
+test('a ficha em si não é tocada: a conversão só vale na hora de rolar', () => {
+  const values = { forca: '16' };
+  withMods(EXAMPLE(), values);
+  assert.equal(values.forca, '16');
+});
+
+test('campo comum não vira modificador', () => {
+  const v = withMods(EXAMPLE(), { pv: '30' });
+  assert.equal(v.pv, '30');
+  assert.equal(v['pv.mod'], undefined);
+  assert.equal(v['pv.valor'], undefined);
+});
+
+test('atributo em branco rola como 0, não NaN', () => {
+  const v = withMods(EXAMPLE(), {});
+  assert.equal(v.forca, '0');
+  assert.equal(v['forca.mod'], '0');
 });

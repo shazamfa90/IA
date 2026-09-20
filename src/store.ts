@@ -120,23 +120,32 @@ export const EXAMPLE = (): Template => ({
     },
   ],
   rolls: [
-    { id: uid(), label: 'Teste de Força', notation: 'd20+@forca.mod' },
-    { id: uid(), label: 'Teste de Destreza', notation: 'd20+@destreza.mod' },
-    { id: uid(), label: 'Iniciativa', notation: 'd20+@destreza.mod' },
+    { id: uid(), label: 'Teste de Força', notation: 'd20+@forca' },
+    { id: uid(), label: 'Teste de Destreza', notation: 'd20+@destreza' },
+    { id: uid(), label: 'Iniciativa', notation: 'd20+@destreza' },
     { id: uid(), label: 'Rolar atributos', notation: '3#4d6kh3', assign: '@forca @destreza @constituicao' },
   ],
 });
 
 /**
- * Acrescenta `@id.mod` pra cada atributo, pra uma rolagem poder somar o
- * modificador (`d20+@forca.mod`) em vez do valor cheio do atributo.
+ * Valores como a rolagem os enxerga.
+ *
+ * Num campo de atributo, `@forca` é o MODIFICADOR, não o atributo cheio: é o
+ * que toda rolagem quer, e é o que o mestre escreve sem pensar em `d20+@forca`.
+ * O atributo continua acessível como `@forca.valor`; `@forca.mod` é só um
+ * apelido explícito do mesmo modificador.
+ *
+ * A ficha guarda o atributo. Esta conversão existe só na hora de rolar.
  */
 export function withMods(t: Template, values: Character['values']): Character['values'] {
   const out: Character['values'] = { ...values };
   for (const f of t.sections.flatMap((s) => s.fields)) {
     if (f.type !== 'attr') continue;
     const m = modifierOf(values[f.id], t.modRule);
-    out[`${f.id}.mod`] = m === null ? '0' : String(m);
+    const mod = m === null ? '0' : String(m);
+    out[f.id] = mod;
+    out[`${f.id}.mod`] = mod;
+    out[`${f.id}.valor`] = String(values[f.id] ?? '');
   }
   return out;
 }
