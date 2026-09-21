@@ -22,6 +22,26 @@ justamente por isso. Onde o material delas é usado diretamente, é por
 referência de caminho ao que já está vendorizado em `../roblox/` e
 `../roblox-game/`, com a procedência registrada em `../roblox/LICENSES.md`.
 
+## Skills oficiais vendorizadas (`vendor/anthropic/`)
+
+Copiadas **sem modificação** de [anthropics/skills](https://github.com/anthropics/skills),
+sob **Apache-2.0**. Avisos de terceiros preservados em
+`vendor/anthropic/THIRD_PARTY_NOTICES.md`.
+
+| Skill | Por que entrou |
+|---|---|
+| `mcp-builder` | DEV-ROBLOX opera em três modos de MCP do Roblox Studio; esta é a skill para criar ou estender esse servidor |
+| `skill-creator` | Evoluir, avaliar e medir a própria DEV-ROBLOX |
+| `claude-api` | Serviço companheiro que chama a API da Claude (diálogo de NPC, moderação, analytics) |
+| `webapp-testing` | Playwright para site ou painel companheiro fora do place |
+
+As 15 restantes do repositório foram **descartadas** por não servirem ao fluxo
+Roblox: `docx`, `pdf`, `pptx`, `xlsx` (documentos — e as únicas
+*source-available*, não open source), `canvas-design`, `algorithmic-art`,
+`brand-guidelines`, `theme-factory`, `frontend-design`, `web-artifacts-builder`
+(design e artefatos), `internal-comms`, `doc-coauthoring`, `academy-guide`,
+`discernment-nudge`, `slack-gif-creator`.
+
 ## Dependências em tempo de execução
 
 - `../roblox/sources/roblox-docs/scripts/robloxdocs.py` — usado pela consulta à documentação oficial. Requer `git` e Python 3; clona [Roblox/creator-docs](https://github.com/Roblox/creator-docs) em cache local.

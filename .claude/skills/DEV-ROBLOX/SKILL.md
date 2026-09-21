@@ -115,6 +115,21 @@ garantia.
 `01-analysis.md` · `02-plan.md` · `03-restraint.md` · `04-debugging.md` ·
 `05-testing.md` · `06-review.md`
 
+### Ferramental oficial da Anthropic (`vendor/anthropic/`)
+
+Apache-2.0, selecionadas por servirem ao fluxo Roblox. Carregue o `SKILL.md`
+da pasta quando a intenção bater:
+
+| Intenção | Carregar |
+|---|---|
+| Criar/estender o **MCP server do Roblox Studio**, ou qualquer MCP | `vendor/anthropic/mcp-builder/SKILL.md` |
+| Evoluir, medir ou avaliar **esta skill** (ou criar outra) | `vendor/anthropic/skill-creator/SKILL.md` |
+| Serviço companheiro que **chama a API da Claude** (diálogo de NPC, moderação, analytics) | `vendor/anthropic/claude-api/SKILL.md` |
+| Testar **site/painel companheiro** com Playwright | `vendor/anthropic/webapp-testing/SKILL.md` |
+
+Nenhuma delas gera Luau. São ferramental de volta do place, não substituem
+`references/`.
+
 ### Corpo profundo (externo, sob demanda)
 
 Quando um módulo acima não bastar, ele aponta o arquivo exato em:
