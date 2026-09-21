@@ -42,6 +42,30 @@ Roblox: `docx`, `pdf`, `pptx`, `xlsx` (documentos — e as únicas
 (design e artefatos), `internal-comms`, `doc-coauthoring`, `academy-guide`,
 `discernment-nudge`, `slack-gif-creator`.
 
+## Animação de personagem (`vendor/animate-roblox-characters/`)
+
+De [dillydog580/animate-roblox-characters](https://github.com/dillydog580/animate-roblox-characters),
+copiada sem modificação. Preenche a lacuna de animação autoral do DEV-ROBLOX.
+
+**Licenças em camadas — leia antes de redistribuir:**
+
+| Componente | Licença |
+|---|---|
+| Código e docs do repositório | MIT — `vendor/animate-roblox-characters/LICENSE` |
+| **Add-on Cautioned 2.6.3** (`assets/blender-addons/rbx_anims_v2.6.3.zip`) | **GPL-3.0-or-later** — `assets/blender-addons/Cautioned-Blender-Animations-Plugin-LICENSE.txt` |
+| Rig R6 IK+FK V2.22 (Aeresei) | **sem licença de redistribuição declarada** — por isso **não** está aqui; `scripts/fetch_assets.py` baixa do DevForum original com hash fixado |
+
+O zip GPL-3.0 é agregação (obra separada, não modificada, não linkada), o que
+mantém MIT o restante. Ainda assim, este repositório agora **carrega um
+componente GPL-3.0** — relevante se ele for redistribuído sob outros termos.
+Notas originais preservadas em `REPO-THIRD_PARTY_NOTICES.md` e
+`THIRD_PARTY_NOTICES.md`.
+
+**Dependências externas obrigatórias:** Blender 4.5+, Blender MCP 1.6.4, rig
+R6 V2.22 baixado, add-on Cautioned (incluso), Blender Animations ultimate
+edition (Creator Store) para o lado Studio. Sem isso a skill não opera —
+`scripts/toolchain.py` verifica.
+
 ## Dependências em tempo de execução
 
 - `../roblox/sources/roblox-docs/scripts/robloxdocs.py` — usado pela consulta à documentação oficial. Requer `git` e Python 3; clona [Roblox/creator-docs](https://github.com/Roblox/creator-docs) em cache local.

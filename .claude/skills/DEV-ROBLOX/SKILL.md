@@ -109,11 +109,31 @@ garantia.
 | Missões, progressão, objetivos, recompensa | `quests.md` |
 | FPS, memória, streaming, profiling | `optimization.md` |
 | Ícone, descrição, rollout, monetização, pós-launch | `publishing.md` |
+| Animar personagem (walk, run, idle, ataque, emote) em Blender | **`vendor/animate-roblox-characters/SKILL.md`** — ver §Animação |
 
 ### Processo (`process/`)
 
 `01-analysis.md` · `02-plan.md` · `03-restraint.md` · `04-debugging.md` ·
 `05-testing.md` · `06-review.md`
+
+### Animação de personagem (`vendor/animate-roblox-characters/`)
+
+Pipeline completo de animação R6/R15 em Blender: rig autêntico derivado do
+Studio, keyframe em Pose Mode, polimento de curva no Graph Editor, export
+`.rbxanim`/FBX e preview em GIF verificado.
+
+**Exige ferramental externo** — sem ele a skill não opera: Blender 4.5+,
+Blender MCP, o rig R6 V2.22 baixado por `scripts/fetch_assets.py` (não
+redistribuído), e o add-on Cautioned 2.6.3 (incluso). Confirme com
+`scripts/toolchain.py` antes de prometer resultado.
+
+Sem Blender disponível, **não finja**: diga que animação autoral precisa do
+toolchain e ofereça o caminho alternativo — animação pronta da Creator Store,
+ou `AnimationTrack` sobre asset existente (`../roblox-game/references/animation-vfx.md`).
+
+O `.rbxanim` é o artefato; tocá-lo no jogo é código Luau comum
+(`Animator:LoadAnimation`) e segue os invioláveis desta skill como qualquer
+outro sistema.
 
 ### Ferramental oficial da Anthropic (`vendor/anthropic/`)
 
