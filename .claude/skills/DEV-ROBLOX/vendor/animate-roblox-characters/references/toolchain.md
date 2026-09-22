@@ -12,7 +12,7 @@ Read this during Phase 0. The machine-readable source and hash inventory is `ass
 | R6 IK + FK Blender Rig V2.22 | Premade visible R6 model, colored/labeled controls, IK/FK, panels | Mandatory for generic R6 work. Fetch only from Aeresei's original DevForum attachments with `fetch_assets.py`. Do not mirror it in Git because no redistribution license is stated. |
 | Premade Studio R15 | Actual visible R15 target | Mandatory for R15. Use Studio's rig builder or the user's existing character, then export it. Never replace it with generated geometry. |
 | Cautioned Blender Animations 2.6.3 | Import/export, mapping, IK/control support, `.rbxanim` | Bundled unmodified signed-release zip under GPL-3.0-or-later; SHA-256 verified. |
-| Blender Animations (ultimate edition) | Studio side of the Motor6D transfer | Install only from Cautioned's Creator Store listing. |
+| **RBXMonkey - Blender Animations** (renamed by its author in 2024; formerly "Blender Animations (ultimate edition)") | Studio side of the Motor6D transfer | Install only from CAUTIONED's Creator Store listing, same asset id. |
 | Roblox Studio MCP | R15 bootstrap and optional playback validation | Use Roblox's built-in MCP. |
 
 ## Premade-model rule

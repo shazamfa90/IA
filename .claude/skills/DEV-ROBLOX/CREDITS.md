@@ -44,8 +44,20 @@ Roblox: `docx`, `pdf`, `pptx`, `xlsx` (documentos — e as únicas
 
 ## Animação de personagem (`vendor/animate-roblox-characters/`)
 
-De [dillydog580/animate-roblox-characters](https://github.com/dillydog580/animate-roblox-characters),
-copiada sem modificação. Preenche a lacuna de animação autoral do DEV-ROBLOX.
+De [dillydog580/animate-roblox-characters](https://github.com/dillydog580/animate-roblox-characters).
+Preenche a lacuna de animação autoral do DEV-ROBLOX.
+
+**Uma correção factual aplicada sobre o vendorizado:** o repositório de
+origem chama o plugin de Studio de "Blender Animations (ultimate edition)"
+em três arquivos (`SKILL.md`, `references/toolchain.md`,
+`references/roblox-rigs-export.md`). O autor (CAUTIONED) renomeou o plugin
+na Creator Store em 2024 — verificado em 2026-09-22 pela API pública da
+Roblox (`toolbox-service/v1/items/details`, asset id `16708835782`), cuja
+própria descrição confirma: *"Formerly Blender Animations (ultimate
+edition) ... the name was just too long so I changed it."* Nome atual:
+**RBXMonkey - Blender Animations**, mesmo asset id, mesmo link, ainda
+gratuito e mantido. Corrigido nos três arquivos, com o nome antigo mantido
+entre parênteses para quem procurar por ele.
 
 **Licenças em camadas — leia antes de redistribuir:**
 
