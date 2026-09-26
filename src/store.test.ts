@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { HASHIRA } from './hashira.ts';
-import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets, modifierOf, formatMod, withMods } from './store.ts';
+import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets, modifierOf, formatMod, withMods, encodeFicha, decodeFicha, addFicha, newCharacter, sha256, senhaDoMestre, type State, type Template } from './store.ts';
 
 test('slug tira acento e espaço', () => {
   assert.equal(slug('Força'), 'forca');
@@ -327,4 +327,83 @@ test('Hashira: a rolagem soma o modificador, não o atributo', () => {
 
 test('Hashira: cada sistema importado é uma cópia independente', () => {
   assert.notEqual(HASHIRA().id, HASHIRA().id);
+});
+
+// --- link de ficha ---------------------------------------------------------
+
+const perfil = (id: string) => ({ id, name: id, theme: 'escuro' as const, accent: '#fff' });
+const aparelho = (templates: Template[] = []): State => ({
+  profiles: [perfil('ana'), perfil('bia')],
+  currentProfileId: 'bia',
+  templates,
+  characters: [],
+  currentId: null,
+  webhookUrl: '',
+  gmWebhookUrl: '',
+});
+function tanjiro() {
+  const t = HASHIRA();
+  const c = { ...newCharacter(t.id, 'ana', 'Tanjiro'), avatarUrl: 'https://i.imgur.com/a.png', values: { forca: '16', notas: 'Água' }, messageId: 'm1' };
+  return { t, c };
+}
+
+test('ficha vai pelo link com o sistema junto, acento e tudo', () => {
+  const { t, c } = tanjiro();
+  const f = decodeFicha(encodeFicha(t, c));
+  assert.equal(f.c.name, 'Tanjiro');
+  assert.deepEqual(f.c.values, { forca: '16', notas: 'Água' });
+  assert.equal(f.t.name, 'Hashira Handbook');
+  assert.doesNotMatch(encodeFicha(t, c), /[+/=]/);
+});
+
+test('ficha recebida entra no perfil em uso, já aberta, como ficha nova', () => {
+  const { t, c } = tanjiro();
+  const s = addFicha(aparelho(), decodeFicha(encodeFicha(t, c)));
+  const [nova] = s.characters;
+  assert.equal(nova.profileId, 'bia');
+  assert.notEqual(nova.id, c.id);
+  assert.equal(s.currentId, nova.id);
+  assert.equal(nova.avatarUrl, c.avatarUrl);
+  assert.equal(s.templates.length, 1, 'o sistema chega junto');
+});
+
+test('a cópia não herda a mensagem viva: as duas brigariam por ela no canal do mestre', () => {
+  const { t, c } = tanjiro();
+  const s = addFicha(aparelho(), decodeFicha(encodeFicha(t, c)));
+  assert.equal(s.characters[0].messageId, undefined);
+});
+
+test('reaproveita o sistema que o aparelho já tem, mesmo com outro id', () => {
+  const { t, c } = tanjiro();
+  const doMestre = decodeTemplate(encodeTemplate(t)); // link de sistema: id novo
+  const s = addFicha(aparelho([doMestre]), decodeFicha(encodeFicha(t, c)));
+  assert.equal(s.templates.length, 1);
+  assert.equal(s.characters[0].templateId, doMestre.id);
+});
+
+test('sistema com o mesmo nome mas outra forma não é confundido', () => {
+  const { t, c } = tanjiro();
+  const editado = { ...decodeTemplate(encodeTemplate(t)), rolls: [] };
+  const s = addFicha(aparelho([editado]), decodeFicha(encodeFicha(t, c)));
+  assert.equal(s.templates.length, 2);
+  assert.notEqual(s.characters[0].templateId, editado.id);
+});
+
+test('valor adulterado no link não entra na ficha', () => {
+  const { t, c } = tanjiro();
+  const f = decodeFicha(encodeFicha(t, { ...c, values: { forca: '16', inspiracao: true, x: { y: 1 }, n: 3 } as never }));
+  assert.deepEqual(addFicha(aparelho(), f).characters[0].values, { forca: '16', inspiracao: true });
+});
+
+test('link de ficha corrompido, ou de sistema, dá erro e não tela branca', () => {
+  assert.throws(() => decodeFicha(encodeTemplate(EXAMPLE())), /inválido/);
+  assert.throws(() => decodeFicha('lixo!!'));
+});
+
+// --- entrada ---------------------------------------------------------------
+
+test('a senha é conferida por hash, não guardada em texto', async () => {
+  assert.equal(await sha256('abc'), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
+  assert.equal(await senhaDoMestre(''), false);
+  assert.equal(await senhaDoMestre('mestre'), false);
 });

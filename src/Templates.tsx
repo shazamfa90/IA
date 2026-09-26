@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Field, FieldType, Template } from './store.ts';
-import { EXAMPLE, MOD_RULES, THEMES, decodeTemplate, encodeTemplate, parseAssign, slug, uid, unknownTargets } from './store.ts';
+import { EXAMPLE, MOD_RULES, THEMES, encodeTemplate, parseAssign, slug, uid, unknownTargets } from './store.ts';
 import type { ModRule, Theme } from './store.ts';
 import { HASHIRA } from './hashira.ts';
 import ImageField from './ImageField.tsx';
@@ -75,22 +75,9 @@ type Props = {
 export default function Templates({ templates, onSet, inUse, onRenameField }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
-  const [link, setLink] = useState('');
 
   const current = templates.find((t) => t.id === editing);
   const update = (t: Template) => onSet(templates.map((x) => (x.id === t.id ? t : x)));
-
-  function importLink() {
-    try {
-      const code = link.trim().split('#t=').pop() ?? '';
-      const t = decodeTemplate(code);
-      onSet([...templates, t]);
-      setLink('');
-      setNotice(`"${t.name}" importado.`);
-    } catch {
-      setNotice('Link inválido. Cole o link inteiro que o mestre enviou.');
-    }
-  }
 
   async function share(t: Template) {
     const url = `${location.origin}${location.pathname}#t=${encodeTemplate(t)}`;
@@ -160,10 +147,7 @@ export default function Templates({ templates, onSet, inUse, onRenameField }: Pr
             Hashira Handbook<small>Kimetsu no Yaiba em 5e</small>
           </button>
         </div>
-        <form className="avulsa" onSubmit={(e) => { e.preventDefault(); importLink(); }}>
-          <input placeholder="Cole o link do mestre" value={link} onChange={(e) => setLink(e.target.value)} />
-          <button className="roll compact">Importar</button>
-        </form>
+        <p className="hint">Recebeu um link de sistema? Cole em Personagens → Importar.</p>
         {notice && <p className="hint break">{notice}</p>}
       </section>
     </>

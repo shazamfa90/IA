@@ -128,3 +128,13 @@ input[type=color] { width: 56px; height: 36px; padding: 2px; }
 .slot .x { position: absolute; top: -7px; right: -7px; width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--raised); color: var(--dim); font-size: .85rem; line-height: 1; }
 .slot.novo { width: 44px; height: 44px; border-radius: 10px; border: 1px dashed var(--line); background: var(--sunk); color: var(--dim); font-size: 1.2rem; }
 .slot.novo:hover { color: var(--ink); border-color: var(--accent); }
+
+/* Passar ficha pra outro perfil: um select nativo com cara de ícone. Largura
+   fixa, senão ele mede a opção mais longa e empurra a linha pra fora da tela. */
+.mover { appearance: none; -webkit-appearance: none; width: 34px; padding: 10px 0; text-align: center; text-align-last: center; }
+.pick strong, .pick small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Tela de entrada */
+.entrada { padding-top: 12vh; }
+.papel { padding: 20px 16px; font-size: 1.1rem; }
+.papel small { font-family: inherit; }
