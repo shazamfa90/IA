@@ -62,7 +62,11 @@ export type Theme = (typeof THEMES)[number];
 /** `avatars`: imagens guardadas nos slots. Ausente nos perfis antigos. */
 export type Profile = { id: string; name: string; theme: Theme; accent: string; avatars?: string[] };
 
+export type Role = 'mestre' | 'player';
+
 export type State = {
+  /** Quem entrou neste aparelho. Ausente: mostra a tela de entrada. */
+  role?: Role;
   profiles: Profile[];
   currentProfileId: string;
   templates: Template[];
@@ -242,6 +246,66 @@ export function decodeTemplate(code: string): Template {
   }
   return { ...t, id: uid() }; // id novo: não sobrescreve um sistema já salvo
 }
+
+/** A ficha viaja junto com o sistema dela: quem recebe pode não ter o sistema. */
+type Ficha = { t: Template; c: Character };
+
+export const encodeFicha = (t: Template, c: Character) => toB64(JSON.stringify({ t, c }));
+
+export function decodeFicha(code: string): Ficha {
+  const f = JSON.parse(fromB64(code));
+  const t = f?.t;
+  if (!t?.name || !Array.isArray(t.sections) || !Array.isArray(t.rolls) || !f.c?.values || typeof f.c.values !== 'object') {
+    throw new Error('Link de ficha inválido.');
+  }
+  return f;
+}
+
+const forma = (t: Template) => JSON.stringify([t.name, t.sections, t.rolls]);
+
+/**
+ * A ficha entra no perfil atual como ficha nova, e já aberta. O sistema é
+ * reaproveitado se o aparelho já tem o mesmo — pelo id, ou pela forma, porque
+ * o link de sistema dá id novo em cada aparelho e a mesa inteira acabaria com
+ * um "Hashira Handbook" repetido por ficha recebida.
+ */
+export function addFicha(s: State, { t, c }: Ficha): State {
+  const sistema = s.templates.find((x) => x.id === t.id || forma(x) === forma(t)) ?? t;
+  const ficha: Character = {
+    id: uid(),
+    profileId: s.currentProfileId,
+    templateId: sistema.id,
+    name: String(c.name ?? ''),
+    avatarUrl: String(c.avatarUrl ?? ''),
+    // O link vem de fora: só texto e marcador entram, o resto quebraria a ficha na tela.
+    values: Object.fromEntries(Object.entries(c.values).filter(([, v]) => typeof v === 'string' || typeof v === 'boolean')),
+    // Sem messageId: a mensagem viva no canal do mestre é da ficha original, e
+    // as duas brigariam pela mesma mensagem.
+  };
+  return {
+    ...s,
+    templates: s.templates.includes(sistema) ? s.templates : [...s.templates, sistema],
+    characters: [...s.characters, ficha],
+    currentId: ficha.id,
+  };
+}
+
+// --- entrada --------------------------------------------------------------
+
+/**
+ * SHA-256 da senha do mestre. O repositório é público, então a senha em si
+ * não fica escrita aqui. Isto é uma placa na porta, não uma fechadura: o app
+ * roda inteiro no aparelho, e quem abrir o DevTools troca o papel no
+ * localStorage sem senha nenhuma.
+ */
+const SENHA_MESTRE = '314ec444efee94100733aee2443d978f27b3e391e9ca521487603d65ecedbfcc';
+
+export async function sha256(s: string): Promise<string> {
+  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(h), (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+export const senhaDoMestre = async (s: string) => (await sha256(s)) === SENHA_MESTRE;
 
 // --- persistência ---------------------------------------------------------
 

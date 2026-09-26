@@ -12,6 +12,9 @@ npm run build   # gera dist/
 
 ## O que dá pra fazer
 
+- **Entrada** — ao abrir o app, a pessoa escolhe **Mestre** ou **Player**, e a escolha fica salva no
+  aparelho. Mestre pede senha; player entra direto. Só o mestre vê a aba *Sistemas*: o player
+  recebe os sistemas pelo link do mestre. *Perfil → Sair e escolher de novo* troca.
 - **Sistemas** — o mestre monta a ficha num editor visual: seções, campos (número, texto,
   texto longo, marcador) e botões de rolagem. Nenhum sistema vem embutido; o "Exemplo d20"
   é só um ponto de partida que dá pra apagar.
@@ -23,6 +26,11 @@ npm run build   # gera dist/
 - **Compartilhar** — o botão ↗ copia um link com a ficha inteira dentro, capa incluída. O
   jogador abre o link e o sistema aparece no aparelho dele. Sem conta, sem servidor.
 - **Personagens** — vários por aparelho, cada um preso a um sistema. Dá pra duplicar e apagar.
+- **Passar fichas** — o ↗ de cada ficha copia um link com ela e o sistema dela dentro. Quem abrir o
+  link, ou colar em *Personagens → Importar*, recebe uma cópia no perfil em uso, em qualquer
+  aparelho — é também o jeito de levar a ficha do PC pro celular. Se o aparelho já tiver o mesmo
+  sistema, a ficha usa ele em vez de trazer outro igual. No mesmo aparelho, o ⇄ (aparece quando há
+  mais de um perfil) passa a ficha pra outro perfil sem copiar.
 - **Rolagens** — botões definidos no sistema, mais um campo de rolagem avulsa pra qualquer
   notação na hora. O dado gira na tela por um instante e some mostrando o resultado.
 - **Rolar atributos** — no editor, você marca numa lista quais campos a rolagem preenche, e em
@@ -162,6 +170,9 @@ Só é preciso ligar uma vez em *Settings → Pages → Source: GitHub Actions*.
 
 - Os dados ficam no `localStorage` do aparelho: não sincroniza entre celular e PC, e limpar os
   dados do site apaga as fichas.
+- A senha do mestre é uma placa na porta, não uma fechadura. O código só guarda o hash dela (o
+  repositório é público), mas o app roda inteiro no aparelho: quem abrir o DevTools troca o papel
+  no `localStorage` sem senha nenhuma. Serve pra jogador não entrar no editor por engano.
 - A rolagem acontece no aparelho do jogador, então um jogador determinado consegue forjar um
   resultado mexendo no cliente. O canal do Discord é o registro, não uma garantia.
 - O link de ficha carrega o sistema inteiro na URL; um sistema muito grande gera um link longo.

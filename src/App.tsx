@@ -4,6 +4,7 @@ import { postRoll } from './discord.ts';
 import { pushSheet, sheetSignature } from './liveSheet.ts';
 import ImageField from './ImageField.tsx';
 import Slots from './Slots.tsx';
+import Entrada from './Entrada.tsx';
 import Sheet from './Sheet.tsx';
 import Characters from './Characters.tsx';
 import Templates from './Templates.tsx';
@@ -11,6 +12,8 @@ import {
   DEFAULT_GM_WEBHOOK,
   DEFAULT_WEBHOOK,
   THEMES,
+  addFicha,
+  decodeFicha,
   decodeTemplate,
   load,
   newCharacter,
@@ -68,19 +71,33 @@ export default function App() {
 
   const profile = state.profiles.find((p) => p.id === state.currentProfileId) ?? state.profiles[0];
 
-  // Link de ficha compartilhado pelo mestre: #t=<template>
-  useEffect(() => {
-    const code = location.hash.startsWith('#t=') ? location.hash.slice(3) : '';
-    if (!code) return;
-    history.replaceState(null, '', location.pathname); // não reimporta no refresh
+  // Link de sistema (#t=) ou de ficha (#f=): aberto direto, ou colado em Personagens.
+  function importar(link: string): boolean {
+    const [, tipo, code] = link.trim().match(/#([tf])=([\w-]+)/) ?? [];
     try {
-      const t = decodeTemplate(code);
-      setState((s) => ({ ...s, templates: [...s.templates, t] }));
-      setTab('sistemas');
-      setLast(result({ label: 'Sistema importado', notation: t.name, text: 'Crie um personagem em Personagens.' }));
+      if (tipo === 't') {
+        const t = decodeTemplate(code);
+        setState((s) => ({ ...s, templates: [...s.templates, t] }));
+        setTab(state.role === 'mestre' ? 'sistemas' : 'personagens');
+        setLast(result({ label: 'Sistema importado', notation: t.name, text: 'Crie um personagem com ele em Personagens.' }));
+      } else {
+        const f = decodeFicha(code);
+        setState((s) => addFicha(s, f));
+        setTab('ficha');
+        setLast(result({ label: 'Ficha importada', notation: f.c.name || 'Sem nome', text: `Sistema ${f.t.name}.` }));
+      }
+      return true;
     } catch {
-      setLast(result({ label: 'Link inválido', notation: '', text: 'Peça o link de novo pro mestre.', error: true }));
+      setLast(result({ label: 'Link inválido', notation: '', text: 'Peça o link de novo: ele precisa chegar inteiro.', error: true }));
+      return false;
     }
+  }
+
+  useEffect(() => {
+    if (!/^#[tf]=/.test(location.hash)) return;
+    const link = location.hash;
+    history.replaceState(null, '', location.pathname); // não reimporta no refresh
+    importar(link);
   }, []);
 
   const mine = state.characters.filter((c) => c.profileId === profile.id);
@@ -133,6 +150,10 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [state.gmWebhookUrl, character, template]);
 
+  // O player não edita sistemas: recebe pelo link do mestre, em Personagens.
+  const abas = TABS.filter(([id]) => id !== 'sistemas' || state.role === 'mestre');
+  const aba = abas.some(([id]) => id === tab) ? tab : 'ficha';
+
   async function doRoll(label: string, notation: string, assign?: string) {
     // A mesa vê a notação já resolvida (d20+4), não a da ficha (d20+@forca).
     // withMods acrescenta @id.mod: a rolagem soma o modificador, não o atributo.
@@ -174,17 +195,19 @@ export default function App() {
     }
   }
 
+  if (!state.role) return <Entrada onEntrar={(role) => setState((s) => ({ ...s, role }))} />;
+
   return (
     <main>
       <nav>
-        {TABS.map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)} className={tab === id ? 'tab on' : 'tab'}>
+        {abas.map(([id, label]) => (
+          <button key={id} onClick={() => setTab(id)} className={aba === id ? 'tab on' : 'tab'}>
             {label}
           </button>
         ))}
       </nav>
 
-      {tab === 'ficha' &&
+      {aba === 'ficha' &&
         (character && template ? (
           <Sheet template={template} character={character} onChange={patchCharacter} onRoll={doRoll} />
         ) : (
@@ -199,11 +222,13 @@ export default function App() {
           />
         ))}
 
-      {tab === 'personagens' && (
+      {aba === 'personagens' && (
         <Characters
           characters={mine}
           profileId={profile.id}
+          profiles={state.profiles}
           templates={state.templates}
+          onImport={importar}
           currentId={state.currentId}
           onPick={(id) => {
             setState((s) => ({ ...s, currentId: id }));
@@ -220,7 +245,7 @@ export default function App() {
         />
       )}
 
-      {tab === 'sistemas' && (
+      {aba === 'sistemas' && (
         <Templates
           templates={state.templates}
           onSet={(templates) => setState((s) => ({ ...s, templates }))}
@@ -243,7 +268,7 @@ export default function App() {
         />
       )}
 
-      {tab === 'sessao' && (
+      {aba === 'sessao' && (
         <Sessao
           state={state}
           setState={setState}
@@ -282,7 +307,7 @@ function Empty({ templates, onCreate }: { templates: State['templates']; onCreat
       <h1>Nenhuma ficha aberta</h1>
       <section>
         <h2>Criar personagem</h2>
-        {templates.length === 0 && <p className="hint">Crie um sistema na aba Sistemas primeiro.</p>}
+        {templates.length === 0 && <p className="hint">Nenhum sistema ainda: o mestre cria e manda o link.</p>}
         <div className="grid">
           {templates.map((t) => (
             <button key={t.id} className="roll" onClick={() => onCreate(t.id)}>
@@ -338,6 +363,16 @@ function Sessao({
   return (
     <>
       <h1>Perfil</h1>
+      <section>
+        <h2>Entrada</h2>
+        <p className="hint">
+          Neste aparelho você entrou como <strong>{state.role === 'mestre' ? 'Mestre' : 'Player'}</strong>.
+        </p>
+        <button className="add" onClick={() => setState((s) => ({ ...s, role: undefined }))}>
+          Sair e escolher de novo
+        </button>
+      </section>
+
       <section>
         <h2>Quem está usando</h2>
         <div className="grid">
