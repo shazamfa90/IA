@@ -271,6 +271,17 @@ function Editor({
                 title="Apagar campo"
                 onClick={() => patchSection(sec.id, { fields: sec.fields.filter((x) => x.id !== f.id) })}
               >✕</button>
+              <textarea
+                className="flat explica"
+                rows={1}
+                placeholder="Explicação que abre no ⓘ da ficha (opcional)"
+                value={f.desc ?? ''}
+                onChange={(e) =>
+                  patchSection(sec.id, {
+                    fields: sec.fields.map((x) => (x.id === f.id ? { ...x, desc: e.target.value || undefined } : x)),
+                  })
+                }
+              />
             </div>
           ))}
 
@@ -302,6 +313,15 @@ function Editor({
               onChange={(e) => onChange({ ...t, rolls: t.rolls.map((x) => (x.id === r.id ? { ...x, notation: e.target.value } : x)) })}
             />
             <button className="icon" title="Apagar" onClick={() => onChange({ ...t, rolls: t.rolls.filter((x) => x.id !== r.id) })}>✕</button>
+            <textarea
+              className="flat explica"
+              rows={1}
+              placeholder="Por que se rola isto (opcional; a conta a ficha já mostra)"
+              value={r.desc ?? ''}
+              onChange={(e) =>
+                onChange({ ...t, rolls: t.rolls.map((x) => (x.id === r.id ? { ...x, desc: e.target.value || undefined } : x)) })
+              }
+            />
 
             <button className="add" onClick={() => setAbrindo(abrindo === r.id ? null : r.id)}>
               {resumoDestinos(t, r.assign)}

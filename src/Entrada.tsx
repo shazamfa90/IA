@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { senhaDoMestre, type Role } from './store.ts';
+import Icone from './Icone.tsx';
 
 /** Tela de entrada: mestre com senha, player direto. A escolha fica salva. */
 export default function Entrada({ onEntrar }: { onEntrar: (r: Role) => void }) {
@@ -14,13 +15,19 @@ export default function Entrada({ onEntrar }: { onEntrar: (r: Role) => void }) {
 
   return (
     <main className="entrada">
+      <div className="marca">
+        <img src="icon.svg" alt="" />
+        Ficha RPG
+      </div>
       <h1>Quem está entrando?</h1>
       {senha === null ? (
         <div className="grid">
           <button className="roll papel" onClick={() => setSenha('')}>
+            <Icone nome="mestre" />
             Mestre<small>cria os sistemas e acompanha a mesa</small>
           </button>
           <button className="roll papel" onClick={() => onEntrar('player')}>
+            <Icone nome="player" />
             Player<small>preenche a ficha e rola</small>
           </button>
         </div>
