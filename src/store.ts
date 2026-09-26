@@ -19,6 +19,16 @@ export function modifierOf(value: unknown, rule: ModRule = 'd20'): number | null
   return (MOD_RULES[rule] ?? MOD_RULES.d20).calc(n);
 }
 
+/** Texto sobre um fundo desta cor: preto ou branco, o que tiver mais contraste (WCAG). */
+export function tintaSobre(hex: string): string {
+  const [r, g, b] = [1, 3, 5].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  const L = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  return (L + 0.05) / 0.05 >= 1.05 / (L + 0.05) ? '#111' : '#fff';
+}
+
 export const formatMod = (m: number) => (m > 0 ? `+${m}` : String(m));
 export type Field = { id: string; label: string; type: FieldType };
 export type Section = { id: string; title: string; fields: Field[] };

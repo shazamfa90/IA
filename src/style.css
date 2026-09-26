@@ -1,140 +1,213 @@
-/* Temas: só trocam estas variáveis. O resto do CSS nunca cita uma cor direta. */
-:root, [data-theme=escuro] { color-scheme: dark; --bg: #16161a; --card: #22222a; --line: #34343f; --ink: #ececf0; --dim: #9b9baa; --accent: #b08cff; --sunk: #1b1b21; --raised: #2b2b36; --bad: #ff9d96; }
-[data-theme=claro] { color-scheme: light; --bg: #f4f4f7; --card: #fff; --line: #dcdce4; --ink: #1c1c22; --dim: #6b6b7b; --accent: #6d3fd4; --sunk: #f0f0f4; --raised: #eceaf6; --bad: #b3261e; }
-[data-theme=pergaminho] { color-scheme: light; --bg: #efe3cb; --card: #f8efdc; --line: #d6c3a0; --ink: #2e2213; --dim: #7c6647; --accent: #9a5b1f; --sunk: #e8dbc0; --raised: #e6d5b4; --bad: #9c2b16; }
-[data-theme=sangue] { color-scheme: dark; --bg: #170f10; --card: #241618; --line: #3d2326; --ink: #f0e3e3; --dim: #a98d8f; --accent: #d1444f; --sunk: #1d1214; --raised: #331d20; --bad: #ffb3ad; }
-[data-theme=floresta] { color-scheme: dark; --bg: #0f1713; --card: #16241d; --line: #23382c; --ink: #e2efe7; --dim: #8aa596; --accent: #4bb07a; --sunk: #121c17; --raised: #1c2f25; --bad: #ff9d96; }
-[data-theme=nichirin] { color-scheme: dark; --bg: #0b0f0d; --card: #15201b; --line: #26382e; --ink: #edf2ee; --dim: #94a89b; --accent: #d33f48; --sunk: #0f1613; --raised: #1e2d25; --bad: #ff9d96; }
+/* Temas: só trocam estas variáveis. O resto do CSS nunca cita uma cor direta.
+   --on-accent é o texto sobre a cor de destaque; o app recalcula quando o
+   perfil escolhe outra cor. */
+:root, [data-theme=escuro] { color-scheme: dark; --bg: #16161a; --card: #22222a; --line: #30303b; --ink: #ececf0; --dim: #9b9baa; --accent: #b08cff; --on-accent: #111; --sunk: #1b1b21; --raised: #2b2b36; --bad: #ff9d96; }
+[data-theme=claro] { color-scheme: light; --bg: #f1f1f5; --card: #fff; --line: #e4e4ec; --ink: #1c1c22; --dim: #666676; --accent: #6d3fd4; --on-accent: #fff; --sunk: #f1f1f5; --raised: #eaeaf2; --bad: #b3261e; }
+[data-theme=pergaminho] { color-scheme: light; --bg: #efe3cb; --card: #f8efdc; --line: #e2d2b3; --ink: #2e2213; --dim: #735e40; --accent: #9a5b1f; --on-accent: #fff; --sunk: #efe3cb; --raised: #e9dbbf; --bad: #9c2b16; }
+[data-theme=sangue] { color-scheme: dark; --bg: #170f10; --card: #241618; --line: #3a2225; --ink: #f0e3e3; --dim: #a98d8f; --accent: #d1444f; --on-accent: #111; --sunk: #1d1214; --raised: #331d20; --bad: #ffb3ad; }
+[data-theme=floresta] { color-scheme: dark; --bg: #0f1713; --card: #16241d; --line: #22352a; --ink: #e2efe7; --dim: #8aa596; --accent: #4bb07a; --on-accent: #111; --sunk: #121c17; --raised: #1c2f25; --bad: #ff9d96; }
+[data-theme=nichirin] { color-scheme: dark; --bg: #0b0f0d; --card: #15201b; --line: #24352c; --ink: #edf2ee; --dim: #94a89b; --accent: #d33f48; --on-accent: #111; --sunk: #0f1613; --raised: #1e2d25; --bad: #ff9d96; }
+
+/* Derivadas. O destaque vira texto misturado à tinta: um lilás claro sobre
+   fundo branco some, e escurecer um pouco devolve o contraste. */
+:root {
+  --accent-txt: color-mix(in srgb, var(--accent) 72%, var(--ink));
+  --tint: color-mix(in srgb, var(--accent) 16%, transparent);
+  --r: 14px;
+  --barra: 64px;
+  --menu: 232px;
+}
+
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
-main { max-width: 760px; margin: 0 auto; padding: 0 16px 140px; }
-h1 { font-size: 1.4rem; margin: 16px 0; }
-h2 { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin: 0 0 12px; }
-code { font-family: ui-monospace, monospace; }
-
-nav { display: flex; gap: 6px; position: sticky; top: 0; background: var(--bg); padding: 12px 0; z-index: 2; }
-.tab { flex: 1; padding: 10px 4px; background: var(--card); color: var(--dim); border: 1px solid var(--line); border-radius: 10px; font-size: .85rem; }
-.tab.on { color: var(--ink); border-color: var(--accent); }
-
-section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+h1 { font-size: 1.5rem; line-height: 1.2; font-weight: 800; letter-spacing: -.01em; margin: 8px 0 0; }
+h2 { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); margin: 0 0 10px; }
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 input, textarea, select, button { font: inherit; color: var(--ink); }
-input, textarea, select { background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
 button { cursor: pointer; }
+button:disabled { opacity: .45; cursor: default; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.field { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+/* --- Layout -------------------------------------------------------------
+   Celular: uma coluna, navegação embaixo. PC: menu lateral, e as seções se
+   distribuem em colunas conforme a largura. */
+main { display: grid; gap: 12px; align-content: start; max-width: 1200px; margin: 0 auto; padding: calc(12px + env(safe-area-inset-top)) 16px calc(var(--barra) + 120px); }
+main > * { min-width: 0; }
+section { background: var(--card); border-radius: var(--r); padding: 16px; }
+
+.menu { position: fixed; z-index: 5; left: 0; right: 0; bottom: 0; display: flex; height: calc(var(--barra) + env(safe-area-inset-bottom)); padding: 0 4px env(safe-area-inset-bottom); background: var(--card); }
+.marca { display: none; align-items: center; gap: 10px; font-weight: 800; font-size: 1.05rem; }
+.marca img { width: 32px; height: 32px; border-radius: 9px; }
+.tab { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: none; border: 0; color: var(--dim); font-size: .7rem; font-weight: 600; }
+.tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab .ico { width: 52px; height: 30px; padding: 4px 15px; border-radius: 999px; transition: background .15s; }
+.tab.on { color: var(--accent-txt); }
+.tab.on .ico { background: var(--tint); }
+
+.ico { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+@media (min-width: 900px) {
+  .app { padding-left: var(--menu); }
+  .menu { top: 0; right: auto; width: var(--menu); height: auto; flex-direction: column; gap: 4px; padding: 24px 12px; }
+  .marca { display: flex; padding: 0 10px 24px; }
+  .tab { flex: none; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 10px 12px; border-radius: 10px; font-size: .95rem; }
+  .tab .ico, .tab.on .ico { width: 22px; height: 22px; padding: 0; background: none; }
+  .tab:hover { background: var(--raised); color: var(--ink); }
+  .tab.on { background: var(--tint); }
+  main { gap: 16px; padding: 32px 32px 120px; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); align-items: start; }
+  main > :not(section) { grid-column: 1 / -1; }
+  section { padding: 20px; }
+  h1 { font-size: 1.75rem; }
+  .name { font-size: 1.6rem; }
+}
+
+/* --- Campos ------------------------------------------------------------- */
+input, textarea, select { min-height: 44px; padding: 10px 12px; background: var(--sunk); border: 0; border-radius: 10px; box-shadow: inset 0 -2px 0 transparent; transition: box-shadow .15s, background .15s; }
+input:focus, textarea:focus, select:focus { outline: 0; background: var(--raised); box-shadow: inset 0 -2px 0 var(--accent); }
+textarea { min-height: 96px; resize: vertical; }
+input[type=checkbox] { width: 24px; height: 24px; min-height: 0; padding: 0; box-shadow: none; accent-color: var(--accent); }
+input[type=color] { width: 56px; height: 40px; min-height: 0; padding: 4px; }
+
+.field { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 56px; padding: 6px 0; border-bottom: 1px solid var(--line); }
 .field:last-of-type { border-bottom: 0; }
-.field span { color: var(--dim); font-size: .9rem; }
+.field > span:first-child { color: var(--dim); font-size: .92rem; }
 .field.wide { display: block; }
-.field input[type=text], .field input[type=number] { width: 92px; text-align: center; }
-.field.wide input, .field.wide textarea { width: 100%; margin-top: 6px; }
-input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--accent); }
-.name { width: 100%; font-size: 1.1rem; margin: 16px 0 4px; }
-.sys { margin: 0 0 12px; }
+.field input[type=number] { width: 96px; text-align: center; }
+.field input[type=text] { width: min(55%, 240px); }
+/* O select mede a opção mais longa; sem teto ele espreme o rótulo em coluna. */
+.field select { min-width: 0; max-width: 60%; }
+.field.wide input, .field.wide textarea { width: 100%; margin-top: 8px; }
 
+/* Atributo: o valor é o atributo, o distintivo ao lado é o modificador. */
+.attr { display: inline-flex; align-items: center; gap: 8px; }
+.attr input { width: 72px; }
+.mod { min-width: 48px; padding: 10px 8px; border-radius: 10px; background: var(--tint); color: var(--accent-txt); text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* --- Botões -------------------------------------------------------------
+   .roll é o bloco de ação; .roll.compact, a ação principal, cheia na cor de
+   destaque; .add, a secundária, só tingida; .icon, a discreta. */
 .grid { display: flex; flex-wrap: wrap; gap: 8px; }
-.roll { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; flex: 1 1 45%; padding: 12px; background: var(--raised); border: 1px solid var(--line); border-radius: 10px; text-align: left; }
-.roll:active { border-color: var(--accent); }
-.roll small { color: var(--dim); font-family: ui-monospace, monospace; font-size: .75rem; }
-.roll.compact { flex: 0 0 auto; align-items: center; padding: 10px 16px; }
+.roll { flex: 1 1 calc(50% - 4px); min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px 14px; background: var(--raised); border: 0; border-radius: 12px; text-align: left; font-weight: 600; transition: background .15s, transform .08s; }
+.roll:hover { background: var(--tint); }
+.roll:active { transform: scale(.98); }
+.roll small { color: var(--dim); font-weight: 400; font-family: ui-monospace, monospace; font-size: .75rem; overflow-wrap: anywhere; }
+.roll.compact { flex: 0 0 auto; align-items: center; justify-content: center; padding: 10px 20px; background: var(--accent); color: var(--on-accent); }
+.roll.compact:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 85%, var(--ink)); }
 .avulsa { display: flex; gap: 8px; margin-top: 12px; }
 .avulsa input { flex: 1; min-width: 0; }
 
-.row { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--line); }
-.row:last-child { border-bottom: 0; }
-.row.on .pick strong { color: var(--accent); }
-.pick { flex: 1; display: flex; flex-direction: column; align-items: flex-start; background: none; border: 0; padding: 12px 0; text-align: left; min-width: 0; }
-.pick small { color: var(--dim); font-size: .8rem; }
-.icon { background: none; border: 0; color: var(--dim); font-size: 1.1rem; padding: 10px; border-radius: 8px; }
-.icon:hover { color: var(--ink); background: var(--raised); }
+.add { margin-top: 8px; padding: 10px 16px; background: var(--tint); color: var(--accent-txt); border: 0; border-radius: 10px; font-size: .9rem; font-weight: 600; }
+.add:hover { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+.add.wide { display: block; width: 100%; margin: 0; }
 
-.bar { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
-.bar .name { margin: 0; }
-.flat { flex: 1; min-width: 0; background: none; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 8px 2px; }
-.flat:focus { outline: 0; border-bottom-color: var(--accent); }
+.icon { min-width: 40px; height: 40px; padding: 0 8px; background: none; border: 0; border-radius: 10px; color: var(--dim); font-size: 1.1rem; }
+.icon:hover { background: var(--raised); color: var(--ink); }
+
+/* --- Listas (personagens, sistemas) ------------------------------------- */
+.row { display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--line); }
+.row:last-of-type { border-bottom: 0; }
+.row.on .pick strong { color: var(--accent-txt); }
+.pick { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; padding: 12px 4px; background: none; border: 0; text-align: left; }
+.pick small { color: var(--dim); font-size: .8rem; }
+.pick strong, .pick small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Passar ficha pra outro perfil: um select nativo com cara de ícone. Largura
+   fixa, senão ele mede a opção mais longa e empurra a linha pra fora da tela. */
+.mover { appearance: none; -webkit-appearance: none; width: 34px; min-height: 0; padding: 0; box-shadow: none; text-align: center; text-align-last: center; }
+
+/* --- Editor de sistema -------------------------------------------------- */
+.bar { display: flex; align-items: center; gap: 8px; }
+.flat { flex: 1; min-width: 0; min-height: 40px; padding: 8px 2px; background: none; border-radius: 0; box-shadow: inset 0 -1px 0 var(--line); }
+.flat:focus { background: none; box-shadow: inset 0 -2px 0 var(--accent); }
 /* O rótulo fica sozinho na primeira linha: no celular o resto não se espreme
    e o × de apagar nunca sobra órfão numa linha longe do campo dele. */
 .edit { display: flex; align-items: center; gap: 8px; padding: 10px 0; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
 .edit:last-of-type { border-bottom: 0; }
 .edit .grow { flex: 1 1 120px; }
 .edit > :first-child { flex: 1 1 100%; } /* depois de .grow: mesma especificidade, quem vem por último vence */
-.edit select { padding: 8px; } /* fonte herdada de 16px: menor que isso e o iOS dá zoom ao focar */
-.mono { font-family: ui-monospace, monospace; }
 .ref { color: var(--dim); font-size: .75rem; margin-left: auto; }
-.add { background: none; border: 1px dashed var(--line); color: var(--dim); border-radius: 8px; padding: 8px 14px; margin-top: 8px; font-size: .85rem; }
-.add:hover { color: var(--ink); border-color: var(--accent); }
-.add.wide { display: block; width: 100%; margin-bottom: 12px; }
-
-.hint { color: var(--dim); font-size: .9rem; }
-.hint code { background: var(--sunk); padding: 1px 5px; border-radius: 5px; font-size: .85em; }
-.break { overflow-wrap: anywhere; }
-.result { position: fixed; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--accent); padding: 14px 16px; cursor: pointer; animation: chega .18s ease-out; }
-.result code { background: var(--sunk); padding: 1px 5px; border-radius: 5px; font-size: .85em; }
-.result div { font-family: ui-monospace, monospace; margin-top: 4px; overflow-wrap: anywhere; }
-.err, .result.err { border-color: var(--bad); color: var(--bad); }
-
-/* A rolagem sobe da base; o total pulsa pra puxar o olho até ele. */
-@keyframes chega { from { transform: translateY(100%); } }
-@keyframes pulsa { from { transform: scale(1.35); } }
-.total { color: var(--accent); font-weight: 700; display: inline-block; animation: pulsa .22s ease-out; }
-@media (prefers-reduced-motion: reduce) { .result, .total { animation: none; } }
-
-/* Chips de tema */
-.temas { display: flex; flex-wrap: wrap; gap: 8px; }
-.tema { width: 40px; height: 40px; border-radius: 10px; border: 2px solid var(--line); padding: 0; overflow: hidden; display: flex; }
-.tema.on { border-color: var(--accent); }
-.tema i { flex: 1; }
-input[type=color] { width: 56px; height: 36px; padding: 2px; }
 
 /* Campos que a rolagem preenche: o número mostra a ordem. */
 .destinos { display: flex; flex-wrap: wrap; gap: 6px; width: 100%; margin-top: 8px; }
-.chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--sunk); color: var(--dim); font-size: .85rem; }
-.chip.on { border-color: var(--accent); color: var(--ink); background: var(--raised); }
-.chip b { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); color: var(--bg); font-size: .7rem; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: 0; border-radius: 999px; background: var(--sunk); color: var(--dim); font-size: .85rem; font-weight: 600; }
+.chip.on { background: var(--accent); color: var(--on-accent); }
+.chip b { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--on-accent); color: var(--accent); font-size: .7rem; }
 
-/* Dado girando: cobre a tela por instantes e some revelando o resultado. */
-.girando { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: color-mix(in srgb, var(--bg) 82%, transparent); animation: surge .12s ease-out; }
-.girando strong { color: var(--dim); font-size: .9rem; }
-.dado { width: 96px; height: 96px; display: flex; align-items: center; justify-content: center; border-radius: 18px; background: var(--raised); border: 2px solid var(--accent); color: var(--accent); font-size: 2.4rem; font-weight: 700; font-variant-numeric: tabular-nums; animation: gira .7s cubic-bezier(.3, .8, .3, 1); }
-@keyframes surge { from { opacity: 0; } }
-@keyframes gira { from { transform: rotate(-200deg) scale(.6); } to { transform: rotate(0) scale(1); } }
-@media (prefers-reduced-motion: reduce) { .girando, .dado { animation: none; } }
+/* --- Textos ------------------------------------------------------------- */
+.hint { color: var(--dim); font-size: .9rem; margin: 10px 0 0; }
+h2 + .hint { margin-top: 0; }
+.hint code, .result code { background: var(--sunk); padding: 1px 6px; border-radius: 6px; font-size: .85em; }
+.break { overflow-wrap: anywhere; }
+.err { color: var(--bad); }
 
-/* Cabeçalho da ficha: foto ao lado do nome */
-.cabeca { display: flex; align-items: center; gap: 12px; margin: 16px 0 12px; }
+/* --- Ficha ---------------------------------------------------------------
+   PC largo: campos em colunas à esquerda, rolagens presas à direita, sempre à
+   mão enquanto se rola a página. */
+.cabeca { display: flex; align-items: center; gap: 14px; }
 .cabeca-txt { flex: 1; min-width: 0; }
-.cabeca .name { margin: 0; }
+.name { width: 100%; min-height: 0; padding: 4px 0; background: none; border-radius: 0; font-size: 1.3rem; font-weight: 800; box-shadow: inset 0 -2px 0 var(--line); }
+.name::placeholder { font-weight: 600; }
+.name:focus { background: none; }
+.sys { margin: 4px 0 0; }
+.ficha, .campos { display: grid; gap: 12px; align-items: start; }
+@media (min-width: 900px) {
+  .ficha, .campos { gap: 16px; }
+  .campos { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+}
+@media (min-width: 1180px) {
+  .ficha { grid-template-columns: minmax(0, 1fr) 340px; }
+  .rolagens { position: sticky; top: 32px; max-height: calc(100vh - 64px); overflow-y: auto; }
+  .rolagens .roll { flex-basis: 100%; }
+}
 
-/* Capa do sistema */
-.capa { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 10px; object-fit: cover; background: var(--raised); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--dim); font-size: .8rem; font-weight: 700; }
-.capa.grande { width: 84px; height: 84px; flex-basis: 84px; font-size: 1.3rem; }
+/* Foto do personagem e capa do sistema */
+.capa { width: 44px; height: 44px; flex: 0 0 44px; display: flex; align-items: center; justify-content: center; border-radius: 12px; object-fit: cover; background: var(--raised); color: var(--dim); font-size: .8rem; font-weight: 800; }
+.capa.grande { width: 84px; height: 84px; flex-basis: 84px; border-radius: 18px; font-size: 1.4rem; }
 .capa img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
-/* A prévia é o teste: borda diz se a imagem carregou ou não. */
-.capa.previa.ok { border-color: var(--accent); }
-.capa.previa.erro { border-color: var(--bad); }
+/* A prévia é o teste: o anel diz se a imagem carregou ou não. */
+.capa.previa.ok { outline: 2px solid var(--accent); outline-offset: 2px; }
+.capa.previa.erro { outline: 2px solid var(--bad); outline-offset: 2px; }
 .capa.previa.carregando { opacity: .5; }
-.capa-edit { display: flex; align-items: center; gap: 12px; }
+.capa-edit { display: flex; align-items: center; gap: 14px; }
 .capa-edit .field { flex: 1; min-width: 0; }
 
-/* Atributo: o valor é o atributo, o distintivo ao lado é o modificador. */
-.attr { display: inline-flex; align-items: center; gap: 8px; }
-.attr input { width: 72px; text-align: center; }
-.mod { min-width: 40px; text-align: center; padding: 6px 8px; border-radius: 8px; background: var(--raised); border: 1px solid var(--line); color: var(--accent); font-variant-numeric: tabular-nums; font-size: .9rem; }
-
 /* Slots de imagem: as guardadas ficam à mão, e trocar é um toque. */
-.slots { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.slots { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
 .slot { position: relative; }
-.slot > button { display: block; padding: 0; border: 0; background: none; }
-.slot.on .capa { border-color: var(--accent); }
-.slot .x { position: absolute; top: -7px; right: -7px; width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--raised); color: var(--dim); font-size: .85rem; line-height: 1; }
-.slot.novo { width: 44px; height: 44px; border-radius: 10px; border: 1px dashed var(--line); background: var(--sunk); color: var(--dim); font-size: 1.2rem; }
-.slot.novo:hover { color: var(--ink); border-color: var(--accent); }
+.slot > button { display: block; padding: 0; border: 0; background: none; border-radius: 12px; }
+.slot.on .capa { outline: 2px solid var(--accent); outline-offset: 2px; }
+.slot .x { position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; padding: 0; border: 0; border-radius: 50%; background: var(--ink); color: var(--card); font-size: .8rem; line-height: 1; }
+.slot.novo { width: 44px; height: 44px; border: 0; border-radius: 12px; background: var(--tint); color: var(--accent-txt); font-size: 1.3rem; font-weight: 600; }
+.slot.novo:hover { background: color-mix(in srgb, var(--accent) 28%, transparent); }
 
-/* Passar ficha pra outro perfil: um select nativo com cara de ícone. Largura
-   fixa, senão ele mede a opção mais longa e empurra a linha pra fora da tela. */
-.mover { appearance: none; -webkit-appearance: none; width: 34px; padding: 10px 0; text-align: center; text-align-last: center; }
-.pick strong, .pick small { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Temas do perfil: cada quadrado se pinta com as cores do tema que representa. */
+.temas { display: flex; flex-wrap: wrap; gap: 10px; }
+.tema { width: 44px; height: 44px; display: flex; overflow: hidden; padding: 0; border: 0; border-radius: 12px; }
+.tema.on { outline: 3px solid var(--accent-txt); outline-offset: 2px; }
+.tema i { flex: 1; }
 
-/* Tela de entrada */
-.entrada { padding-top: 12vh; }
-.papel { padding: 20px 16px; font-size: 1.1rem; }
-.papel small { font-family: inherit; }
+/* --- Resultado da rolagem -----------------------------------------------
+   Sobe acima da barra de navegação; o total pulsa pra puxar o olho até ele. */
+.result { position: fixed; z-index: 6; left: 8px; right: 8px; bottom: calc(var(--barra) + env(safe-area-inset-bottom) + 8px); padding: 12px 16px; background: var(--raised); border-left: 4px solid var(--accent); border-radius: 12px; cursor: pointer; animation: chega .2s ease-out; }
+.result div { font-family: ui-monospace, monospace; margin-top: 4px; overflow-wrap: anywhere; }
+.result.err { border-left-color: var(--bad); color: var(--bad); }
+@media (min-width: 900px) {
+  .result { left: calc(var(--menu) + 32px); right: auto; bottom: 24px; width: min(460px, calc(100vw - var(--menu) - 64px)); }
+}
+.total { display: inline-block; color: var(--accent-txt); font-weight: 800; animation: pulsa .22s ease-out; }
+@keyframes chega { from { opacity: 0; transform: translateY(16px); } }
+@keyframes pulsa { from { transform: scale(1.35); } }
+
+/* Dado girando: cobre a tela por instantes e some revelando o resultado. */
+.girando { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: color-mix(in srgb, var(--bg) 85%, transparent); animation: surge .12s ease-out; }
+.girando strong { color: var(--dim); font-size: .9rem; }
+.dado { width: 104px; height: 104px; display: flex; align-items: center; justify-content: center; border-radius: 24px; background: var(--accent); color: var(--on-accent); font-size: 2.6rem; font-weight: 800; font-variant-numeric: tabular-nums; animation: gira .7s cubic-bezier(.3, .8, .3, 1); }
+@keyframes surge { from { opacity: 0; } }
+@keyframes gira { from { transform: rotate(-200deg) scale(.6); } to { transform: rotate(0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .result, .total, .girando, .dado { animation: none; } }
+
+/* --- Entrada ------------------------------------------------------------ */
+.entrada { min-height: 100dvh; max-width: 560px; align-content: center; padding: 24px 16px; grid-template-columns: 1fr; }
+.entrada .marca { display: flex; }
+.papel { gap: 4px; padding: 20px; font-size: 1.15rem; }
+.papel .ico { width: 30px; height: 30px; margin-bottom: 8px; color: var(--accent-txt); }
+.papel small { font-family: inherit; font-size: .8rem; }

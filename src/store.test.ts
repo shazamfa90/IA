@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { HASHIRA } from './hashira.ts';
-import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets, modifierOf, formatMod, withMods, encodeFicha, decodeFicha, addFicha, newCharacter, sha256, senhaDoMestre, type State, type Template } from './store.ts';
+import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets, modifierOf, formatMod, withMods, encodeFicha, decodeFicha, addFicha, newCharacter, sha256, senhaDoMestre, tintaSobre, type State, type Template } from './store.ts';
 
 test('slug tira acento e espaço', () => {
   assert.equal(slug('Força'), 'forca');
@@ -406,4 +406,11 @@ test('a senha é conferida por hash, não guardada em texto', async () => {
   assert.equal(await sha256('abc'), 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad');
   assert.equal(await senhaDoMestre(''), false);
   assert.equal(await senhaDoMestre('mestre'), false);
+});
+
+test('texto sobre a cor de destaque é o que contrasta mais', () => {
+  assert.equal(tintaSobre('#b08cff'), '#111'); // lilás padrão: claro, pede texto escuro
+  assert.equal(tintaSobre('#6d3fd4'), '#fff'); // roxo do tema claro: escuro, pede branco
+  assert.equal(tintaSobre('#ffffff'), '#111');
+  assert.equal(tintaSobre('#000000'), '#fff');
 });

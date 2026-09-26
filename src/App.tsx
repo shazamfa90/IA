@@ -5,6 +5,7 @@ import { pushSheet, sheetSignature } from './liveSheet.ts';
 import ImageField from './ImageField.tsx';
 import Slots from './Slots.tsx';
 import Entrada from './Entrada.tsx';
+import Icone from './Icone.tsx';
 import Sheet from './Sheet.tsx';
 import Characters from './Characters.tsx';
 import Templates from './Templates.tsx';
@@ -24,6 +25,7 @@ import {
   parseAssign,
   renameField,
   save,
+  tintaSobre,
   withMods,
   type Character,
   type Profile,
@@ -111,9 +113,18 @@ export default function App() {
   // de destaque do perfil sai de cena, senão o tema do sistema sairia remendado.
   const temaDoSistema = template?.theme;
   useEffect(() => {
-    document.documentElement.dataset.theme = temaDoSistema ?? profile.theme;
-    if (temaDoSistema) document.documentElement.style.removeProperty('--accent');
-    else document.documentElement.style.setProperty('--accent', profile.accent);
+    const html = document.documentElement;
+    html.dataset.theme = temaDoSistema ?? profile.theme;
+    if (temaDoSistema) {
+      html.style.removeProperty('--accent');
+      html.style.removeProperty('--on-accent');
+    } else {
+      html.style.setProperty('--accent', profile.accent);
+      // A cor é escolha livre: o texto sobre ela precisa acompanhar pra continuar legível.
+      html.style.setProperty('--on-accent', tintaSobre(profile.accent));
+    }
+    // Barra de status do celular na cor do fundo, em vez de sempre a do tema escuro.
+    document.querySelector('meta[name=theme-color]')?.setAttribute('content', getComputedStyle(html).getPropertyValue('--bg'));
   }, [temaDoSistema, profile.theme, profile.accent]);
 
 
@@ -198,106 +209,119 @@ export default function App() {
   if (!state.role) return <Entrada onEntrar={(role) => setState((s) => ({ ...s, role }))} />;
 
   return (
-    <main>
-      <nav>
+    <div className="app">
+      {/* Barra de baixo no celular, onde o polegar alcança; lateral no PC. */}
+      <nav className="menu">
+        <div className="marca">
+          <img src="icon.svg" alt="" />
+          Ficha RPG
+        </div>
         {abas.map(([id, label]) => (
-          <button key={id} onClick={() => setTab(id)} className={aba === id ? 'tab on' : 'tab'}>
-            {label}
+          <button
+            key={id}
+            onClick={() => setTab(id)}
+            className={aba === id ? 'tab on' : 'tab'}
+            aria-current={aba === id ? 'page' : undefined}
+          >
+            <Icone nome={id} />
+            <span>{label}</span>
           </button>
         ))}
       </nav>
 
-      {aba === 'ficha' &&
-        (character && template ? (
-          <Sheet template={template} character={character} onChange={patchCharacter} onRoll={doRoll} />
-        ) : (
-          <Empty
+      <main>
+        {aba === 'ficha' &&
+          (character && template ? (
+            <Sheet template={template} character={character} onChange={patchCharacter} onRoll={doRoll} />
+          ) : (
+            <Empty
+              templates={state.templates}
+              onCreate={(templateId) =>
+                setState((s) => {
+                  const c = newCharacter(templateId, profile.id);
+                  return { ...s, characters: [...s.characters, c], currentId: c.id };
+                })
+              }
+            />
+          ))}
+
+        {aba === 'personagens' && (
+          <Characters
+            characters={mine}
+            profileId={profile.id}
+            profiles={state.profiles}
             templates={state.templates}
-            onCreate={(templateId) =>
+            onImport={importar}
+            currentId={state.currentId}
+            onPick={(id) => {
+              setState((s) => ({ ...s, currentId: id }));
+              setTab('ficha');
+            }}
+            // `mine` só traz as fichas deste perfil: recoloca as dos outros ao salvar.
+            onSet={(characters, currentId) =>
+              setState((s) => ({
+                ...s,
+                characters: [...s.characters.filter((c) => c.profileId !== profile.id), ...characters],
+                currentId: currentId === undefined ? s.currentId : currentId ?? null,
+              }))
+            }
+          />
+        )}
+
+        {aba === 'sistemas' && (
+          <Templates
+            templates={state.templates}
+            onSet={(templates) => setState((s) => ({ ...s, templates }))}
+            inUse={(id) => state.characters.filter((c) => c.templateId === id).length}
+            // O @id segue o rótulo; as fichas deste sistema levam o valor junto.
+            onRenameField={(templateId, sectionId, fieldId, label) =>
               setState((s) => {
-                const c = newCharacter(templateId, profile.id);
-                return { ...s, characters: [...s.characters, c], currentId: c.id };
+                const alvo = s.templates.find((t) => t.id === templateId);
+                if (!alvo) return s;
+                const { template, oldId, newId } = renameField(alvo, sectionId, fieldId, label);
+                return {
+                  ...s,
+                  templates: s.templates.map((t) => (t.id === templateId ? template : t)),
+                  characters: s.characters.map((c) =>
+                    c.templateId === templateId ? { ...c, values: migrateValues(c.values, oldId, newId) } : c,
+                  ),
+                };
               })
             }
           />
-        ))}
+        )}
 
-      {aba === 'personagens' && (
-        <Characters
-          characters={mine}
-          profileId={profile.id}
-          profiles={state.profiles}
-          templates={state.templates}
-          onImport={importar}
-          currentId={state.currentId}
-          onPick={(id) => {
-            setState((s) => ({ ...s, currentId: id }));
-            setTab('ficha');
-          }}
-          // `mine` só traz as fichas deste perfil: recoloca as dos outros ao salvar.
-          onSet={(characters, currentId) =>
-            setState((s) => ({
-              ...s,
-              characters: [...s.characters.filter((c) => c.profileId !== profile.id), ...characters],
-              currentId: currentId === undefined ? s.currentId : currentId ?? null,
-            }))
-          }
-        />
-      )}
+        {aba === 'sessao' && (
+          <Sessao
+            state={state}
+            setState={setState}
+            profile={profile}
+            character={character}
+            patchCharacter={patchCharacter}
+            erroFicha={erroFicha}
+          />
+        )}
 
-      {aba === 'sistemas' && (
-        <Templates
-          templates={state.templates}
-          onSet={(templates) => setState((s) => ({ ...s, templates }))}
-          inUse={(id) => state.characters.filter((c) => c.templateId === id).length}
-          // O @id segue o rótulo; as fichas deste sistema levam o valor junto.
-          onRenameField={(templateId, sectionId, fieldId, label) =>
-            setState((s) => {
-              const alvo = s.templates.find((t) => t.id === templateId);
-              if (!alvo) return s;
-              const { template, oldId, newId } = renameField(alvo, sectionId, fieldId, label);
-              return {
-                ...s,
-                templates: s.templates.map((t) => (t.id === templateId ? template : t)),
-                characters: s.characters.map((c) =>
-                  c.templateId === templateId ? { ...c, values: migrateValues(c.values, oldId, newId) } : c,
-                ),
-              };
-            })
-          }
-        />
-      )}
+        {girando && <Girando label={girando} />}
 
-      {aba === 'sessao' && (
-        <Sessao
-          state={state}
-          setState={setState}
-          profile={profile}
-          character={character}
-          patchCharacter={patchCharacter}
-          erroFicha={erroFicha}
-        />
-      )}
-
-      {girando && <Girando label={girando} />}
-
-      {last && (
-        // key: remonta a cada rolagem pra animação tocar de novo.
-        <aside key={last.id} className={last.error ? 'result err' : 'result'} onClick={() => setLast(null)}>
-          <strong>{last.label}</strong> {last.notation && <code>{last.notation}</code>}
-          <div>
-            {last.parts?.map((p, i) => (
-              <span key={i}>
-                {i > 0 && '   '}
-                {p.detail} = <span className="total">{p.total}</span>
-              </span>
-            ))}
-            {last.parts && last.text && '  —  '}
-            {last.text}
-          </div>
-        </aside>
-      )}
-    </main>
+        {last && (
+          // key: remonta a cada rolagem pra animação tocar de novo.
+          <aside key={last.id} className={last.error ? 'result err' : 'result'} onClick={() => setLast(null)}>
+            <strong>{last.label}</strong> {last.notation && <code>{last.notation}</code>}
+            <div>
+              {last.parts?.map((p, i) => (
+                <span key={i}>
+                  {i > 0 && '   '}
+                  {p.detail} = <span className="total">{p.total}</span>
+                </span>
+              ))}
+              {last.parts && last.text && '  —  '}
+              {last.text}
+            </div>
+          </aside>
+        )}
+      </main>
+    </div>
   );
 }
 
