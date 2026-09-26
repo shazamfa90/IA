@@ -33,6 +33,9 @@ npm run build   # gera dist/
   mais de um perfil) passa a ficha pra outro perfil sem copiar.
 - **Rolagens** — botões definidos no sistema, mais um campo de rolagem avulsa pra qualquer
   notação na hora. O dado gira na tela por um instante e some mostrando o resultado.
+- **Explicações (ⓘ)** — campo ou rolagem com explicação ganha um botão ⓘ ao lado. Tocar abre o
+  porquê daquilo; numa rolagem, abre também a conta com os números da ficha (`d20 + Destreza (+3) +
+  Bônus de proficiência (2)`). Toda rolagem tem o ⓘ; o texto de cada um se escreve no editor.
 - **Rolar atributos** — no editor, você marca numa lista quais campos a rolagem preenche, e em
   que ordem. O app preenche a ficha sozinho; se os campos já tiverem valor, pergunta antes.
 - **Atributo e modificador** — um campo do tipo *Atributo* guarda o atributo (16) e mostra o
@@ -50,11 +53,17 @@ Em *Sistemas → Adicionar*:
 - **Exemplo d20** — três atributos e quatro rolagens, pra usar de base ou apagar.
 - **Hashira Handbook** — ficha adaptada do livro de mesmo nome (Natan, 2023), projeto de fãs sem
   fins lucrativos que leva *Kimetsu no Yaiba* para o d20 da 5ª edição. Traz os seis atributos, os
-  campos próprios do livro (raça, respiração ou kekkijutsu, pontos de energia, Concentração
-  Total, técnicas) e tema e capa próprios.
+  campos próprios do livro (raça, respiração ou kekkijutsu, patente, pontos de energia,
+  Concentração Total, as 15 perícias), tema e capa próprios. Cada campo e rolagem tem ⓘ: por que a
+  CR é 10 + Destreza, por que a katana dá 1d6 (1d8 a duas mãos) e aceita Destreza, e assim por
+  diante. Sistemas Hashira criados antes disso se atualizam sozinhos ao abrir o app, sem perder
+  campos, rolagens ou valores que o mestre tenha acrescentado.
 
-  Só a **estrutura** da ficha está aqui. Nada do texto das regras é reproduzido: as respirações,
-  talentos e kekkijutsu continuam no livro, e é dele que a mesa precisa pra jogar.
+  Com um Hashira no aparelho aparece a aba **Livro**: um fichário com o livro inteiro resumido —
+  criação, raças, equipamento, combate, condições, as 13 respirações com todas as formas, as
+  classes e a lista de kekkijutsu — com busca (sem acento, por nome, texto ou capítulo). É um
+  resumo com palavras próprias, para consulta na mesa: números e regras, sem o texto do livro,
+  que continua sendo a fonte. Só é baixado quando alguém abre a aba.
 
 ## Notação de dados
 

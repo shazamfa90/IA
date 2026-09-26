@@ -29,8 +29,30 @@ export function tintaSobre(hex: string): string {
   return (L + 0.05) / 0.05 >= 1.05 / (L + 0.05) ? '#111' : '#fff';
 }
 
+/**
+ * A conta de uma rolagem por extenso, com os valores da ficha:
+ * "d20+@forca+@prof" vira "d20 + Força (+3) + Bônus de proficiência (2)".
+ */
+export function explicar(notation: string, t: Template, values: Character['values']): string {
+  const campos = new Map(t.sections.flatMap((s) => s.fields).map((f) => [f.id, f]));
+  const v = withMods(t, values);
+  return notation
+    .replace(/\s+/g, '')
+    .split(/([+-])/)
+    .map((termo) => {
+      const m = termo.match(/^@([\w-]+?)(\.mod|\.valor)?$/);
+      const f = m && campos.get(m[1]);
+      if (!m || !f) return termo === '+' || termo === '-' ? ` ${termo} ` : termo;
+      if (f.type === 'attr' && m[2] !== '.valor') return `${f.label} (${formatMod(Number(v[f.id]))})`;
+      return `${f.label} (${String(values[f.id] ?? '') || 0})`;
+    })
+    .join('')
+    .replace(/(\d+)#/, '$1 × ');
+}
+
 export const formatMod = (m: number) => (m > 0 ? `+${m}` : String(m));
-export type Field = { id: string; label: string; type: FieldType };
+/** `desc`: o porquê do campo, aberto pelo ⓘ na ficha. */
+export type Field = { id: string; label: string; type: FieldType; desc?: string };
 export type Section = { id: string; title: string; fields: Field[] };
 export type RollDef = {
   id: string;
@@ -38,6 +60,8 @@ export type RollDef = {
   notation: string;
   /** Campos que recebem o resultado, em ordem: "@forca @destreza". Ex.: rolar atributos. */
   assign?: string;
+  /** O porquê da rolagem, aberto pelo ⓘ na ficha junto com a conta. */
+  desc?: string;
 };
 
 /** O "tipo de sessão": o mestre define seções, campos e botões de rolagem. */
@@ -50,6 +74,8 @@ export type Template = {
   modRule?: ModRule;
   /** Tema próprio do sistema. Enquanto uma ficha dele está aberta, vale este. */
   theme?: Theme;
+  /** Sistema com fichário embutido: acende a aba Livro. */
+  livro?: 'hashira';
   sections: Section[];
   rolls: RollDef[];
 };

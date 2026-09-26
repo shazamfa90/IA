@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import { resolve, roll } from './dice.ts';
 import { postRoll } from './discord.ts';
 import { pushSheet, sheetSignature } from './liveSheet.ts';
@@ -9,6 +9,7 @@ import Icone from './Icone.tsx';
 import Sheet from './Sheet.tsx';
 import Characters from './Characters.tsx';
 import Templates from './Templates.tsx';
+import { atualizaHashira } from './hashira.ts';
 import {
   DEFAULT_GM_WEBHOOK,
   DEFAULT_WEBHOOK,
@@ -36,8 +37,18 @@ const TABS = [
   ['ficha', 'Ficha'],
   ['personagens', 'Personagens'],
   ['sistemas', 'Sistemas'],
+  ['livro', 'Livro'],
   ['sessao', 'Perfil'],
 ] as const;
+
+// O fichário pesa mais que o resto do app: só baixa quando alguém abre a aba.
+const Livro = lazy(() => import('./Livro.tsx'));
+
+// Sistemas Hashira criados antes das explicações ganham descrições e rolagens novas.
+const carregar = (): State => {
+  const s = load();
+  return { ...s, templates: s.templates.map(atualizaHashira) };
+};
 type Tab = (typeof TABS)[number][0];
 
 type Part = { detail: string; total: number };
@@ -64,7 +75,7 @@ function Girando({ label }: { label: string }) {
 }
 
 export default function App() {
-  const [state, setState] = useState<State>(load);
+  const [state, setState] = useState<State>(carregar);
   const [tab, setTab] = useState<Tab>('ficha');
   const [last, setLast] = useState<Result | null>(null);
   const [girando, setGirando] = useState<string | null>(null);
@@ -78,12 +89,13 @@ export default function App() {
     const [, tipo, code] = link.trim().match(/#([tf])=([\w-]+)/) ?? [];
     try {
       if (tipo === 't') {
-        const t = decodeTemplate(code);
+        const t = atualizaHashira(decodeTemplate(code));
         setState((s) => ({ ...s, templates: [...s.templates, t] }));
         setTab(state.role === 'mestre' ? 'sistemas' : 'personagens');
         setLast(result({ label: 'Sistema importado', notation: t.name, text: 'Crie um personagem com ele em Personagens.' }));
       } else {
         const f = decodeFicha(code);
+        f.t = atualizaHashira(f.t);
         setState((s) => addFicha(s, f));
         setTab('ficha');
         setLast(result({ label: 'Ficha importada', notation: f.c.name || 'Sem nome', text: `Sistema ${f.t.name}.` }));
@@ -162,7 +174,9 @@ export default function App() {
   }, [state.gmWebhookUrl, character, template]);
 
   // O player não edita sistemas: recebe pelo link do mestre, em Personagens.
-  const abas = TABS.filter(([id]) => id !== 'sistemas' || state.role === 'mestre');
+  // O Livro só aparece para quem tem um sistema Hashira.
+  const hashira = state.templates.some((t) => t.livro === 'hashira');
+  const abas = TABS.filter(([id]) => (id !== 'sistemas' || state.role === 'mestre') && (id !== 'livro' || hashira));
   const aba = abas.some(([id]) => id === tab) ? tab : 'ficha';
 
   async function doRoll(label: string, notation: string, assign?: string) {
@@ -289,6 +303,12 @@ export default function App() {
               })
             }
           />
+        )}
+
+        {aba === 'livro' && (
+          <Suspense fallback={<p className="hint">Abrindo o livro…</p>}>
+            <Livro />
+          </Suspense>
         )}
 
         {aba === 'sessao' && (

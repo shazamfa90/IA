@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { HASHIRA } from './hashira.ts';
-import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets, modifierOf, formatMod, withMods, encodeFicha, decodeFicha, addFicha, newCharacter, sha256, senhaDoMestre, tintaSobre, type State, type Template } from './store.ts';
+import { HASHIRA, atualizaHashira } from './hashira.ts';
+import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets, modifierOf, formatMod, withMods, encodeFicha, decodeFicha, addFicha, newCharacter, sha256, senhaDoMestre, tintaSobre, explicar, type State, type Template } from './store.ts';
 
 test('slug tira acento e espaço', () => {
   assert.equal(slug('Força'), 'forca');
@@ -323,6 +323,57 @@ test('Hashira: a rolagem soma o modificador, não o atributo', () => {
   const v = withMods(t, { forca: '16', prof: '3' });
   assert.equal(v.forca, '3', 'Força 16 vale +3 na 5e');
   assert.equal(v.prof, '3', 'proficiência é número comum: entra cheia');
+});
+
+test('Hashira: tudo na ficha tem explicação no ⓘ', () => {
+  const t = HASHIRA();
+  for (const f of t.sections.flatMap((s) => s.fields)) assert.ok(f.desc, `campo ${f.id} sem explicação`);
+  for (const r of t.rolls) assert.ok(r.desc, `rolagem ${r.label} sem explicação`);
+});
+
+test('Hashira: katana é 1d6 (1d8 a duas mãos) com Destreza, e o CR tem nome certo', () => {
+  const t = HASHIRA();
+  const nota = (label: string) => t.rolls.find((r) => r.label === label)?.notation;
+  assert.equal(nota('Dano da katana (uma mão)'), '1d6+@destreza');
+  assert.equal(nota('Dano da katana (duas mãos)'), '1d8+@destreza');
+  assert.equal(t.sections.flatMap((s) => s.fields).find((f) => f.id === 'ca')?.label, 'Classe de Resistência (CR)');
+});
+
+test('explicar: a conta com o nome e o valor de cada campo', () => {
+  const t = HASHIRA();
+  assert.equal(explicar('d20+@destreza+@prof', t, { destreza: '16', prof: '2' }), 'd20 + Destreza (+3) + Bônus de proficiência (2)');
+  assert.equal(explicar('d20+@forca', t, {}), 'd20 + Força (0)', 'atributo vazio soma zero');
+  assert.equal(explicar('6#4d6kh3', t, {}), '6 × 4d6kh3');
+  assert.equal(explicar('d20+@forca.valor', t, { forca: '15' }), 'd20 + Força (15)');
+});
+
+test('Hashira antigo ganha explicações sem perder o que o mestre mexeu', () => {
+  const v1: Template = {
+    id: 'velho',
+    name: 'Hashira Handbook',
+    sections: [
+      { id: 's1', title: 'Combate', fields: [{ id: 'ca', label: 'Classe de armadura', type: 'number' }, { id: 'pv', label: 'Vida', type: 'number' }] },
+      { id: 's2', title: 'Casa do mestre', fields: [{ id: 'honra', label: 'Honra', type: 'number' }] },
+    ],
+    rolls: [
+      { id: 'r1', label: 'Dano da katana', notation: '1d8+@forca' },
+      { id: 'r2', label: 'Golpe da casa', notation: 'd20+@honra' },
+    ],
+  };
+  const t = atualizaHashira(v1);
+  const campos = t.sections.flatMap((s) => s.fields);
+  assert.equal(t.id, 'velho', 'as fichas continuam apontando pro mesmo sistema');
+  assert.equal(t.livro, 'hashira');
+  assert.equal(campos.find((f) => f.id === 'ca')?.label, 'Classe de Resistência (CR)');
+  assert.equal(campos.find((f) => f.id === 'pv')?.label, 'Vida', 'rótulo renomeado pelo mestre fica');
+  assert.ok(campos.find((f) => f.id === 'pv')?.desc);
+  assert.ok(campos.some((f) => f.id === 'honra'), 'campo da casa fica');
+  assert.ok(campos.some((f) => f.id === 'forca'), 'o que faltava entra');
+  assert.equal(new Set(campos.map((f) => f.id)).size, campos.length, 'nenhum campo duplicado');
+  assert.ok(!t.rolls.some((r) => r.notation === '1d8+@forca'), 'katana errada sai');
+  assert.ok(t.rolls.some((r) => r.label === 'Golpe da casa'), 'rolagem da casa fica');
+  assert.equal(atualizaHashira(t), t, 'rodar de novo não mexe');
+  assert.equal(atualizaHashira(EXAMPLE()).livro, undefined, 'outro sistema não vira Hashira');
 });
 
 test('Hashira: cada sistema importado é uma cópia independente', () => {
