@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PERMS_TEXTO, PERMS_VOZ, buscaDoSpotify, canalMaisCheio, faltam, idDoWebhook, lerComando, paraYtdlp } from './comando.js';
+import { PERMS_TEXTO, PERMS_VOZ, buscaDoSpotify, canalMaisCheio, faixasDoSpotify, faltam, idDoWebhook, lerComando, paraYtdlp } from './comando.js';
 
 test('lê o comando da última linha, como o app escreve', () => {
   assert.deepEqual(lerComando('🎵 **Combate**\ntocar <https://youtu.be/abc>'), { acao: 'tocar', alvo: 'https://youtu.be/abc', repetir: false });
@@ -54,4 +54,21 @@ test('🔁 depois de tocar liga o repetir; "repetir sim|não" muda a trilha atua
   assert.deepEqual(lerComando('repetir não'), { acao: 'repetir', repetir: false });
   assert.equal(lerComando('repetir talvez'), null);
   assert.equal(lerComando('tocar 🔁'), null, 'repetir o quê');
+});
+
+test('playlist e pular', () => {
+  assert.deepEqual(lerComando('📀 **Batalhas**\nplaylist 🔁 <https://youtube.com/playlist?list=PL1>'), {
+    acao: 'playlist',
+    alvo: 'https://youtube.com/playlist?list=PL1',
+    repetir: true,
+  });
+  assert.deepEqual(lerComando('playlist <https://open.spotify.com/playlist/x>'), { acao: 'playlist', alvo: 'https://open.spotify.com/playlist/x', repetir: false });
+  assert.equal(lerComando('playlist'), null);
+  assert.deepEqual(lerComando('pular'), { acao: 'pular', alvo: undefined });
+});
+
+test('faixas de playlist do Spotify saem das meta tags da página', () => {
+  const html = '<meta name="music:song" content="https://open.spotify.com/track/a"/><meta name="music:song" content="https://open.spotify.com/track/b"/>';
+  assert.deepEqual(faixasDoSpotify(html), ['https://open.spotify.com/track/a', 'https://open.spotify.com/track/b']);
+  assert.deepEqual(faixasDoSpotify('<html></html>'), []);
 });

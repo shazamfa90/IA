@@ -255,3 +255,4 @@ article.verbete p { padding: 0; }
 .controles .add { flex: 1; margin: 0; }
 .controles .add.on { background: var(--accent); color: var(--on-accent); }
 form > .roll.compact { margin-top: 12px; }
+.salvar { margin-top: 8px; padding-top: 4px; border-top: 1px solid var(--line); }

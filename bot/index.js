@@ -12,8 +12,8 @@ import {
   getVoiceConnection,
   joinVoiceChannel,
 } from '@discordjs/voice';
-import { PERMS_TEXTO, PERMS_VOZ, buscaDoSpotify, canalMaisCheio, faltam, idDoWebhook, lerComando, paraYtdlp } from './comando.js';
-import { fluxo, prepararProgramas } from './audio.js';
+import { PERMS_TEXTO, PERMS_VOZ, buscaDoSpotify, canalMaisCheio, faixasDoSpotify, faltam, idDoWebhook, lerComando, paraYtdlp } from './comando.js';
+import { fluxo, listarPlaylist, prepararProgramas } from './audio.js';
 
 // Primeira vez: pergunta no terminal e guarda no .env, sem ninguém precisar editar arquivo.
 // Acrescenta no fim: no .env, a última linha de cada nome é a que vale.
@@ -47,12 +47,44 @@ const player = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavi
 
 /** A trilha atual. Com `repetir`, recomeça quando acaba, até o mestre trocar ou parar. */
 let atual = null;
+/** A playlist tocando: { itens, i, repetir }. Sem ela, a trilha atual é avulsa. */
+let lista = null;
 
 player.on(AudioPlayerStatus.Playing, () => atual && (atual.inicio ||= Date.now()));
 player.on(AudioPlayerStatus.Idle, () => {
+  if (!atual?.inicio) return; // nem começou: foi erro, não fim (quem tocou já avisou)
+  if (lista) return proxima().catch((e) => console.error(e.message));
   // Música de fundo não acaba no meio da cena. Menos de 5 s tocando é erro, não fim: não repete.
-  if (atual?.repetir && atual.inicio && Date.now() - atual.inicio > 5000) tocar(atual.alvo, true).catch((e) => console.error(e.message));
+  if (atual.repetir && Date.now() - atual.inicio > 5000) tocar(atual.alvo, true).catch((e) => console.error(e.message));
 });
+
+/**
+ * Próxima faixa da playlist. Faixa que não toca (vídeo removido, bloqueado) é pulada em vez
+ * de parar tudo; cinco seguidas sem tocar é problema maior, e aí avisa.
+ */
+async function proxima() {
+  for (let tentativa = 0; tentativa < 5; tentativa++) {
+    if (!lista) return;
+    lista.i++;
+    if (lista.i >= lista.itens.length) {
+      if (!lista.repetir) return void ((lista = null), (atual = null), player.stop(true)); // acabou: silêncio, bot fica no canal
+      lista.i = 0;
+    }
+    try {
+      return await tocar(await resolver(lista.itens[lista.i]), false);
+    } catch (e) {
+      console.error(`Faixa ${lista?.i + 1} pulada:`, e.message);
+    }
+  }
+  throw new Error('Cinco faixas seguidas dessa playlist não tocaram.');
+}
+
+async function listar(alvo) {
+  if (!/^https?:\/\/open\.spotify\.com\/(?:[\w-]+\/)?(?:playlist|album)\//i.test(alvo)) return listarPlaylist(alvo);
+  const faixas = faixasDoSpotify(await pagina(alvo));
+  if (!faixas.length) throw new Error('Não achei as músicas dessa playlist do Spotify. Ela é pública?');
+  return faixas;
+}
 player.on('error', (e) => console.error('Áudio:', e.message));
 
 async function tocar(alvo, repetir) {
@@ -71,24 +103,32 @@ async function tocar(alvo, repetir) {
 function parar(guildId) {
   atual?.matar();
   atual = null;
+  lista = null;
   player.stop(true);
   getVoiceConnection(guildId)?.destroy();
 }
 
-async function resolver(alvo) {
-  if (!/^https?:\/\/open\.spotify\.com\//i.test(alvo)) return paraYtdlp(alvo);
-  const html = await fetch(alvo, {
+const pagina = (url) =>
+  fetch(url, {
     headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
     signal: AbortSignal.timeout(15_000),
   }).then((r) => r.text(), () => { throw new Error('O Spotify não respondeu.'); });
-  const busca = buscaDoSpotify(html);
+
+async function resolver(alvo) {
+  if (!/^https?:\/\/open\.spotify\.com\//i.test(alvo)) return paraYtdlp(alvo);
+  const busca = buscaDoSpotify(await pagina(alvo));
   if (!busca) throw new Error('Não consegui ler esse link do Spotify.');
   return paraYtdlp(busca);
 }
 
 async function executar({ acao, alvo, repetir }, msg) {
   if (acao === 'repetir') {
-    if (atual) atual.repetir = repetir; // sem nada tocando, vale a partir da próxima trilha (o app manda junto)
+    // Sem nada tocando, vale a partir da próxima (o app manda junto no comando de tocar).
+    if (lista) lista.repetir = repetir;
+    else if (atual) atual.repetir = repetir;
+  } else if (acao === 'pular') {
+    if (!lista) throw new Error('Pular é pra playlist, e não tem playlist tocando.');
+    await proxima();
   } else if (acao === 'pausar') {
     if (!player.pause()) throw new Error('Nada tocando.');
   } else if (acao === 'continuar') {
@@ -117,7 +157,15 @@ async function executar({ acao, alvo, repetir }, msg) {
       conexao.destroy(); // meia conexão atrapalharia a próxima tentativa
       throw new Error('Não consegui entrar no canal de voz. O bot tem as permissões Conectar e Falar?');
     });
-    await tocar(await resolver(alvo), repetir);
+    if (acao === 'playlist') {
+      const itens = await listar(alvo);
+      lista = { itens, i: -1, repetir };
+      console.log(`Playlist com ${itens.length} faixas.`);
+      await proxima();
+    } else {
+      lista = null; // trilha avulsa interrompe a playlist
+      await tocar(await resolver(alvo), repetir);
+    }
   }
 }
 
@@ -127,7 +175,7 @@ client.on(Events.MessageCreate, async (msg) => {
   if (!cmd) return;
   console.log(`→ ${cmd.acao}${cmd.alvo ? ` ${cmd.alvo}` : ''}${cmd.repetir ? ' (repetir)' : ''}`);
   // ⏳ na hora: a mesa vê que o bot recebeu, mesmo antes de a música começar.
-  const espera = cmd.acao === 'tocar' ? await msg.react('⏳').catch(() => null) : null;
+  const espera = ['tocar', 'playlist', 'pular'].includes(cmd.acao) ? await msg.react('⏳').catch(() => null) : null;
   try {
     await executar(cmd, msg);
     await msg.react('✅').catch(() => {});
