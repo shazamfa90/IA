@@ -80,10 +80,36 @@ Em *Sistemas → Adicionar*:
   resumo com palavras próprias, para consulta na mesa: números e regras, sem o texto do livro,
   que continua sendo a fonte. Só é baixado quando alguém abre a aba.
 
+**Prontos para outros ramos** — cada um com a ficha, as rolagens na notação certa e explicação
+no ⓘ (regras e números com palavras próprias, sem texto dos livros):
+
+| Sistema | Ramo | Como rola |
+|---|---|---|
+| D&D 5e | fantasia | `d20+@forca`, vantagem `2d20kh1` |
+| Tormenta20 | fantasia brasileira | `d20+@forca+@treino` |
+| Ordem Paranormal | horror investigativo | `@{agilidade}d20kh1` (atributo em d20, o maior) |
+| Call of Cthulhu 7e | horror cósmico | `d%`, sucesso se ≤ valor |
+| Vampiro: A Máscara (V5) | horror pessoal | `@{forca}d10>=6+@{briga}d10>=6` (sucessos) |
+| Cyberpunk RED | ficção científica | `d10!+@ref+@pistola` |
+| Savage Worlds | pulp | `d@{agilidade}!` (dado da ficha, explosivo) |
+| GURPS 4e | genérico | `3d6`, sucesso se ≤ nível |
+| Fate Acelerado | narrativo | `4dF+@esperto` |
+| Powered by the Apocalypse | narrativo | `2d6+@frio` |
+| Blades in the Dark | assalto | `@{lutar}d6kh1` |
+| Year Zero Engine | sobrevivência | `@{forca}d6>=6+@{luta}d6>=6` |
+
 ## Notação de dados
 
 Mesma do Rollem: `d20+5`, `2d8-1`, `4d6kh3` (mantém os 3 maiores), `4d6dl1` (descarta o menor),
-`6#4d6kh3` (repete 6 vezes). Também `kl` e `dh`.
+`6#4d6kh3` (repete 6 vezes). Também `kl` e `dh`. E o que os outros ramos usam:
+
+- `d%` — o mesmo que `d100`.
+- `4dF` — dados Fate: cada um dá −1, 0 ou +1.
+- `d6!` — explode: tirou o máximo, rola de novo e soma (o extra também pode explodir).
+- `5d10>=6` — parada de sucessos: o resultado é quantos dados deram 6 ou mais. Também `<=`, `>`
+  e `<`. Somar paradas soma os sucessos: `3d10>=6+2d10>=6`.
+- `@{campo}` — o valor do campo colado em outra coisa: `@{forca}d10` rola tantos d10 quanto a
+  Força. Parada de zero dados vale zero, sem erro.
 
 Dentro de uma rolagem, `@id` lê um campo da ficha — ex.: `d20+@forca`. O editor mostra o `@id`
 de cada campo ao lado dele.
@@ -106,6 +132,16 @@ O id acompanha o rótulo: minúsculo, sem acento e sem cedilha ("Coração" vira
 Renomear é seguro porque leva junto quem apontava pro id antigo — as notações das rolagens e os
 valores já preenchidos nas fichas. Dois campos com o mesmo nome ganham ids distintos
 (`@destreza`, `@destreza2`).
+
+## Visual e uso no celular
+
+Neumorfismo (Soft UI): fundo e cartões na mesma cor, com volume dado só por duas sombras. Botões
+saem da superfície e afundam ao tocar; campos e o que está ativo ficam afundados. Funciona do
+celular de 320 px ao monitor largo, respeita o recorte da tela (notch) e o "reduzir movimento"
+do aparelho. No primeiro acesso, segue o modo claro/escuro do aparelho.
+
+**Sem internet**: depois de aberto uma vez, o app abre do cache mesmo sem sinal (service worker).
+Rolar, editar a ficha e consultar o livro funcionam; só o que vai pro Discord espera a conexão.
 
 ## Discord
 

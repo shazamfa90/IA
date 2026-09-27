@@ -105,15 +105,21 @@ const EFEITOS: Record<string, Emissor[]> = {
 
 const entre = (a: number, b: number) => a + Math.random() * (b - a);
 
-function soltar(x: number, y: number, e: Emissor, i: number) {
+/**
+ * Escala do efeito pela tela: pensado para o PC, no celular fica pela metade (e com menos peças),
+ * senão um toque cobre meia tela.
+ */
+const escala = () => Math.min(1, Math.max(0.5, Math.min(innerWidth, innerHeight) / 760));
+
+function soltar(x: number, y: number, e: Emissor, i: number, k: number) {
   const el = document.createElement('span');
   el.className = `tq ${e.classe ?? ''}`;
   el.innerHTML = e.forma;
   const ang = ((e.dir ?? entre(0, 360)) + entre(-(e.leque ?? 360) / 2, (e.leque ?? 360) / 2)) * (Math.PI / 180);
-  const d = e.longe * entre(0.45, 1);
+  const d = e.longe * k * entre(0.45, 1);
   const cor = e.cor === 'as duas' ? (i % 2 ? 'accent2' : 'accent') : (e.cor ?? 'accent');
   el.style.cssText =
-    `left:${x}px;top:${y}px;color:var(--${cor});--anim:${e.anim};--t:${entre(...e.t).toFixed(0)}px;` +
+    `left:${x}px;top:${y}px;color:var(--${cor});--anim:${e.anim};--t:${(entre(...e.t) * k).toFixed(0)}px;` +
     `--x:${(Math.cos(ang) * d).toFixed(0)}px;--y:${(Math.sin(ang) * d).toFixed(0)}px;--r:${entre(-200, 200).toFixed(0)}deg;` +
     `--s:${entre(0.8, 1.2).toFixed(2)};--dur:${(e.dur * entre(0.85, 1.15)).toFixed(0)}ms;--atraso:${(e.passo ?? 0) * i}ms`;
   // Só a animação da própria peça encerra (a do traço e a das asas também disparam o evento).
@@ -129,7 +135,8 @@ export function ligarToques() {
     (ev) => {
       const efeito = EFEITOS[document.documentElement.dataset.theme ?? ''];
       if (!efeito || document.querySelectorAll('.tq').length > 120) return; // toques em rajada não acumulam
-      for (const e of efeito) for (let i = 0; i < e.n; i++) soltar(ev.clientX, ev.clientY, e, i);
+      const k = escala();
+      for (const e of efeito) for (let i = 0, n = Math.max(1, Math.round(e.n * k)); i < n; i++) soltar(ev.clientX, ev.clientY, e, i, k);
     },
     { passive: true },
   );

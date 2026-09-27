@@ -3,6 +3,7 @@ import type { Field, FieldType, Template } from './store.ts';
 import { EXAMPLE, MOD_RULES, NOME_TEMA, RESPIRACOES, THEMES_BASE, encodeTemplate, parseAssign, slug, uid, unknownTargets } from './store.ts';
 import type { ModRule, Theme } from './store.ts';
 import { HASHIRA } from './hashira.ts';
+import { PRONTOS } from './sistemas.ts';
 import ImageField from './ImageField.tsx';
 import Foto from './Foto.tsx';
 
@@ -146,6 +147,16 @@ export default function Templates({ templates, onSet, inUse, onRenameField }: Pr
           <button className="roll" onClick={() => onSet([...templates, HASHIRA()])}>
             Hashira Handbook<small>Kimetsu no Yaiba em 5e</small>
           </button>
+        </div>
+        <h2 className="sub">Prontos para outros ramos</h2>
+        <p className="hint">Ficha e rolagens de cada jogo, com explicação no ⓘ. Depois é só ajustar no editor.</p>
+        <div className="grid">
+          {PRONTOS.map((p) => (
+            <button key={p.nome} className="roll" onClick={() => onSet([...templates, p.criar()])}>
+              {p.nome}
+              <small>{p.ramo}</small>
+            </button>
+          ))}
         </div>
         <p className="hint">Recebeu um link de sistema? Cole em Personagens → Importar.</p>
         {notice && <p className="hint break">{notice}</p>}
