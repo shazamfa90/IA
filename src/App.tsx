@@ -137,7 +137,10 @@ export default function App() {
   const temaDoSistema = template?.theme;
   useEffect(() => {
     const html = document.documentElement;
-    html.dataset.theme = temaDoSistema ?? profile.theme;
+    const tema = temaDoSistema ?? profile.theme;
+    html.dataset.theme = tema;
+    // Respiração: luzes, camada animada e efeito de toque (style.css e toque.ts).
+    html.classList.toggle('respiracao', (RESPIRACOES as readonly string[]).includes(tema));
     if (temaDoSistema) {
       html.style.removeProperty('--accent');
       html.style.removeProperty('--on-accent');
@@ -478,16 +481,22 @@ function Sessao({
                   aria-label={`Tema ${NOME_TEMA[t]}`}
                   aria-pressed={profile.theme === t}
                   data-theme={t}
-                  className={profile.theme === t ? 'tema on' : 'tema'}
+                  className={`tema${grupo === GRUPOS[1][0] ? ' resp' : ''}${profile.theme === t ? ' on' : ''}`}
                   // O tema traz a cor dele junto: a Lua com o lilás do perfil não seria a Lua.
                   // A amostra tem data-theme, então o --accent calculado nela é o do tema.
                   onClick={(e) =>
                     patchProfile({ theme: t, accent: getComputedStyle(e.currentTarget).getPropertyValue('--accent').trim() || profile.accent })
                   }
                 >
-                  <i style={{ background: 'var(--bg)' }} />
-                  <i style={{ background: 'var(--card)' }} />
-                  <i style={{ background: 'var(--accent)' }} />
+                  {grupo === GRUPOS[1][0] ? (
+                    <span>{NOME_TEMA[t]}</span>
+                  ) : (
+                    <>
+                      <i style={{ background: 'var(--bg)' }} />
+                      <i style={{ background: 'var(--card)' }} />
+                      <i style={{ background: 'var(--accent)' }} />
+                    </>
+                  )}
                 </button>
               ))}
             </div>

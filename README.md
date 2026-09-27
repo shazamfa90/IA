@@ -41,8 +41,12 @@ npm run build   # gera dist/
 - **Atributo e modificador** — um campo do tipo *Atributo* guarda o atributo (16) e mostra o
   modificador ao lado (+3), pela regra que o sistema escolher.
 - **Temas das respirações** — além dos básicos, 13 temas do Hashira Handbook, um por respiração
-  (Lua, Água, Chamas, Trovão, Névoa, Inseto, Vento, Pedra, Flor, Serpente, Som, Amor, Besta), cada
-  um com a cor do Hashira e um desenho leve no fundo: luas minguantes, ondas, chamas, raios…
+  (Lua, Água, Chamas, Trovão, Névoa, Inseto, Vento, Pedra, Flor, Serpente, Som, Amor, Besta). Cada
+  um tem duas cores do Hashira em luzes no fundo, um desenho (luas minguantes, ondas, chamas,
+  triângulos e raios…), uma camada que anda devagar (estrelas, bolhas, brasas subindo, pétalas
+  caindo, névoa passando) e um **efeito ao tocar**: corte em lua crescente, ondas e gotas, brasas,
+  raio com faíscas, névoa, borboletas, redemoinho, cacos de pedra, pétalas, a serpente, anéis de
+  som com joias, corações e garras. Com "reduzir movimento" ligado no aparelho, tudo fica parado.
   Escolher um tema no Perfil traz a cor de destaque dele junto.
 - **Tema por sistema** — um sistema pode trazer aparência própria, e ela assume o app inteiro
   enquanto uma ficha dele está aberta.
