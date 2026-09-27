@@ -8,23 +8,34 @@ export async function postRoll(
   notation: string,
   rolls: Roll[],
 ): Promise<void> {
+  const lines = rolls.map((r) => `${r.detail} = **${r.total}**`);
+  await post(webhookUrl, {
+    username: character.name || 'Ficha',
+    avatar_url: character.avatarUrl || undefined,
+    content: `\`${notation}\` ${label}\n${lines.join('\n')}`,
+  });
+}
+
+/** Escreve um comando no canal do bot de música, ex.: "m!play <link> --now". */
+export const postComando = (webhookUrl: string, content: string) => post(webhookUrl, { username: 'Mestre', content });
+
+async function post(webhookUrl: string, body: { username: string; avatar_url?: string; content: string }): Promise<void> {
   if (!/^https:\/\/(discord|discordapp)\.com\/api\/webhooks\//.test(webhookUrl)) {
     throw new Error('URL de webhook inválida. Copie de Editar canal → Integrações → Webhooks.');
   }
 
-  const lines = rolls.map((r) => `${r.detail} = **${r.total}**`);
-  const content = `\`${notation}\` ${label}\n${lines.join('\n')}`;
-
   const res = await fetch(webhookUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      username: character.name || 'Ficha',
-      avatar_url: character.avatarUrl || undefined,
-      content,
-      allowed_mentions: { parse: [] }, // o resultado nunca deve pingar ninguém
-    }),
+    body: JSON.stringify({ ...body, allowed_mentions: { parse: [] } }), // nunca pinga ninguém
   });
 
   if (!res.ok) throw new Error(`Discord recusou (${res.status}). Webhook apagado ou rate limit.`);
 }
+
+/**
+ * O que o bot da mesa (pasta bot/) entende: ele lê a última linha. A primeira
+ * é pra mesa ver o que começou a tocar. Link entre <> não abre prévia no canal.
+ */
+export const comandoTocar = (nome: string, link: string) =>
+  `🎵 **${nome}**\ntocar ${/^https?:\/\//i.test(link) ? `<${link}>` : link}`;
