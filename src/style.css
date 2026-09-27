@@ -249,3 +249,8 @@ article.verbete { padding: 14px 16px; background: var(--card); border-radius: va
 article.verbete small { color: var(--accent-txt); font-weight: 600; }
 article.verbete h3 { margin: 2px 0 6px; }
 article.verbete p { padding: 0; }
+
+/* --- Música ---------------------------------------------------------------- */
+.controles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.controles .add { flex: 1; margin: 0; }
+form > .roll.compact { margin-top: 12px; }
