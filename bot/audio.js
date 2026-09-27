@@ -33,7 +33,8 @@ export async function prepararYtdlp() {
  * `falhou` rejeita se o yt-dlp não achar ou não puder baixar o áudio.
  */
 export function fluxo(alvo) {
-  const yt = spawn(YTDLP, ['-f', 'bestaudio/best', '--no-playlist', '--playlist-items', '1', '--no-warnings', '-q', '-o', '-', ...EXTRA, alvo], {
+  // --js-runtimes node: o YouTube exige um motor de JavaScript, e o Node que roda o bot serve.
+  const yt = spawn(YTDLP, ['-f', 'bestaudio/best', '--no-playlist', '--playlist-items', '1', '--js-runtimes', 'node', '--no-warnings', '-q', '-o', '-', ...EXTRA, alvo], {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
   const ff = spawn(ffmpeg, ['-loglevel', 'error', '-i', 'pipe:0', '-vn', '-c:a', 'libopus', '-b:a', '128k', '-f', 'ogg', 'pipe:1'], {
@@ -44,11 +45,14 @@ export function fluxo(alvo) {
 
   let erro = '';
   yt.stderr.on('data', (d) => (erro += d));
-  const falhou = new Promise((_, rejeita) =>
+  const falhou = new Promise((_, rejeita) => {
+    // Sem estes, um programa que não abre (antivírus, arquivo corrompido) derrubaria o bot calado.
+    yt.on('error', (e) => rejeita(new Error(`Não consegui abrir o yt-dlp (${e.code ?? e.message}). O antivírus bloqueou bot/bin?`)));
+    ff.on('error', (e) => rejeita(new Error(`Não consegui abrir o ffmpeg (${e.code ?? e.message}).`)));
     yt.on('close', (code) => {
       if (code) rejeita(new Error(erro.trim().split('\n').at(-1)?.replace(/^ERROR:\s*/, '') || `yt-dlp saiu com ${code}`));
-    }),
-  );
+    });
+  });
   falhou.catch(() => {}); // quem não esperar por ela não derruba o processo
 
   return { saida: ff.stdout, falhou, matar: () => (yt.kill(), ff.kill()) };

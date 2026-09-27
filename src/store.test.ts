@@ -471,9 +471,10 @@ test('texto sobre a cor de destaque é o que contrasta mais', () => {
 // --- música: o que o app escreve é o que o bot lê -----------------------------
 
 test('comando de tocar: a mesa vê o nome, o bot lê o link', () => {
-  const c = comandoTocar('Combate', 'https://youtu.be/abc');
+  const c = comandoTocar('Combate', 'https://youtu.be/abc', false);
   assert.equal(c, '🎵 **Combate**\ntocar <https://youtu.be/abc>', 'link entre <>: sem prévia no canal');
-  assert.deepEqual(lerComando(c), { acao: 'tocar', alvo: 'https://youtu.be/abc' });
-  assert.deepEqual(lerComando(comandoTocar('Taverna', 'taverna medieval')), { acao: 'tocar', alvo: 'taverna medieval' });
+  assert.deepEqual(lerComando(c), { acao: 'tocar', alvo: 'https://youtu.be/abc', repetir: false });
+  assert.deepEqual(lerComando(comandoTocar('Taverna', 'taverna medieval', true)), { acao: 'tocar', alvo: 'taverna medieval', repetir: true });
+  assert.deepEqual(lerComando('repetir não'), { acao: 'repetir', repetir: false });
   for (const b of ['Pausar', 'Continuar', 'Parar']) assert.equal(lerComando(b.toLowerCase())?.acao, b.toLowerCase());
 });

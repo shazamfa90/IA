@@ -253,4 +253,5 @@ article.verbete p { padding: 0; }
 /* --- Música ---------------------------------------------------------------- */
 .controles { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .controles .add { flex: 1; margin: 0; }
+.controles .add.on { background: var(--accent); color: var(--on-accent); }
 form > .roll.compact { margin-top: 12px; }

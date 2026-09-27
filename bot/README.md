@@ -1,8 +1,8 @@
 # Bot da mesa (música)
 
 Toca no canal de voz a trilha que o mestre escolhe na aba **Música** do app. O app escreve no
-canal pelo webhook; este bot lê, entra no canal de voz onde estiver a mesa e toca, repetindo a
-trilha até o mestre trocar ou parar.
+canal pelo webhook; este bot lê, entra no canal de voz onde estiver a mesa e toca. Com **🔁 Repetir**
+ligado no app, a trilha recomeça quando acaba, até o mestre trocar ou parar.
 
 Bots de música de terceiros (Jockie Music e parecidos) ignoram mensagens de webhook e só atendem
 quem está num canal de voz. Por isso a mesa tem o próprio: ele obedece **só** ao webhook do app,
@@ -48,8 +48,16 @@ algum? Apague o `.env` e ligue de novo.
 Aparece `Pronto como …`. Se o bot ainda não estiver em nenhum servidor, logo abaixo sai o link de
 convite, já com as permissões certas. Deixe a janela aberta enquanto jogam; fechar desliga o bot.
 
-No app, **Música** → toque numa trilha. O bot entra no canal de voz com mais gente e marca ✅ na
-mensagem quando começa a tocar. Se algo der errado, ele responde a mensagem com ⚠️ e o motivo.
+Ao ligar, ele confere as permissões do canal do webhook e avisa na janela se faltar alguma.
+
+No app, **Música** → toque numa trilha. O bot marca ⏳ na mensagem ao receber, entra no canal de voz
+com mais gente e troca por ✅ quando a música começa. Se algo der errado, ele responde a mensagem
+com ⚠️ e o motivo, e a janela mostra o mesmo.
+
+## Atualizar
+
+Baixe o ZIP de novo e, antes de ligar, copie o arquivo `.env` da pasta `bot` antiga para a nova:
+assim ele não pergunta token e webhook outra vez.
 
 ## O que ele toca
 
