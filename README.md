@@ -40,6 +40,10 @@ npm run build   # gera dist/
   que ordem. O app preenche a ficha sozinho; se os campos já tiverem valor, pergunta antes.
 - **Atributo e modificador** — um campo do tipo *Atributo* guarda o atributo (16) e mostra o
   modificador ao lado (+3), pela regra que o sistema escolher.
+- **Temas das respirações** — além dos básicos, 13 temas do Hashira Handbook, um por respiração
+  (Lua, Água, Chamas, Trovão, Névoa, Inseto, Vento, Pedra, Flor, Serpente, Som, Amor, Besta), cada
+  um com a cor do Hashira e um desenho leve no fundo: luas minguantes, ondas, chamas, raios…
+  Escolher um tema no Perfil traz a cor de destaque dele junto.
 - **Tema por sistema** — um sistema pode trazer aparência própria, e ela assume o app inteiro
   enquanto uma ficha dele está aberta.
 - **Música** (só o mestre) — trilhas salvas (nome + link do YouTube/Spotify ou busca) que trocam

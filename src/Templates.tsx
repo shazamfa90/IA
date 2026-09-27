@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Field, FieldType, Template } from './store.ts';
-import { EXAMPLE, MOD_RULES, THEMES, encodeTemplate, parseAssign, slug, uid, unknownTargets } from './store.ts';
+import { EXAMPLE, MOD_RULES, NOME_TEMA, RESPIRACOES, THEMES_BASE, encodeTemplate, parseAssign, slug, uid, unknownTargets } from './store.ts';
 import type { ModRule, Theme } from './store.ts';
 import { HASHIRA } from './hashira.ts';
 import ImageField from './ImageField.tsx';
@@ -205,9 +205,16 @@ function Editor({
             onChange={(e) => onChange({ ...t, theme: (e.target.value || undefined) as Theme | undefined })}
           >
             <option value="">Nenhum — usa o do perfil</option>
-            {THEMES.map((v) => (
-              <option key={v} value={v}>{v}</option>
-            ))}
+            <optgroup label="Básicos">
+              {THEMES_BASE.map((v) => (
+                <option key={v} value={v}>{NOME_TEMA[v]}</option>
+              ))}
+            </optgroup>
+            <optgroup label="Respirações — Hashira Handbook">
+              {RESPIRACOES.map((v) => (
+                <option key={v} value={v}>{NOME_TEMA[v]}</option>
+              ))}
+            </optgroup>
           </select>
         </label>
         <p className="hint">
