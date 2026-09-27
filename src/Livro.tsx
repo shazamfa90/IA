@@ -1,56 +1,12 @@
 import { useState } from 'react';
 import { LIVRO } from './livro.ts';
-import { blocos, type Corpo } from './texto.ts';
+import Texto from './Topicos.tsx';
 
 // "Classe de Resistência" acha "resistencia": busca sem acento nem caixa,
 // e pelo capítulo também ("água" traz as formas da Respiração da Água).
 const limpo = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 
 const TUDO = LIVRO.flatMap((c) => c.verbetes.map((v) => ({ cap: c.titulo, ...v, chave: limpo(`${c.titulo}\n${v.nome}\n${v.texto}`) })));
-
-// Rolagens em destaque: é o que se procura com os olhos na mesa.
-function Dados({ s }: { s: string }) {
-  const partes = s.split(/(\b\d*d(?:\d+|%)\b)/);
-  return <>{partes.map((x, i) => (i % 2 ? <b key={i} className="d">{x}</b> : x))}</>;
-}
-
-function Corpo({ c }: { c: Corpo }) {
-  if (c.tipo === 'texto') return <Dados s={c.texto} />;
-  if (c.tipo === 'lista') {
-    return (
-      <ul>
-        {c.itens.map((x, i) => (
-          <li key={i}><Dados s={x} /></li>
-        ))}
-      </ul>
-    );
-  }
-  return (
-    <>
-      {c.intro && <span className="intro"><Dados s={c.intro} /></span>}
-      <span className="pontos">
-        {c.itens.map((x, i) => (
-          <span key={i}><Dados s={x} /></span>
-        ))}
-      </span>
-      {c.nota && <span className="nota"><Dados s={c.nota} /></span>}
-    </>
-  );
-}
-
-/** O texto do verbete com forma: tópicos, listas e etiquetas (as regras estão em texto.ts). */
-function Texto({ texto }: { texto: string }) {
-  return (
-    <div className="texto">
-      {blocos(texto).map((b, i) => (
-        <div key={i} className={`bloco ${b.tipo}`}>
-          {b.rotulo && <strong>{b.rotulo}</strong>}
-          <Corpo c={b.corpo} />
-        </div>
-      ))}
-    </div>
-  );
-}
 
 export default function Livro() {
   const [busca, setBusca] = useState('');

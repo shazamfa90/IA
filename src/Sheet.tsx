@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Character, Template } from './store.ts';
 import { explicar, formatMod, modifierOf } from './store.ts';
 import Foto from './Foto.tsx';
+import Texto from './Topicos.tsx';
 
 type Props = {
   template: Template;
@@ -81,7 +82,7 @@ export default function Sheet({ template, character, onChange, onRoll }: Props) 
                       onChange={(e) => setValue(f.id, e.target.value)}
                     />
                   )}
-                  {aberto === f.id && <p className="desc">{f.desc}</p>}
+                  {aberto === f.id && f.desc && <div className="desc"><Texto texto={f.desc} paragrafo /></div>}
                 </label>
               ))}
             </section>
@@ -101,8 +102,8 @@ export default function Sheet({ template, character, onChange, onRoll }: Props) 
                 <Info aberto={aberto === r.id} onClick={() => alterna(r.id)} nome={r.label} />
                 {aberto === r.id && (
                   <div className="desc">
-                    {r.desc && <p>{r.desc}</p>}
-                    <p>
+                    {r.desc && <Texto texto={r.desc} paragrafo />}
+                    <p className="conta">
                       <strong>Conta:</strong> <code>{explicar(r.notation, template, character.values)}</code>
                     </p>
                   </div>
