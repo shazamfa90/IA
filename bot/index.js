@@ -1,4 +1,6 @@
-import { Client, Events, GatewayIntentBits } from 'discord.js';
+import { appendFile } from 'node:fs/promises';
+import { createInterface } from 'node:readline';
+import { Client, Events, GatewayIntentBits, PermissionsBitField } from 'discord.js';
 import {
   AudioPlayerStatus,
   NoSubscriberBehavior,
@@ -13,10 +15,23 @@ import {
 import { buscaDoSpotify, canalMaisCheio, idDoWebhook, lerComando, paraYtdlp } from './comando.js';
 import { fluxo, prepararYtdlp } from './audio.js';
 
+// Primeira vez: pergunta no terminal e guarda no .env, sem ninguém precisar editar arquivo.
+// Acrescenta no fim: no .env, a última linha de cada nome é a que vale.
+if (!process.env.DISCORD_TOKEN || !idDoWebhook(process.env.WEBHOOK_URL)) {
+  const rl = createInterface({ input: process.stdin });
+  const linhas = rl[Symbol.asyncIterator]();
+  const perguntar = async (texto) => (process.stdout.write(texto), ((await linhas.next()).value ?? '').trim());
+  const novos = {};
+  if (!process.env.DISCORD_TOKEN) novos.DISCORD_TOKEN = await perguntar('Token do bot (Developer Portal → Bot → Reset Token): ');
+  if (!idDoWebhook(process.env.WEBHOOK_URL)) novos.WEBHOOK_URL = await perguntar('Webhook do canal de música (o mesmo do app): ');
+  rl.close();
+  await appendFile(new URL('./.env', import.meta.url), Object.entries(novos).map(([k, v]) => `\n${k}=${v}`).join('') + '\n');
+  Object.assign(process.env, novos);
+}
 const { DISCORD_TOKEN } = process.env;
 const webhookId = idDoWebhook(process.env.WEBHOOK_URL);
 if (!DISCORD_TOKEN || !webhookId) {
-  console.error('Falta DISCORD_TOKEN ou WEBHOOK_URL. Copie .env.example para .env e preencha.');
+  console.error('Token ou webhook faltando. Apague o arquivo .env e rode de novo.');
   process.exit(1);
 }
 
@@ -110,7 +125,15 @@ client.on(Events.MessageCreate, async (msg) => {
   }
 });
 
-client.once(Events.ClientReady, (c) => console.log(`Pronto como ${c.user.tag}. Toque uma trilha no app.`));
+const PERMISSOES = new PermissionsBitField(['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AddReactions', 'Connect', 'Speak']);
+
+client.once(Events.ClientReady, (c) => {
+  console.log(`Pronto como ${c.user.tag}. Toque uma trilha no app.`);
+  if (!c.guilds.cache.size) {
+    console.log('\nO bot ainda não está em nenhum servidor. Abra este link e escolha o da mesa:');
+    console.log(`https://discord.com/oauth2/authorize?client_id=${c.user.id}&scope=bot&permissions=${PERMISSOES.bitfield}\n`);
+  }
+});
 
 process.on('SIGINT', () => {
   for (const g of client.guilds.cache.keys()) parar(g);
@@ -123,7 +146,7 @@ await client.login(DISCORD_TOKEN).catch((e) => {
   console.error(
     /intent/i.test(e.message)
       ? 'O Discord recusou: ative "Message Content Intent" em Bot → Privileged Gateway Intents.'
-      : `O Discord recusou o login: ${e.message.replace(/\.$/, '')}. O token está certo?`,
+      : `O Discord recusou o login: ${e.message.replace(/\.$/, '')}. Token errado? Apague o arquivo .env e rode de novo.`,
   );
   process.exit(1);
 });

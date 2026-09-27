@@ -31,24 +31,22 @@ O bot precisa enxergar o canal de texto do webhook. Dica: um canal só pra músi
 
 1. Instale o [Node.js](https://nodejs.org) 22 ou mais novo (a versão LTS serve).
 2. Baixe o projeto: no GitHub, **Code → Download ZIP**, e extraia.
-3. Abra um terminal dentro da pasta `bot`. No Windows: abra a pasta, clique na barra de
-   endereço, digite `cmd` e Enter.
-4. Crie o arquivo de configuração e preencha:
-   ```
-   copy .env.example .env
-   notepad .env
-   ```
-   (no Mac/Linux: `cp .env.example .env`). Cole o token em `DISCORD_TOKEN` e, em `WEBHOOK_URL`,
-   o mesmo webhook que está no app em **Música → Canal do bot**. O `.env` fica só no seu PC.
-5. Instale: `npm install`
 
 ## A cada sessão
 
-```
-npm start
-```
+- **Windows:** dois cliques em `iniciar.bat`, dentro da pasta `bot`.
+- **Mac/Linux:** num terminal dentro da pasta `bot`, `npm install` (só na primeira vez) e `npm start`.
 
-Aparece `Pronto como Trilha da Mesa#…`. Deixe o terminal aberto enquanto jogam; `Ctrl+C` desliga.
+Na primeira vez ele instala o que falta e pergunta, no terminal:
+
+- o **token** do bot (passo 1);
+- o **webhook**: o mesmo que está no app, em **Música → Canal do bot**.
+
+Os dois ficam guardados no arquivo `.env`, só no seu PC, e não são perguntados de novo. Errou
+algum? Apague o `.env` e ligue de novo.
+
+Aparece `Pronto como …`. Se o bot ainda não estiver em nenhum servidor, logo abaixo sai o link de
+convite, já com as permissões certas. Deixe a janela aberta enquanto jogam; fechar desliga o bot.
 
 No app, **Música** → toque numa trilha. O bot entra no canal de voz com mais gente e marca ✅ na
 mensagem quando começa a tocar. Se algo der errado, ele responde a mensagem com ⚠️ e o motivo.
@@ -63,13 +61,13 @@ mensagem quando começa a tocar. Se algo der errado, ele responde a mensagem com
 
 ## Problemas
 
-- **"Sign in to confirm you're not a bot"**: o YouTube desconfiou. No `.env`, descomente
+- **"Sign in to confirm you're not a bot"**: o YouTube desconfiou. Acrescente ao `.env` a linha
   `YTDLP_ARGS=--cookies-from-browser chrome` (ou `edge`, `firefox`: o navegador em que você está
   logado no YouTube).
 - **"Ninguém num canal de voz"**: entre num canal de voz antes de tocar.
 - **Não consegui entrar no canal de voz**: o bot precisa de *Connect* e *Speak* nesse canal.
-- **Nada acontece**: confira se o terminal mostra `Pronto como…` e se o `WEBHOOK_URL` do `.env` é
-  o mesmo do app.
+- **Nada acontece**: confira se a janela mostra `Pronto como…` e se o webhook que você deu ao bot é
+  o mesmo do app (apague o `.env` e ligue de novo para digitar outro).
 
 O `yt-dlp` (que busca o áudio) é baixado sozinho na primeira vez, em `bot/bin`, e se atualiza a cada
-`npm start`.
+vez que ele liga.
