@@ -91,8 +91,15 @@ export type Character = {
   messageId?: string;
 };
 
-export const THEMES = ['escuro', 'claro', 'pergaminho', 'sangue', 'floresta', 'nichirin'] as const;
+export const THEMES_BASE = ['escuro', 'claro', 'pergaminho', 'sangue', 'floresta', 'nichirin'] as const;
+/** As 13 respirações do Hashira Handbook, cada uma com a cor e um desenho de fundo. */
+export const RESPIRACOES = ['lua', 'agua', 'chamas', 'trovao', 'nevoa', 'inseto', 'vento', 'pedra', 'flor', 'serpente', 'som', 'amor', 'besta'] as const;
+export const THEMES = [...THEMES_BASE, ...RESPIRACOES] as const;
 export type Theme = (typeof THEMES)[number];
+export const NOME_TEMA: Record<Theme, string> = {
+  escuro: 'Escuro', claro: 'Claro', pergaminho: 'Pergaminho', sangue: 'Sangue', floresta: 'Floresta', nichirin: 'Nichirin',
+  lua: 'Lua', agua: 'Água', chamas: 'Chamas', trovao: 'Trovão', nevoa: 'Névoa', inseto: 'Inseto', vento: 'Vento', pedra: 'Pedra', flor: 'Flor', serpente: 'Serpente', som: 'Som', amor: 'Amor', besta: 'Besta',
+};
 
 /** Perfil local: separa as fichas e a aparência de cada pessoa no aparelho. */
 /** `avatars`: imagens guardadas nos slots. Ausente nos perfis antigos. */

@@ -14,7 +14,9 @@ import { atualizaHashira } from './hashira.ts';
 import {
   DEFAULT_GM_WEBHOOK,
   DEFAULT_WEBHOOK,
-  THEMES,
+  NOME_TEMA,
+  RESPIRACOES,
+  THEMES_BASE,
   addFicha,
   decodeFicha,
   decodeTemplate,
@@ -32,7 +34,13 @@ import {
   type Character,
   type Profile,
   type State,
+  type Theme,
 } from './store.ts';
+
+const GRUPOS: [string, readonly Theme[]][] = [
+  ['Básicos', THEMES_BASE],
+  ['Respirações — Hashira Handbook', RESPIRACOES],
+];
 
 const TABS = [
   ['ficha', 'Ficha'],
@@ -459,23 +467,33 @@ function Sessao({
 
       <section>
         <h2>Aparência</h2>
-        <div className="temas">
-          {THEMES.map((t) => (
-            <button
-              key={t}
-              title={t}
-              aria-label={`Tema ${t}`}
-              aria-pressed={profile.theme === t}
-              data-theme={t}
-              className={profile.theme === t ? 'tema on' : 'tema'}
-              onClick={() => patchProfile({ theme: t })}
-            >
-              <i style={{ background: 'var(--bg)' }} />
-              <i style={{ background: 'var(--card)' }} />
-              <i style={{ background: 'var(--accent)' }} />
-            </button>
-          ))}
-        </div>
+        {GRUPOS.map(([grupo, temas]) => (
+          <div key={grupo}>
+            <p className="hint">{grupo}</p>
+            <div className="temas">
+              {temas.map((t) => (
+                <button
+                  key={t}
+                  title={NOME_TEMA[t]}
+                  aria-label={`Tema ${NOME_TEMA[t]}`}
+                  aria-pressed={profile.theme === t}
+                  data-theme={t}
+                  className={profile.theme === t ? 'tema on' : 'tema'}
+                  // O tema traz a cor dele junto: a Lua com o lilás do perfil não seria a Lua.
+                  // A amostra tem data-theme, então o --accent calculado nela é o do tema.
+                  onClick={(e) =>
+                    patchProfile({ theme: t, accent: getComputedStyle(e.currentTarget).getPropertyValue('--accent').trim() || profile.accent })
+                  }
+                >
+                  <i style={{ background: 'var(--bg)' }} />
+                  <i style={{ background: 'var(--card)' }} />
+                  <i style={{ background: 'var(--accent)' }} />
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+        <p className="hint">Tema: <strong>{NOME_TEMA[profile.theme] ?? profile.theme}</strong>. Escolher um tema traz a cor dele; dá pra trocar a cor depois.</p>
         <label className="field">
           <span>Cor de destaque</span>
           <input type="color" value={profile.accent} onChange={(e) => patchProfile({ accent: e.target.value })} />
