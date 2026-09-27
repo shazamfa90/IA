@@ -1,6 +1,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PERMS_TEXTO, PERMS_VOZ, buscaDoSpotify, canalMaisCheio, faixasDoSpotify, faltam, idDoWebhook, lerComando, paraYtdlp } from './comando.js';
+import {
+  PERMS_TEXTO,
+  PERMS_VOZ,
+  buscaDoSpotify,
+  canalMaisCheio,
+  embedDaLista,
+  embedDoSpotify,
+  faixasDoSpotify,
+  faltam,
+  idDoWebhook,
+  lerComando,
+  paraYtdlp,
+} from './comando.js';
 
 test('lê o comando da última linha, como o app escreve', () => {
   assert.deepEqual(lerComando('🎵 **Combate**\ntocar <https://youtu.be/abc>'), { acao: 'tocar', alvo: 'https://youtu.be/abc', repetir: false });
@@ -56,19 +68,44 @@ test('🔁 depois de tocar liga o repetir; "repetir sim|não" muda a trilha atua
   assert.equal(lerComando('tocar 🔁'), null, 'repetir o quê');
 });
 
-test('playlist e pular', () => {
+test('playlist a partir de uma faixa, listar e pular', () => {
   assert.deepEqual(lerComando('📀 **Batalhas**\nplaylist 🔁 <https://youtube.com/playlist?list=PL1>'), {
     acao: 'playlist',
     alvo: 'https://youtube.com/playlist?list=PL1',
     repetir: true,
+    faixa: 1,
   });
-  assert.deepEqual(lerComando('playlist <https://open.spotify.com/playlist/x>'), { acao: 'playlist', alvo: 'https://open.spotify.com/playlist/x', repetir: false });
+  assert.deepEqual(lerComando('playlist <https://open.spotify.com/playlist/x> #7'), {
+    acao: 'playlist',
+    alvo: 'https://open.spotify.com/playlist/x',
+    repetir: false,
+    faixa: 7,
+  });
+  assert.equal(lerComando('playlist <x> #0').faixa, 1, 'faixa 0 vira a primeira');
   assert.equal(lerComando('playlist'), null);
+  assert.deepEqual(lerComando('📀 **Batalhas**\nlistar <https://youtube.com/playlist?list=PL1>'), { acao: 'listar', alvo: 'https://youtube.com/playlist?list=PL1' });
   assert.deepEqual(lerComando('pular'), { acao: 'pular', alvo: undefined });
 });
 
-test('faixas de playlist do Spotify saem das meta tags da página', () => {
-  const html = '<meta name="music:song" content="https://open.spotify.com/track/a"/><meta name="music:song" content="https://open.spotify.com/track/b"/>';
-  assert.deepEqual(faixasDoSpotify(html), ['https://open.spotify.com/track/a', 'https://open.spotify.com/track/b']);
+test('Spotify: link vira a página embed, que traz nome e artista de cada faixa', () => {
+  assert.equal(embedDoSpotify('https://open.spotify.com/intl-pt/playlist/37i9dQ?si=1'), 'https://open.spotify.com/embed/playlist/37i9dQ');
+  assert.equal(embedDoSpotify('https://open.spotify.com/album/4aaw'), 'https://open.spotify.com/embed/album/4aaw');
+  assert.equal(embedDoSpotify('https://open.spotify.com/track/0qMi'), null, 'faixa sozinha não é lista');
+  const dados = { props: { pageProps: { state: { data: { entity: { trackList: [{ title: '紅蓮華', subtitle: 'LiSA' }, { title: 'Sem artista' }] } } } } } };
+  const html = `<script id="__NEXT_DATA__" type="application/json">${JSON.stringify(dados)}</script>`;
+  assert.deepEqual(faixasDoSpotify(html), [
+    { alvo: '紅蓮華 LiSA', titulo: '紅蓮華 — LiSA' },
+    { alvo: 'Sem artista', titulo: 'Sem artista' },
+  ]);
   assert.deepEqual(faixasDoSpotify('<html></html>'), []);
+});
+
+test('a lista que o bot escreve: uma faixa por linha, rodapé com a que toca', () => {
+  const itens = [{ titulo: 'A' }, { titulo: 'B\ncom quebra' }];
+  assert.deepEqual(embedDaLista(itens), { description: '1. A\n2. B com quebra', footer: { text: '2 faixas' } });
+  assert.equal(embedDaLista(itens, 1).footer.text, '▶ 2/2');
+  const muitas = Array.from({ length: 200 }, (_, i) => ({ titulo: `Faixa comprida número ${i} `.repeat(3) }));
+  const e = embedDaLista(muitas);
+  assert.ok(e.description.length <= 4096, 'cabe no limite do Discord');
+  assert.match(e.description, /… e mais \d+$/);
 });

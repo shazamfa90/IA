@@ -9,7 +9,7 @@ import Icone from './Icone.tsx';
 import Sheet from './Sheet.tsx';
 import Characters from './Characters.tsx';
 import Templates from './Templates.tsx';
-import Musica from './Musica.tsx';
+import Musica, { type Tocando } from './Musica.tsx';
 import { atualizaHashira } from './hashira.ts';
 import {
   DEFAULT_GM_WEBHOOK,
@@ -81,7 +81,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('ficha');
   const [last, setLast] = useState<Result | null>(null);
   const [girando, setGirando] = useState<string | null>(null);
-  const [tocando, setTocando] = useState<string | null>(null);
+  const [tocando, setTocando] = useState<Tocando | null>(null);
 
   useEffect(() => save(state), [state]);
 

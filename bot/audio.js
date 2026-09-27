@@ -38,15 +38,21 @@ export async function prepararProgramas() {
   await new Promise((ok) => execFile(YTDLP, ['-U'], () => ok())); // sem internet, segue com o que tem
 }
 
-/** Os links das faixas de uma playlist (YouTube e o que mais o yt-dlp listar), sem baixar nada. */
+/** As faixas de uma playlist (YouTube e o que mais o yt-dlp listar), sem baixar nada: { alvo, titulo }. */
 export function listarPlaylist(alvo) {
   return new Promise((ok, falha) =>
     execFile(
       YTDLP,
-      ['--flat-playlist', '--print', 'url', '--playlist-end', '300', '--js-runtimes', 'node', '--no-warnings', ...EXTRA, alvo],
+      ['--flat-playlist', '--print', '%(url)s\t%(title)s', '--playlist-end', '300', '--js-runtimes', 'node', '--no-warnings', ...EXTRA, alvo],
       { maxBuffer: 4 << 20 },
       (e, stdout, stderr) => {
-        const itens = stdout.split('\n').map((l) => l.trim()).filter(Boolean);
+        const itens = stdout
+          .split('\n')
+          .filter((l) => l.trim())
+          .map((l) => {
+            const [url, titulo] = l.split('\t');
+            return { alvo: url.trim(), titulo: titulo && titulo !== 'NA' ? titulo.trim() : url.trim() };
+          });
         if (itens.length) ok(itens);
         else falha(new Error(stderr.trim().split('\n').at(-1)?.replace(/^ERROR:\s*/, '') || e?.message || 'Playlist vazia.'));
       },

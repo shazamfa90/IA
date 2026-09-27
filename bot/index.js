@@ -1,6 +1,6 @@
 import { appendFile } from 'node:fs/promises';
 import { createInterface } from 'node:readline';
-import { Client, Events, GatewayIntentBits, PermissionsBitField } from 'discord.js';
+import { Client, Events, GatewayIntentBits, PermissionsBitField, WebhookClient } from 'discord.js';
 import {
   AudioPlayerStatus,
   NoSubscriberBehavior,
@@ -12,7 +12,19 @@ import {
   getVoiceConnection,
   joinVoiceChannel,
 } from '@discordjs/voice';
-import { PERMS_TEXTO, PERMS_VOZ, buscaDoSpotify, canalMaisCheio, faixasDoSpotify, faltam, idDoWebhook, lerComando, paraYtdlp } from './comando.js';
+import {
+  PERMS_TEXTO,
+  PERMS_VOZ,
+  buscaDoSpotify,
+  canalMaisCheio,
+  embedDaLista,
+  embedDoSpotify,
+  faixasDoSpotify,
+  faltam,
+  idDoWebhook,
+  lerComando,
+  paraYtdlp,
+} from './comando.js';
 import { fluxo, listarPlaylist, prepararProgramas } from './audio.js';
 
 // Primeira vez: pergunta no terminal e guarda no .env, sem ninguém precisar editar arquivo.
@@ -44,11 +56,18 @@ const client = new Client({
   ],
 });
 const player = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Play } });
+// O mesmo webhook do app: com ele o bot escreve a lista de faixas na mensagem do comando, e o
+// app lê de volta. É o único caminho do bot até o app, que não tem servidor.
+const webhook = new WebhookClient({ url: process.env.WEBHOOK_URL });
+const mostrar = (msgId, itens, atual) =>
+  webhook.editMessage(msgId, { embeds: [embedDaLista(itens, atual)] }).catch((e) => console.error('Não consegui escrever a lista:', e.message));
 
 /** A trilha atual. Com `repetir`, recomeça quando acaba, até o mestre trocar ou parar. */
 let atual = null;
-/** A playlist tocando: { itens, i, repetir }. Sem ela, a trilha atual é avulsa. */
+/** A playlist tocando: { itens, i, repetir, msg }. Sem ela, a trilha atual é avulsa. */
 let lista = null;
+/** Faixas já listadas, por link: tocar a faixa 7 depois da 3 não lista tudo de novo. */
+const listadas = new Map();
 
 player.on(AudioPlayerStatus.Playing, () => atual && (atual.inicio ||= Date.now()));
 player.on(AudioPlayerStatus.Idle, () => {
@@ -71,7 +90,8 @@ async function proxima() {
       lista.i = 0;
     }
     try {
-      return await tocar(await resolver(lista.itens[lista.i]), false);
+      await tocar(await resolver(lista.itens[lista.i].alvo), false);
+      return mostrar(lista.msg, lista.itens, lista.i); // o app acompanha pela mensagem
     } catch (e) {
       console.error(`Faixa ${lista?.i + 1} pulada:`, e.message);
     }
@@ -80,9 +100,11 @@ async function proxima() {
 }
 
 async function listar(alvo) {
-  if (!/^https?:\/\/open\.spotify\.com\/(?:[\w-]+\/)?(?:playlist|album)\//i.test(alvo)) return listarPlaylist(alvo);
-  const faixas = faixasDoSpotify(await pagina(alvo));
-  if (!faixas.length) throw new Error('Não achei as músicas dessa playlist do Spotify. Ela é pública?');
+  if (listadas.has(alvo)) return listadas.get(alvo);
+  const embed = embedDoSpotify(alvo);
+  const faixas = embed ? faixasDoSpotify(await pagina(embed)) : await listarPlaylist(alvo);
+  if (!faixas.length) throw new Error('Não achei as músicas dessa playlist. Ela é pública?');
+  listadas.set(alvo, faixas);
   return faixas;
 }
 player.on('error', (e) => console.error('Áudio:', e.message));
@@ -121,8 +143,11 @@ async function resolver(alvo) {
   return paraYtdlp(busca);
 }
 
-async function executar({ acao, alvo, repetir }, msg) {
-  if (acao === 'repetir') {
+async function executar({ acao, alvo, repetir, faixa }, msg) {
+  if (acao === 'listar') {
+    listadas.delete(alvo); // pedir a lista é também o jeito de atualizar uma playlist que mudou
+    await mostrar(msg.id, await listar(alvo));
+  } else if (acao === 'repetir') {
     // Sem nada tocando, vale a partir da próxima (o app manda junto no comando de tocar).
     if (lista) lista.repetir = repetir;
     else if (atual) atual.repetir = repetir;
@@ -159,8 +184,9 @@ async function executar({ acao, alvo, repetir }, msg) {
     });
     if (acao === 'playlist') {
       const itens = await listar(alvo);
-      lista = { itens, i: -1, repetir };
-      console.log(`Playlist com ${itens.length} faixas.`);
+      if (faixa > itens.length) throw new Error(`Essa playlist tem ${itens.length} faixas.`);
+      lista = { itens, i: faixa - 2, repetir, msg: msg.id }; // proxima() avança uma: começa na pedida
+      console.log(`Playlist com ${itens.length} faixas, a partir da ${faixa}.`);
       await proxima();
     } else {
       lista = null; // trilha avulsa interrompe a playlist
@@ -175,7 +201,7 @@ client.on(Events.MessageCreate, async (msg) => {
   if (!cmd) return;
   console.log(`→ ${cmd.acao}${cmd.alvo ? ` ${cmd.alvo}` : ''}${cmd.repetir ? ' (repetir)' : ''}`);
   // ⏳ na hora: a mesa vê que o bot recebeu, mesmo antes de a música começar.
-  const espera = ['tocar', 'playlist', 'pular'].includes(cmd.acao) ? await msg.react('⏳').catch(() => null) : null;
+  const espera = ['tocar', 'playlist', 'listar', 'pular'].includes(cmd.acao) ? await msg.react('⏳').catch(() => null) : null;
   try {
     await executar(cmd, msg);
     await msg.react('✅').catch(() => {});

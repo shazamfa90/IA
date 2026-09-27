@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { HASHIRA, atualizaHashira } from './hashira.ts';
-import { comandoTocar } from './discord.ts';
-import { lerComando } from '../bot/comando.js';
+import { comandoListar, comandoTocar, lerLista } from './discord.ts';
+import { embedDaLista, lerComando } from '../bot/comando.js';
 import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets, modifierOf, formatMod, withMods, encodeFicha, decodeFicha, addFicha, newCharacter, sha256, senhaDoMestre, tintaSobre, explicar, type State, type Template } from './store.ts';
 
 test('slug tira acento e espaço', () => {
@@ -478,7 +478,21 @@ test('comando de tocar: a mesa vê o nome, o bot lê o link', () => {
   assert.deepEqual(lerComando('repetir não'), { acao: 'repetir', repetir: false });
   const pl = comandoTocar('Batalhas', 'https://youtube.com/playlist?list=PL1', true, true);
   assert.equal(pl, '📀 **Batalhas**\nplaylist 🔁 <https://youtube.com/playlist?list=PL1>');
-  assert.deepEqual(lerComando(pl), { acao: 'playlist', alvo: 'https://youtube.com/playlist?list=PL1', repetir: true });
+  assert.deepEqual(lerComando(pl), { acao: 'playlist', alvo: 'https://youtube.com/playlist?list=PL1', repetir: true, faixa: 1 });
+  const da5 = comandoTocar('Batalhas · 5. Duelo', 'https://youtube.com/playlist?list=PL1', false, true, 5);
+  assert.deepEqual(lerComando(da5), { acao: 'playlist', alvo: 'https://youtube.com/playlist?list=PL1', repetir: false, faixa: 5 });
+  assert.deepEqual(lerComando(comandoListar('Batalhas', 'https://youtube.com/playlist?list=PL1')), { acao: 'listar', alvo: 'https://youtube.com/playlist?list=PL1' });
   assert.equal(lerComando('pular')?.acao, 'pular');
   for (const b of ['Pausar', 'Continuar', 'Parar']) assert.equal(lerComando(b.toLowerCase())?.acao, b.toLowerCase());
+});
+
+test('a lista que o bot escreve na mensagem é a que o app lê', () => {
+  const itens = [{ titulo: '紅蓮華 — LiSA' }, { titulo: 'Duelo' }, { titulo: 'Fuga' }];
+  assert.deepEqual(lerLista({ embeds: [embedDaLista(itens)] }), { faixas: ['紅蓮華 — LiSA', 'Duelo', 'Fuga'], atual: undefined });
+  assert.equal(lerLista({ embeds: [embedDaLista(itens, 2)] })?.atual, 2, 'o rodapé diz qual toca');
+  assert.equal(lerLista({ embeds: [] }), null, 'o bot ainda não respondeu');
+  const muitas = Array.from({ length: 200 }, (_, i) => ({ titulo: `Faixa ${i + 1}` }));
+  const lidas = lerLista({ embeds: [embedDaLista(muitas)] })!.faixas;
+  assert.deepEqual(lidas.slice(0, 2), ['Faixa 1', 'Faixa 2']);
+  assert.ok(!lidas.some((f) => f.startsWith('…')), '"e mais N" não vira faixa');
 });

@@ -43,7 +43,8 @@ npm run build   # gera dist/
 - **Tema por sistema** — um sistema pode trazer aparência própria, e ela assume o app inteiro
   enquanto uma ficha dele está aberta.
 - **Música** (só o mestre) — trilhas salvas (nome + link do YouTube/Spotify ou busca) que trocam
-  com um toque, e **playlists** numa lista separada, tocadas em sequência (com Pular). Mais
+  com um toque, e **playlists** numa lista separada, com cada faixa aparecendo no app pra
+  escolher qual tocar; depois segue em sequência (com Pular). Mais
   Pausar, Continuar, Parar e 🔁 Repetir (liga e desliga). Quem toca é o **bot da mesa** (pasta [`bot/`](bot/README.md)),
   rodando no PC do mestre durante a sessão: o app escreve pelo webhook, o bot entra no canal de
   voz da mesa e toca, repetindo a trilha se o 🔁 estiver ligado. Bots de terceiros como o Jockie ignoram webhook, por

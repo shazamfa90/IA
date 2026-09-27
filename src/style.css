@@ -256,3 +256,10 @@ article.verbete p { padding: 0; }
 .controles .add.on { background: var(--accent); color: var(--on-accent); }
 form > .roll.compact { margin-top: 12px; }
 .salvar { margin-top: 8px; padding-top: 4px; border-top: 1px solid var(--line); }
+.faixas { display: flex; flex-direction: column; gap: 2px; padding: 4px 0 10px 16px; }
+.faixa { display: flex; gap: 10px; align-items: baseline; padding: 10px 8px; background: none; border: 0; border-radius: 8px; color: var(--ink); text-align: left; }
+.faixa:hover { background: var(--raised); }
+.faixa span { min-width: 2.2ch; color: var(--dim); font-variant-numeric: tabular-nums; }
+.faixa.on { background: var(--tint); color: var(--accent-txt); font-weight: 600; }
+.faixa.on span { color: inherit; }
+.faixas .add { align-self: flex-start; }
