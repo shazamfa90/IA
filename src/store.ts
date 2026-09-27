@@ -114,6 +114,8 @@ export type State = {
   /** Aba Música, só do mestre: trilhas salvas e o webhook do canal que o bot da mesa lê. */
   musicas?: Musica[];
   musicWebhookUrl?: string;
+  /** Repetir a trilha quando acaba. Ausente = sim: música de fundo não acaba no meio da cena. */
+  repetirMusica?: boolean;
 };
 
 /** `link` vai direto no comando play: URL (YouTube, Spotify…) ou termo de busca. */

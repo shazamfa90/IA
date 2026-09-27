@@ -12,7 +12,7 @@ import {
   getVoiceConnection,
   joinVoiceChannel,
 } from '@discordjs/voice';
-import { buscaDoSpotify, canalMaisCheio, idDoWebhook, lerComando, paraYtdlp } from './comando.js';
+import { PERMS_TEXTO, PERMS_VOZ, buscaDoSpotify, canalMaisCheio, faltam, idDoWebhook, lerComando, paraYtdlp } from './comando.js';
 import { fluxo, prepararYtdlp } from './audio.js';
 
 // Primeira vez: pergunta no terminal e guarda no .env, sem ninguém precisar editar arquivo.
@@ -45,20 +45,20 @@ const client = new Client({
 });
 const player = createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Play } });
 
-/** A trilha atual: repete quando acaba, até o mestre trocar ou parar. */
+/** A trilha atual. Com `repetir`, recomeça quando acaba, até o mestre trocar ou parar. */
 let atual = null;
 
 player.on(AudioPlayerStatus.Playing, () => atual && (atual.inicio ||= Date.now()));
 player.on(AudioPlayerStatus.Idle, () => {
   // Música de fundo não acaba no meio da cena. Menos de 5 s tocando é erro, não fim: não repete.
-  if (atual?.inicio && Date.now() - atual.inicio > 5000) tocar(atual.alvo).catch((e) => console.error(e.message));
+  if (atual?.repetir && atual.inicio && Date.now() - atual.inicio > 5000) tocar(atual.alvo, true).catch((e) => console.error(e.message));
 });
 player.on('error', (e) => console.error('Áudio:', e.message));
 
-async function tocar(alvo) {
+async function tocar(alvo, repetir) {
   atual?.matar();
   const { saida, falhou, matar } = fluxo(alvo);
-  atual = { alvo, matar, inicio: 0 };
+  atual = { alvo, repetir, matar, inicio: 0 };
   player.play(createAudioResource(saida, { inputType: StreamType.OggOpus }));
   try {
     await Promise.race([entersState(player, AudioPlayerStatus.Playing, 30_000), falhou]);
@@ -77,14 +77,19 @@ function parar(guildId) {
 
 async function resolver(alvo) {
   if (!/^https?:\/\/open\.spotify\.com\//i.test(alvo)) return paraYtdlp(alvo);
-  const html = await fetch(alvo, { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } }).then((r) => r.text());
+  const html = await fetch(alvo, {
+    headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+    signal: AbortSignal.timeout(15_000),
+  }).then((r) => r.text(), () => { throw new Error('O Spotify não respondeu.'); });
   const busca = buscaDoSpotify(html);
   if (!busca) throw new Error('Não consegui ler esse link do Spotify.');
   return paraYtdlp(busca);
 }
 
-async function executar({ acao, alvo }, msg) {
-  if (acao === 'pausar') {
+async function executar({ acao, alvo, repetir }, msg) {
+  if (acao === 'repetir') {
+    if (atual) atual.repetir = repetir; // sem nada tocando, vale a partir da próxima trilha (o app manda junto)
+  } else if (acao === 'pausar') {
     if (!player.pause()) throw new Error('Nada tocando.');
   } else if (acao === 'continuar') {
     if (!player.unpause()) throw new Error('Nada pausado.');
@@ -97,18 +102,22 @@ async function executar({ acao, alvo }, msg) {
     }));
     const canal = canalMaisCheio(estados);
     if (!canal) throw new Error('Ninguém num canal de voz. Entre num e toque de novo.');
+    const voz = msg.guild.channels.cache.get(canal);
+    const semVoz = faltam(voz.permissionsFor(msg.guild.members.me), PERMS_VOZ);
+    if (semVoz.length) throw new Error(`No canal de voz "${voz.name}" o bot não tem: ${semVoz.join(', ')}.`);
     const conexao = joinVoiceChannel({
       channelId: canal,
       guildId: msg.guildId,
       adapterCreator: msg.guild.voiceAdapterCreator,
       selfDeaf: true,
     });
+    if (!conexao.listenerCount('error')) conexao.on('error', (e) => console.error('Voz:', e.message));
     conexao.subscribe(player);
     await entersState(conexao, VoiceConnectionStatus.Ready, 20_000).catch(() => {
       conexao.destroy(); // meia conexão atrapalharia a próxima tentativa
       throw new Error('Não consegui entrar no canal de voz. O bot tem as permissões Conectar e Falar?');
     });
-    await tocar(await resolver(alvo));
+    await tocar(await resolver(alvo), repetir);
   }
 }
 
@@ -116,6 +125,9 @@ client.on(Events.MessageCreate, async (msg) => {
   if (msg.webhookId !== webhookId) return; // só o app manda: jogador digitando "parar" não conta
   const cmd = lerComando(msg.content);
   if (!cmd) return;
+  console.log(`→ ${cmd.acao}${cmd.alvo ? ` ${cmd.alvo}` : ''}${cmd.repetir ? ' (repetir)' : ''}`);
+  // ⏳ na hora: a mesa vê que o bot recebeu, mesmo antes de a música começar.
+  const espera = cmd.acao === 'tocar' ? await msg.react('⏳').catch(() => null) : null;
   try {
     await executar(cmd, msg);
     await msg.react('✅').catch(() => {});
@@ -123,17 +135,36 @@ client.on(Events.MessageCreate, async (msg) => {
     console.error(`${cmd.acao}:`, e.message);
     await msg.reply(`⚠️ ${e.message}`).catch(() => {});
   }
+  await espera?.users.remove(client.user.id).catch(() => {});
 });
 
 const PERMISSOES = new PermissionsBitField(['ViewChannel', 'SendMessages', 'ReadMessageHistory', 'AddReactions', 'Connect', 'Speak']);
 
-client.once(Events.ClientReady, (c) => {
-  console.log(`Pronto como ${c.user.tag}. Toque uma trilha no app.`);
-  if (!c.guilds.cache.size) {
-    console.log('\nO bot ainda não está em nenhum servidor. Abra este link e escolha o da mesa:');
+// Ao ligar, confere o que impediria o bot de ouvir o app: sem isso ele fica mudo e ninguém sabe por quê.
+client.once(Events.ClientReady, async (c) => {
+  console.log(`Pronto como ${c.user.tag}.`);
+  const [, id, token] = process.env.WEBHOOK_URL.match(/webhooks\/(\d+)\/([\w-]+)/) ?? [];
+  const hook = await c.fetchWebhook(id, token).catch(() => null);
+  if (!hook) return console.log('\n⚠️ Esse webhook não existe mais. Apague o arquivo .env e ligue de novo com o webhook do app.\n');
+  const guild = c.guilds.cache.get(hook.guildId);
+  if (!guild) {
+    console.log('\n⚠️ O bot não está no servidor do webhook. Abra este link e escolha o servidor da mesa:');
     console.log(`https://discord.com/oauth2/authorize?client_id=${c.user.id}&scope=bot&permissions=${PERMISSOES.bitfield}\n`);
+    return;
   }
+  const canal = guild.channels.cache.get(hook.channelId);
+  const sem = faltam(canal?.permissionsFor(guild.members.me), PERMS_TEXTO);
+  if (sem.length) {
+    console.log(`\n⚠️ No canal #${canal?.name}, onde o app escreve, o bot não tem: ${sem.join(', ')}.`);
+    console.log(`   Sem "Ver canal" ele não recebe nada. No Discord: editar #${canal?.name} → Permissões → adicione "${c.user.username}" e permita isso.\n`);
+    return;
+  }
+  console.log(`Ouvindo #${canal.name}. Entre num canal de voz e toque uma trilha no app.`);
 });
+
+// Um erro solto não derruba o bot no meio da sessão: aparece na janela e ele segue.
+process.on('unhandledRejection', (e) => console.error('Erro:', e?.message ?? e));
+process.on('uncaughtException', (e) => console.error('Erro:', e?.message ?? e));
 
 process.on('SIGINT', () => {
   for (const g of client.guilds.cache.keys()) parar(g);

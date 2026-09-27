@@ -21,6 +21,7 @@ export default function Musica({ state, setState, tocando, setTocando, avisar }:
   const [nome, setNome] = useState('');
   const [link, setLink] = useState('');
   const musicas = state.musicas ?? [];
+  const repetir = state.repetirMusica ?? true;
   const set = (patch: Partial<State>) => setState((s) => ({ ...s, ...patch }));
 
   /** Devolve se o Discord aceitou; o bot marca ✅ na mensagem quando começa a tocar. */
@@ -40,7 +41,7 @@ export default function Musica({ state, setState, tocando, setTocando, avisar }:
   }
 
   const tocar = async (m: Trilha) => {
-    if (await mandar(m.nome, comandoTocar(m.nome, m.link))) setTocando(m.id);
+    if (await mandar(m.nome, comandoTocar(m.nome, m.link, repetir))) setTocando(m.id);
   };
 
   return (
@@ -75,6 +76,17 @@ export default function Musica({ state, setState, tocando, setTocando, avisar }:
               {rotulo}
             </button>
           ))}
+          <button
+            className={repetir ? 'add on' : 'add'}
+            aria-pressed={repetir}
+            onClick={() => {
+              set({ repetirMusica: !repetir });
+              // Vale já pra trilha que está tocando; a próxima leva a escolha junto no comando.
+              if (state.musicWebhookUrl) mandar(repetir ? 'Repetir desligado' : 'Repetir ligado', repetir ? 'repetir não' : 'repetir sim');
+            }}
+          >
+            🔁 Repetir {repetir ? 'ligado' : 'desligado'}
+          </button>
         </div>
       </section>
 
