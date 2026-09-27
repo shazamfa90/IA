@@ -2,29 +2,39 @@ import { execFile, spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import ffmpeg from 'ffmpeg-static';
+import { gunzipSync } from 'node:zlib';
 
-// yt-dlp baixado direto da release (o link fixo não passa pela API do GitHub,
-// que limita downloads). Fica em bot/bin, fora do git.
+// yt-dlp e ffmpeg baixados direto das releases na primeira vez, pro bot/bin (fora do git).
+// Link fixo de release não passa pela API do GitHub, que limita downloads; e não depender
+// do npm install: lá, um download que falha deixa o bot sem ffmpeg e ninguém percebe.
+const WIN = process.platform === 'win32';
 const ARQUIVO =
-  process.platform === 'win32' ? 'yt-dlp.exe'
+  WIN ? 'yt-dlp.exe'
   : process.platform === 'darwin' ? 'yt-dlp_macos'
   : process.arch === 'arm64' ? 'yt-dlp_linux_aarch64'
   : 'yt-dlp_linux';
 const PASTA = fileURLToPath(new URL('./bin/', import.meta.url));
-export const YTDLP = PASTA + (process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
+export const YTDLP = PASTA + (WIN ? 'yt-dlp.exe' : 'yt-dlp');
+export const FFMPEG = PASTA + (WIN ? 'ffmpeg.exe' : 'ffmpeg');
 const EXTRA = process.env.YTDLP_ARGS?.split(' ').filter(Boolean) ?? [];
 
-/** Baixa o yt-dlp na primeira vez; nas outras, atualiza (o YouTube muda e ele acompanha). */
-export async function prepararYtdlp() {
-  if (!existsSync(YTDLP)) {
-    console.log('Baixando o yt-dlp (só na primeira vez)…');
-    const r = await fetch(`https://github.com/yt-dlp/yt-dlp/releases/latest/download/${ARQUIVO}`);
-    if (!r.ok) throw new Error(`Não consegui baixar o yt-dlp (${r.status}).`);
-    await mkdir(PASTA, { recursive: true });
-    await writeFile(YTDLP, Buffer.from(await r.arrayBuffer()), { mode: 0o755 });
-    return;
+async function baixar(nome, url, destino, gz = false) {
+  console.log(`Baixando o ${nome} (só na primeira vez)…`);
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`Não consegui baixar o ${nome} (${r.status}). Confira a internet e ligue de novo.`);
+  const dados = Buffer.from(await r.arrayBuffer());
+  await mkdir(PASTA, { recursive: true });
+  await writeFile(destino, gz ? gunzipSync(dados) : dados, { mode: 0o755 });
+}
+
+/** Baixa o que faltar; o yt-dlp já existente se atualiza (o YouTube muda e ele acompanha). */
+export async function prepararProgramas() {
+  if (!existsSync(FFMPEG)) {
+    // O mesmo build que o pacote ffmpeg-static usa.
+    const url = `https://github.com/eugeneware/ffmpeg-static/releases/download/b6.1.1/ffmpeg-${process.platform}-${process.arch}.gz`;
+    await baixar('ffmpeg', url, FFMPEG, true);
   }
+  if (!existsSync(YTDLP)) return baixar('yt-dlp', `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${ARQUIVO}`, YTDLP);
   await new Promise((ok) => execFile(YTDLP, ['-U'], () => ok())); // sem internet, segue com o que tem
 }
 
@@ -37,7 +47,7 @@ export function fluxo(alvo) {
   const yt = spawn(YTDLP, ['-f', 'bestaudio/best', '--no-playlist', '--playlist-items', '1', '--js-runtimes', 'node', '--no-warnings', '-q', '-o', '-', ...EXTRA, alvo], {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
-  const ff = spawn(ffmpeg, ['-loglevel', 'error', '-i', 'pipe:0', '-vn', '-c:a', 'libopus', '-b:a', '128k', '-f', 'ogg', 'pipe:1'], {
+  const ff = spawn(FFMPEG, ['-loglevel', 'error', '-i', 'pipe:0', '-vn', '-c:a', 'libopus', '-b:a', '128k', '-f', 'ogg', 'pipe:1'], {
     stdio: ['pipe', 'pipe', 'ignore'],
   });
   yt.stdout.pipe(ff.stdin);

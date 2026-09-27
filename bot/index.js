@@ -13,7 +13,7 @@ import {
   joinVoiceChannel,
 } from '@discordjs/voice';
 import { PERMS_TEXTO, PERMS_VOZ, buscaDoSpotify, canalMaisCheio, faltam, idDoWebhook, lerComando, paraYtdlp } from './comando.js';
-import { fluxo, prepararYtdlp } from './audio.js';
+import { fluxo, prepararProgramas } from './audio.js';
 
 // Primeira vez: pergunta no terminal e guarda no .env, sem ninguém precisar editar arquivo.
 // Acrescenta no fim: no .env, a última linha de cada nome é a que vale.
@@ -172,7 +172,7 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-await prepararYtdlp();
+await prepararProgramas();
 await client.login(DISCORD_TOKEN).catch((e) => {
   console.error(
     /intent/i.test(e.message)
