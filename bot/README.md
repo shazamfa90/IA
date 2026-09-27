@@ -67,10 +67,13 @@ assim ele não pergunta token e webhook outra vez.
   Link de playlist ou álbum vira busca pelo nome.
 - **Link direto de áudio:** mp3, ogg etc.
 
-**Playlists** (seção separada no app) tocam a lista inteira em sequência, e **Pular** vai pra
-próxima. Playlist do YouTube: inteira (até 300). Spotify: álbum inteiro, playlist até 30 músicas
-(o que a página pública mostra). Faixa que não toca é pulada. Com 🔁 ligado, a playlist recomeça
-quando acaba; desligado, o bot fica em silêncio no canal.
+**Playlists** ficam numa seção separada no app. Tocar numa playlist mostra as faixas, uma por
+uma: o bot lista e escreve a lista na mensagem, e o app lê de volta pelo mesmo webhook (por isso
+a primeira vez precisa do bot ligado; depois o app guarda). Tocar numa faixa começa a playlist
+dali; ela segue em sequência, **Pular** vai pra próxima, e o app marca qual está tocando.
+YouTube: até 300 faixas. Spotify: álbum inteiro, playlist até 50 (o que a página pública
+mostra). Faixa que não toca é pulada. Com 🔁 ligado, a playlist recomeça quando acaba;
+desligado, o bot fica em silêncio no canal.
 
 ## Problemas
 

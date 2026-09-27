@@ -2,12 +2,13 @@
 
 /**
  * O app escreve "🎵 **Combate**\ntocar 🔁 <https://…>": vale a última linha.
- * "playlist <link>" toca a lista inteira em sequência; "pular" vai pra próxima.
+ * "playlist <link> #5" toca a lista em sequência a partir da faixa 5; "listar <link>" só
+ * escreve as faixas na mensagem, pro app mostrar; "pular" vai pra próxima.
  * 🔁 = repetir quando acabar (a trilha, ou a playlist toda). "repetir sim|não" muda a atual.
  */
 export function lerComando(content) {
   const linha = content.trim().split('\n').at(-1).trim();
-  const m = linha.match(/^(tocar|playlist|pausar|continuar|pular|parar|repetir)(?:\s+(.+))?$/i);
+  const m = linha.match(/^(tocar|playlist|listar|pausar|continuar|pular|parar|repetir)(?:\s+(.+))?$/i);
   if (!m) return null;
   const acao = m[1].toLowerCase();
   let alvo = m[2]?.trim();
@@ -15,8 +16,11 @@ export function lerComando(content) {
   const toca = acao === 'tocar' || acao === 'playlist';
   const repetir = toca && Boolean(alvo?.startsWith('🔁'));
   if (repetir) alvo = alvo.slice(2).trim();
+  let faixa;
+  if (acao === 'playlist') [, alvo, faixa] = alvo?.match(/^(.*?)(?:\s+#(\d+))?$/) ?? [];
   alvo = alvo?.replace(/^<(.+)>$/, '$1'); // <link> só evita a prévia no Discord
-  if (toca) return alvo ? { acao, alvo, repetir } : null;
+  if (acao === 'playlist') return alvo ? { acao, alvo, repetir, faixa: Math.max(1, Number(faixa ?? 1)) } : null;
+  if (acao === 'tocar' || acao === 'listar') return alvo ? { acao, alvo, ...(toca && { repetir }) } : null;
   return { acao, alvo };
 }
 
@@ -56,9 +60,52 @@ export function buscaDoSpotify(html) {
   return titulo ? [titulo, meta(html, 'music:musician_description')].filter(Boolean).join(' ') : null;
 }
 
-/** As faixas de uma playlist ou álbum do Spotify, pela página pública (playlist mostra até 30). */
-export const faixasDoSpotify = (html) =>
-  [...html.matchAll(/<meta name="music:song" content="([^"]+)"/g)].map((m) => m[1]);
+/** A página "embed" do Spotify traz nome e artista de cada faixa num pedido só. */
+export function embedDoSpotify(link) {
+  const m = link.match(/open\.spotify\.com\/(?:[\w-]+\/)?(playlist|album)\/(\w+)/i);
+  return m && `https://open.spotify.com/embed/${m[1].toLowerCase()}/${m[2]}`;
+}
+
+/** As faixas da página embed: { alvo: busca no YouTube, titulo: pra mostrar }. Playlist: até 50. */
+export function faixasDoSpotify(html) {
+  const json = html.match(/<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/s)?.[1];
+  const procura = (o) => {
+    if (!o || typeof o !== 'object') return null;
+    if (Array.isArray(o.trackList)) return o.trackList;
+    for (const v of Object.values(o)) {
+      const achou = procura(v);
+      if (achou) return achou;
+    }
+    return null;
+  };
+  let lista;
+  try {
+    lista = procura(JSON.parse(json ?? 'null')) ?? [];
+  } catch {
+    lista = [];
+  }
+  return lista.map((f) => ({ alvo: `${f.title} ${f.subtitle ?? ''}`.trim(), titulo: f.subtitle ? `${f.title} — ${f.subtitle}` : f.title }));
+}
+
+/**
+ * A lista que o bot escreve na mensagem do app (e que o app lê de volta pelo webhook):
+ * "1. Título" por linha; o rodapé diz qual toca, "▶ 3/12". Cabe o que couber em 3900 caracteres.
+ */
+export function embedDaLista(itens, atual) {
+  const linhas = [];
+  let tamanho = 0;
+  for (const [i, f] of itens.entries()) {
+    const linha = `${i + 1}. ${f.titulo.replace(/\s+/g, ' ').slice(0, 90)}`;
+    if (tamanho + linha.length > 3900) {
+      linhas.push(`… e mais ${itens.length - i}`);
+      break;
+    }
+    linhas.push(linha);
+    tamanho += linha.length + 1;
+  }
+  const rodape = atual == null ? `${itens.length} faixas` : `▶ ${atual + 1}/${itens.length}`;
+  return { description: linhas.join('\n'), footer: { text: rodape } };
+}
 
 /** O que vai pro yt-dlp: link direto, ou a primeira busca do YouTube. */
 export const paraYtdlp = (alvo) => (/^https?:\/\//i.test(alvo) ? alvo : `ytsearch1:${alvo}`);

@@ -121,7 +121,13 @@ export type State = {
 };
 
 /** `link` vai direto no comando play: URL (YouTube, Spotify…) ou termo de busca. */
-export type Musica = { id: string; nome: string; link: string };
+export type Musica = {
+  id: string;
+  nome: string;
+  link: string;
+  /** Playlist: os nomes das faixas, como o bot listou. Guardados pra não pedir de novo. */
+  faixas?: string[];
+};
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
