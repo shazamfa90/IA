@@ -42,11 +42,11 @@ npm run build   # gera dist/
   modificador ao lado (+3), pela regra que o sistema escolher.
 - **Tema por sistema** — um sistema pode trazer aparência própria, e ela assume o app inteiro
   enquanto uma ficha dele está aberta.
-- **Música** (só o mestre) — trilhas salvas (nome + link ou busca) que trocam com um toque. O
-  toque manda `m!play <link> --now` pelo webhook do canal onde está o bot de música (Jockie Music;
-  o `--now` troca na hora em vez de pôr na fila), e copia o mesmo comando, pra colar no Discord se
-  o bot não atender o webhook. Tem Pausar, Continuar e Parar, e o prefixo é configurável. O
-  webhook se cola na própria aba e fica só no aparelho do mestre: não vai pro código nem pro site.
+- **Música** (só o mestre) — trilhas salvas (nome + link ou busca). Um toque copia
+  `m!play <link> --now`; o mestre cola no canal do Jockie Music, estando num canal de voz, e a
+  música troca na hora (`--now` pula a fila). Pausar, Continuar e Parar copiam os comandos
+  deles, e o prefixo é configurável. Não vai por webhook: o Jockie ignora mensagem de webhook e
+  entra no canal de voz de quem pediu, então o comando precisa sair da conta do mestre.
 - **Perfis** — cada pessoa que usa o aparelho tem o seu: fichas separadas e aparência própria
   (6 temas e uma cor de destaque). São locais, sem senha e sem servidor — servem pra dividir um
   tablet na mesa, não pra entrar da sua conta noutro aparelho.
