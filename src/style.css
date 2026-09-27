@@ -54,7 +54,7 @@
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-body { margin: 0; background: var(--padrao, none) var(--bg); background-attachment: fixed; color: var(--ink); font: 16px/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+body { margin: 0; background: var(--padrao, none) var(--bg); background-attachment: fixed; color: var(--ink); font: 1rem/1.5 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
 h1 { font-size: 1.55rem; line-height: 1.2; font-weight: 800; letter-spacing: -.01em; margin: 8px 0 0; }
 h2 { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--dim); margin: 0 0 12px; }
 h2.sub { margin-top: 24px; }
@@ -83,10 +83,15 @@ section { background: var(--bg); border-radius: var(--r); padding: 18px; box-sha
 
 .ico { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
+/* Com sete abas a barra aperta: ícone e texto encolhem antes de cortar. */
+@media (max-width: 520px) {
+  .tab { font-size: .64rem; }
+  .tab .ico { width: 44px; padding: 4px 11px; }
+}
 /* Telas bem estreitas (320–360 px): a barra aperta sem cortar os ícones. */
 @media (max-width: 380px) {
-  .tab { font-size: .62rem; }
-  .tab .ico { width: 42px; padding: 4px 10px; }
+  .tab { font-size: .58rem; }
+  .tab .ico { width: 38px; padding: 4px 8px; }
   main { gap: 14px; }
   section { padding: 14px; }
 }
@@ -344,7 +349,8 @@ html.respiracao body::before {
   animation: deriva var(--vel) linear infinite;
 }
 @keyframes deriva { to { transform: translate3d(var(--dx), var(--dy), 0); } }
-@media (prefers-reduced-motion: reduce) { html.respiracao body::before { animation: none; } } /* quem pediu menos movimento: fundo parado, toque sem efeito (toque.ts) */
+@media (prefers-reduced-motion: reduce) { html.respiracao body::before { animation: none; } }
+html.parado body::before { animation: none; } /* Ajustes → Fundo animado desligado */ /* quem pediu menos movimento: fundo parado, toque sem efeito (toque.ts) */
 
 html.respiracao section, html.respiracao .cap, html.respiracao article.verbete {
   background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 6%, var(--bg)), var(--bg) 45%);
@@ -403,3 +409,35 @@ html.respiracao .tab.on .ico { color: var(--accent); }
 .tq.bate svg { animation: bate .16s ease-in-out infinite alternate; }
 @keyframes bate { to { transform: scaleX(.35); } }
 
+
+/* --- Ajustes --------------------------------------------------------------- */
+.ajuste { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+.ajuste:last-child { border-bottom: 0; }
+.ajuste > span { display: flex; flex-direction: column; min-width: 0; }
+.ajuste small { color: var(--dim); font-size: .8rem; }
+.ajuste.coluna { flex-direction: column; align-items: stretch; }
+/* Interruptor: o trilho afundado, a bolinha saltada; ligado, o trilho enche de cor. */
+.chave { position: relative; flex: none; width: 58px; height: 32px; padding: 0; border: 0; border-radius: 999px; background: var(--bg); box-shadow: var(--fundo); transition: background .2s; }
+.chave::after { content: ''; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: var(--bg); box-shadow: var(--alto-p); transition: transform .2s; }
+.chave[aria-checked=true] { background: var(--accent); box-shadow: inset 2px 2px 5px color-mix(in srgb, var(--accent), black 35%); }
+.chave[aria-checked=true]::after { transform: translateX(26px); background: var(--on-accent); }
+/* Escolha entre poucas opções: uma barra afundada, a escolhida saltada na cor. */
+.opcoes { display: flex; gap: 4px; padding: 5px; border-radius: 16px; box-shadow: var(--fundo); }
+.opcoes button { flex: 1; min-width: 0; min-height: 40px; padding: 8px 6px; border: 0; border-radius: 12px; background: none; color: var(--dim); font-size: .85rem; font-weight: 700; transition: box-shadow .18s, color .15s; }
+.opcoes button.on { background: var(--bg); color: var(--accent-txt); box-shadow: var(--alto-p); }
+
+/* --- Texto do Livro: tópicos, listas e etiquetas ----------------------------- */
+.texto { display: grid; gap: 10px; padding: 2px 8px 16px; line-height: 1.55; }
+.bloco { margin: 0; }
+.bloco > strong { display: block; margin-bottom: 2px; color: var(--accent-txt); font-size: .82rem; letter-spacing: .02em; }
+.bloco.item { position: relative; padding-left: 16px; }
+.bloco.item::before { content: ''; position: absolute; left: 2px; top: .62em; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.bloco.item > strong { display: inline; margin-right: 6px; color: var(--ink); font-size: inherit; }
+.bloco ul { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 3px; }
+.bloco li::marker { color: var(--accent); }
+.pontos { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.pontos > span { padding: 4px 10px; border-radius: 10px; box-shadow: var(--fundo-p); font-size: .86rem; font-variant-numeric: tabular-nums; }
+.nota { display: block; margin-top: 6px; color: var(--dim); font-size: .9rem; }
+.texto .intro { display: block; margin-bottom: 6px; }
+.texto .d { padding: 0 4px; border-radius: 6px; background: var(--tint); color: var(--accent-txt); font-family: ui-monospace, monospace; font-size: .9em; white-space: nowrap; }
+article.verbete .texto { padding: 4px 0 0; }

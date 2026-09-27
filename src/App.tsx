@@ -10,6 +10,8 @@ import Sheet from './Sheet.tsx';
 import Characters from './Characters.tsx';
 import Templates from './Templates.tsx';
 import Musica, { type Tocando } from './Musica.tsx';
+import Ajustes from './Ajustes.tsx';
+import { somDeDados } from './som.ts';
 import { atualizaHashira } from './hashira.ts';
 import {
   DEFAULT_GM_WEBHOOK,
@@ -17,6 +19,9 @@ import {
   NOME_TEMA,
   RESPIRACOES,
   THEMES_BASE,
+  FONTES,
+  GIROS,
+  ajustesDe,
   addFicha,
   decodeFicha,
   decodeTemplate,
@@ -48,6 +53,7 @@ const TABS = [
   ['sistemas', 'Sistemas'],
   ['musica', 'Música'],
   ['livro', 'Livro'],
+  ['ajustes', 'Ajustes'],
   ['sessao', 'Perfil'],
 ] as const;
 
@@ -67,18 +73,16 @@ type Result = { id: number; label: string; notation: string; text?: string; part
 let seq = 0;
 const result = (r: Omit<Result, 'id'>): Result => ({ ...r, id: ++seq });
 
-/** Quem pediu menos movimento na tela não espera pelo suspense. */
-const DURACAO_GIRO = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 700;
-
-function Girando({ label }: { label: string }) {
+function Girando({ label, ms }: { label: string; ms: number }) {
   const [face, setFace] = useState(1);
   useEffect(() => {
-    const t = setInterval(() => setFace(1 + Math.floor(Math.random() * 20)), 70);
+    // Giro mais lento, faces trocando mais devagar: o dado "cansa" junto com a animação.
+    const t = setInterval(() => setFace(1 + Math.floor(Math.random() * 20)), Math.max(70, ms / 18));
     return () => clearInterval(t);
-  }, []);
+  }, [ms]);
   return (
     <div className="girando" role="status" aria-label={`Rolando ${label}`}>
-      <div className="dado">{face}</div>
+      <div className="dado" style={{ animationDuration: `${ms}ms` }}>{face}</div>
       <strong>{label}</strong>
     </div>
   );
@@ -89,6 +93,10 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('ficha');
   const [last, setLast] = useState<Result | null>(null);
   const [girando, setGirando] = useState<string | null>(null);
+  const aj = ajustesDe(state);
+  // Quem pediu menos movimento ao aparelho e nunca mexeu no giro: sem suspense.
+  const semMovimento = matchMedia('(prefers-reduced-motion: reduce)').matches && !state.ajustes?.giro;
+  const duracaoGiro = semMovimento ? 0 : GIROS[aj.giro];
   const [tocando, setTocando] = useState<Tocando | null>(null);
 
   useEffect(() => save(state), [state]);
@@ -153,6 +161,22 @@ export default function App() {
     document.querySelector('meta[name=theme-color]')?.setAttribute('content', getComputedStyle(html).getPropertyValue('--bg'));
   }, [temaDoSistema, profile.theme, profile.accent]);
 
+  // Ajustes que valem pra página inteira: tamanho do texto (tudo é medido em rem),
+  // efeito de toque (toque.ts lê o data-) e fundo parado.
+  useEffect(() => {
+    const html = document.documentElement;
+    html.style.fontSize = `${FONTES[aj.fonte]}px`;
+    html.dataset.toques = aj.toques ? 'sim' : 'nao';
+    html.classList.toggle('parado', !aj.fundoAnimado);
+  }, [aj.fonte, aj.toques, aj.fundoAnimado]);
+
+  // Resultado que some sozinho, se pedido. Erro fica: precisa ser lido.
+  useEffect(() => {
+    if (!aj.sumir || !last || last.error) return;
+    const t = setTimeout(() => setLast(null), aj.sumirSeg * 1000);
+    return () => clearTimeout(t);
+  }, [last, aj.sumir, aj.sumirSeg]);
+
 
   // Edita a ficha que está aberta, não `currentId`: ele pode estar defasado
   // e apontar pra ficha de outro perfil.
@@ -195,7 +219,8 @@ export default function App() {
   );
   const aba = abas.some(([id]) => id === tab) ? tab : 'ficha';
 
-  async function doRoll(label: string, notation: string, assign?: string) {
+  /** `teste`: só a animação e o resultado, sem mexer na ficha nem postar no Discord. */
+  async function doRoll(label: string, notation: string, assign?: string, teste = false) {
     // A mesa vê a notação já resolvida (d20+4), não a da ficha (d20+@forca).
     // withMods acrescenta @id.mod: a rolagem soma o modificador, não o atributo.
     const values = character && template ? withMods(template, character.values) : {};
@@ -211,13 +236,16 @@ export default function App() {
     // O dado gira antes de revelar. O resultado já está sorteado: a animação
     // é só o tempo de suspense, não faz parte do sorteio.
     setLast(null);
-    setGirando(label);
-    if (DURACAO_GIRO) await new Promise((r) => setTimeout(r, DURACAO_GIRO));
-    setGirando(null);
+    if (aj.som) somDeDados(Math.max(duracaoGiro, 400));
+    if (duracaoGiro) {
+      setGirando(label);
+      await new Promise((r) => setTimeout(r, duracaoGiro));
+      setGirando(null);
+    }
 
     const parts = rolls.map((r) => ({ detail: r.detail.replace(/~~([^~]+)~~/g, '$1̶'), total: r.total }));
     setLast(result({ label, notation: expr, parts }));
-    navigator.vibrate?.(18); // no celular, o dado "cai" na mão
+    if (aj.vibrar) navigator.vibrate?.(18); // no celular, o dado "cai" na mão
 
     // Rolagem de atributos: o sistema diz quais campos recebem os totais.
     const ids = parseAssign(assign);
@@ -229,7 +257,7 @@ export default function App() {
       if (pode) patchCharacter({ values: applyRoll(character.values, ids, rolls.map((r) => r.total)) });
     }
 
-    if (!state.webhookUrl || !character) return;
+    if (teste || !state.webhookUrl || !character) return;
     try {
       await postRoll(state.webhookUrl, character, label, expr, rolls);
     } catch (e) {
@@ -338,6 +366,14 @@ export default function App() {
           </Suspense>
         )}
 
+        {aba === 'ajustes' && (
+          <Ajustes
+            state={state}
+            setState={setState}
+            testarGiro={() => doRoll('Teste do giro', 'd20', undefined, true)}
+          />
+        )}
+
         {aba === 'sessao' && (
           <Sessao
             state={state}
@@ -349,7 +385,7 @@ export default function App() {
           />
         )}
 
-        {girando && <Girando label={girando} />}
+        {girando && <Girando label={girando} ms={duracaoGiro} />}
 
         {last && (
           // key: remonta a cada rolagem pra animação tocar de novo.
