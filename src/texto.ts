@@ -4,6 +4,7 @@
  *   "• Nome — resto"         → item de lista (seguidos viram uma lista só)
  *   "a · b · c"              → etiquetas lado a lado (tabelas curtas: CR, XP, patentes)
  *   "Rótulo: a, b (x), c, d" → lista com marcadores, quando são vários itens curtos
+ * As explicações do ⓘ vêm num parágrafo só: `frases` quebra uma frase por linha antes.
  * Rolagens como 1d10 ganham destaque na hora de mostrar (Livro.tsx).
  */
 
@@ -28,7 +29,36 @@ function porVirgula(s: string): string[] {
   return itens.filter(Boolean);
 }
 
-function corpo(s: string, temRotulo: boolean): Corpo {
+/** Uma frase por linha: corta depois de ". " seguido de maiúscula ou número, fora de parênteses. */
+export function frases(texto: string): string {
+  let fundo = 0;
+  let out = '';
+  for (let i = 0; i < texto.length; i++) {
+    const ch = texto[i];
+    if (ch === '(') fundo++;
+    if (ch === ')') fundo = Math.max(0, fundo - 1);
+    out += ch;
+    if (fundo === 0 && /[.!?]/.test(ch) && texto[i + 1] === ' ' && /[\p{Lu}\d+−-]/u.test(texto[i + 2] ?? '')) {
+      out += '\n';
+      i++;
+    }
+  }
+  return out;
+}
+
+/** "Oiran ou Sozo" no fim de uma lista são dois itens. */
+function ultimoPar(itens: string[]): string[] {
+  const fim = itens[itens.length - 1];
+  const m = fim.match(/^([^()]+?|.*?\)) (?:e|ou) (.+)$/);
+  return m && m[1].length <= 60 && m[2].length <= 60 ? [...itens.slice(0, -1), m[1], m[2]] : itens;
+}
+
+// "d20 + For" continua minúsculo: é notação de dado, não começo de frase.
+const maiuscula = (x: string) => (/^\d*d(\d|%)/.test(x) ? x : x[0].toUpperCase() + x.slice(1));
+const equilibrado = (x: string) => x.split('(').length === x.split(')').length;
+
+/** `soltaEmLista`: sem rótulo, vira lista só quando todo item é "Nome (detalhe)", como as raças. */
+function corpo(s: string, temRotulo: boolean, soltaEmLista = false): Corpo {
   const pontos = s.split(' · ');
   if (pontos.length >= 3) {
     // A última etiqueta pode trazer uma frase depois: "… · P+3 20. Desvantagem em Furtividade."
@@ -42,15 +72,22 @@ function corpo(s: string, temRotulo: boolean): Corpo {
     if (intro) pontos[0] = pontos[0].slice(antes + 2);
     return { tipo: 'pontos', intro, itens: [...pontos, fim].map((x) => x.trim()), nota };
   }
-  if (temRotulo && /\.$/.test(s) && !/\.\s/.test(s.slice(0, -1))) {
+  if ((temRotulo || soltaEmLista) && /\.$/.test(s) && !/\.\s/.test(s.slice(0, -1))) {
     // Uma frase só, feita de vários itens curtos separados por vírgula: vira lista.
-    const itens = porVirgula(s.slice(0, -1)).map((x) => x.replace(/^(e|ou)\s+/, ''));
-    if (itens.length >= 4 && itens.every((x) => x.length <= 70)) return { tipo: 'lista', itens: itens.map((x) => x[0].toUpperCase() + x.slice(1)) };
+    const itens = ultimoPar(porVirgula(s.slice(0, -1)).map((x) => x.replace(/^(e|ou)\s+/, '')));
+    const soNumero = itens.some((x) => !/\p{L}/u.test(x)); // "4, 6, 8, 10 ou 12" lê melhor corrido
+    const nomeDetalhe = itens.every((x) => /^[^()]+ \(.+\)$/.test(x));
+    if (itens.length >= 4 && !soNumero && itens.every((x) => x.length <= 70) && (temRotulo || nomeDetalhe)) return { tipo: 'lista', itens: itens.map(maiuscula) };
   }
   return { tipo: 'texto', texto: s };
 }
 
-export function blocos(texto: string): Bloco[] {
+/**
+ * `explicacao`: o texto do ⓘ, mais curto e direto. Lá o rótulo só vale se for curto (até 5 palavras,
+ * sem vírgula: "Sem uniforme", não "Aqui o atributo já é o modificador") e uma frase sem rótulo
+ * vira lista quando todo item é "Nome (detalhe)".
+ */
+export function blocos(texto: string, explicacao = false): Bloco[] {
   return texto
     .split('\n')
     .map((l) => l.trim())
@@ -64,7 +101,8 @@ export function blocos(texto: string): Bloco[] {
       }
       // Rótulo curto antes de dois-pontos; frase longa com ":" no meio fica como texto.
       const m = linha.match(/^([^:]{1,60}):\s+(.+)$/);
-      if (m && !/[.!?]\s/.test(m[1])) return { tipo: 'topico', rotulo: m[1], corpo: corpo(m[2][0].toUpperCase() + m[2].slice(1), true) };
-      return { tipo: 'p', corpo: corpo(linha, false) };
+      const rotuloBom = m && !/[.!?]\s/.test(m[1]) && equilibrado(m[1]) && (!explicacao || (!m[1].includes(',') && m[1].split(' ').length <= 5));
+      if (m && rotuloBom) return { tipo: 'topico', rotulo: m[1], corpo: corpo(maiuscula(m[2]), true) };
+      return { tipo: 'p', corpo: corpo(linha, false, explicacao) };
     });
 }

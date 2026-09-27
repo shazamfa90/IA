@@ -32,10 +32,13 @@ npm run build   # gera dist/
   sistema, a ficha usa ele em vez de trazer outro igual. No mesmo aparelho, o ⇄ (aparece quando há
   mais de um perfil) passa a ficha pra outro perfil sem copiar.
 - **Rolagens** — botões definidos no sistema, mais um campo de rolagem avulsa pra qualquer
-  notação na hora. O dado gira na tela por um instante e some mostrando o resultado.
+  notação na hora. O dado gira na tela, para mostrando o resultado de verdade (todos, quando são
+  vários, como nos atributos) e só então aparece o cartão.
 - **Explicações (ⓘ)** — campo ou rolagem com explicação ganha um botão ⓘ ao lado. Tocar abre o
   porquê daquilo; numa rolagem, abre também a conta com os números da ficha (`d20 + Destreza (+3) +
   Bônus de proficiência (2)`). Toda rolagem tem o ⓘ; o texto de cada um se escreve no editor.
+  O texto aparece arrumado sozinho: uma frase por linha, "Rótulo: resto" com o rótulo em negrito,
+  nomes curtos (Água, Besta, Lua…) como etiquetas e itens com detalhe em lista.
 - **Rolar atributos** — no editor, você marca numa lista quais campos a rolagem preenche, e em
   que ordem. O app preenche a ficha sozinho; se os campos já tiverem valor, pergunta antes.
 - **Atributo e modificador** — um campo do tipo *Atributo* guarda o atributo (16) e mostra o

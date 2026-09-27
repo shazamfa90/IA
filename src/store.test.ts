@@ -581,3 +581,17 @@ test('livro: etiqueta com frase depois vira etiqueta + nota; todo verbete tem fo
   const { LIVRO } = await import('./livro.ts');
   for (const c of LIVRO) for (const v of c.verbetes) assert.ok(blocos(v.texto).length > 0, v.nome);
 });
+
+test('ⓘ: uma frase por linha, rótulo curto, raças em lista, d20 minúsculo', async () => {
+  const { blocos, frases } = await import('./texto.ts');
+  const b = blocos(frases('A classe. Respirações: Água, Besta, Chamas, Lua (subclasses: Flor, Som). Demônios podem ter um Kekkijutsu: Especial, Gen, Kamakiri, Oiran ou Sozo.'), true);
+  assert.deepEqual(b.map((x) => x.rotulo), [undefined, 'Respirações', 'Demônios podem ter um Kekkijutsu']);
+  assert.deepEqual(b[2].corpo, { tipo: 'lista', itens: ['Especial', 'Gen', 'Kamakiri', 'Oiran', 'Sozo'] }, '"Oiran ou Sozo" são dois');
+  const [raca] = blocos('Humano (12 PV), Especial (8 PV), Marechi (10 PV), Tsuyoi (14 PV, +2 For e Des) ou Demônio (15 PV).', true);
+  assert.deepEqual(raca.corpo, { tipo: 'lista', itens: ['Humano (12 PV)', 'Especial (8 PV)', 'Marechi (10 PV)', 'Tsuyoi (14 PV, +2 For e Des)', 'Demônio (15 PV)'] });
+  assert.equal(blocos('Anote nome, alcance, dano e evolução.', true)[0].corpo.tipo, 'texto', 'frase comum sem rótulo fica corrida');
+  assert.equal(blocos('Aqui o atributo já é o modificador: soma direto no d20.', true)[0].tipo, 'p', 'rótulo longo não vale no ⓘ');
+  assert.equal(blocos('Algumas classes têm conta própria (Pedra: 18 fixa).')[0].tipo, 'p', 'dois-pontos dentro de parênteses');
+  assert.deepEqual(blocos('Teste: d20 + For.')[0].corpo, { tipo: 'texto', texto: 'd20 + For.' });
+  assert.equal(blocos('O tipo de dado: 4, 6, 8, 10 ou 12.')[0].corpo.tipo, 'texto', 'só números lê melhor corrido');
+});

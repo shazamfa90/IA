@@ -73,16 +73,26 @@ type Result = { id: number; label: string; notation: string; text?: string; part
 let seq = 0;
 const result = (r: Omit<Result, 'id'>): Result => ({ ...r, id: ++seq });
 
-function Girando({ label, ms }: { label: string; ms: number }) {
+/**
+ * O dado girando. Troca de face até ~70% do tempo e então para no resultado de verdade
+ * (`final`, já sorteado), que fica à mostra um instante antes do cartão aparecer.
+ */
+function Girando({ label, ms, final }: { label: string; ms: number; final: number[] }) {
   const [face, setFace] = useState(1);
+  const [pousou, setPousou] = useState(false);
+  const teto = Math.max(20, ...final);
   useEffect(() => {
     // Giro mais lento, faces trocando mais devagar: o dado "cansa" junto com a animação.
-    const t = setInterval(() => setFace(1 + Math.floor(Math.random() * 20)), Math.max(70, ms / 18));
-    return () => clearInterval(t);
-  }, [ms]);
+    const t = setInterval(() => setFace(1 + Math.floor(Math.random() * teto)), Math.max(70, ms / 18));
+    const p = setTimeout(() => (clearInterval(t), setPousou(true)), ms * 0.7);
+    return () => (clearInterval(t), clearTimeout(p));
+  }, [ms, teto]);
+  // Várias rolagens de uma vez (atributos): o dado mostra todas, menores.
   return (
-    <div className="girando" role="status" aria-label={`Rolando ${label}`}>
-      <div className="dado" style={{ animationDuration: `${ms}ms` }}>{face}</div>
+    <div className="girando" role="status" aria-label={pousou ? `${label}: ${final.join(', ')}` : `Rolando ${label}`}>
+      <div className={`dado${pousou ? ' pousou' : ''}${pousou && final.length > 1 ? ' varios' : ''}`} style={{ animationDuration: `${ms}ms` }}>
+        {pousou ? final.join(' ') : face}
+      </div>
       <strong>{label}</strong>
     </div>
   );
@@ -92,7 +102,7 @@ export default function App() {
   const [state, setState] = useState<State>(carregar);
   const [tab, setTab] = useState<Tab>('ficha');
   const [last, setLast] = useState<Result | null>(null);
-  const [girando, setGirando] = useState<string | null>(null);
+  const [girando, setGirando] = useState<{ label: string; final: number[] } | null>(null);
   const aj = ajustesDe(state);
   // Quem pediu menos movimento ao aparelho e nunca mexeu no giro: sem suspense.
   const semMovimento = matchMedia('(prefers-reduced-motion: reduce)').matches && !state.ajustes?.giro;
@@ -238,7 +248,7 @@ export default function App() {
     setLast(null);
     if (aj.som) somDeDados(Math.max(duracaoGiro, 400));
     if (duracaoGiro) {
-      setGirando(label);
+      setGirando({ label, final: rolls.map((r) => r.total) });
       await new Promise((r) => setTimeout(r, duracaoGiro));
       setGirando(null);
     }
@@ -385,7 +395,7 @@ export default function App() {
           />
         )}
 
-        {girando && <Girando label={girando} ms={duracaoGiro} />}
+        {girando && <Girando {...girando} ms={duracaoGiro} />}
 
         {last && (
           // key: remonta a cada rolagem pra animação tocar de novo.
