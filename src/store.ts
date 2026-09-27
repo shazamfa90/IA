@@ -111,7 +111,14 @@ export type State = {
   webhookUrl: string;
   /** Canal só do mestre, onde as fichas vivem. Vazio = recurso desligado. */
   gmWebhookUrl: string;
+  /** Aba Música, só do mestre: trilhas salvas e o canal onde o bot de música lê comandos. */
+  musicas?: Musica[];
+  musicWebhookUrl?: string;
+  prefixoMusica?: string;
 };
+
+/** `link` vai direto no comando play: URL (YouTube, Spotify…) ou termo de busca. */
+export type Musica = { id: string; nome: string; link: string };
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
 

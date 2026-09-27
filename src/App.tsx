@@ -9,6 +9,7 @@ import Icone from './Icone.tsx';
 import Sheet from './Sheet.tsx';
 import Characters from './Characters.tsx';
 import Templates from './Templates.tsx';
+import Musica from './Musica.tsx';
 import { atualizaHashira } from './hashira.ts';
 import {
   DEFAULT_GM_WEBHOOK,
@@ -37,6 +38,7 @@ const TABS = [
   ['ficha', 'Ficha'],
   ['personagens', 'Personagens'],
   ['sistemas', 'Sistemas'],
+  ['musica', 'Música'],
   ['livro', 'Livro'],
   ['sessao', 'Perfil'],
 ] as const;
@@ -79,6 +81,7 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('ficha');
   const [last, setLast] = useState<Result | null>(null);
   const [girando, setGirando] = useState<string | null>(null);
+  const [tocando, setTocando] = useState<string | null>(null);
 
   useEffect(() => save(state), [state]);
 
@@ -173,10 +176,12 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [state.gmWebhookUrl, character, template]);
 
-  // O player não edita sistemas: recebe pelo link do mestre, em Personagens.
+  // Sistemas e Música são do mestre: o player recebe sistemas pelo link, em Personagens.
   // O Livro só aparece para quem tem um sistema Hashira.
   const hashira = state.templates.some((t) => t.livro === 'hashira');
-  const abas = TABS.filter(([id]) => (id !== 'sistemas' || state.role === 'mestre') && (id !== 'livro' || hashira));
+  const abas = TABS.filter(
+    ([id]) => (!['sistemas', 'musica'].includes(id) || state.role === 'mestre') && (id !== 'livro' || hashira),
+  );
   const aba = abas.some(([id]) => id === tab) ? tab : 'ficha';
 
   async function doRoll(label: string, notation: string, assign?: string) {
@@ -302,6 +307,16 @@ export default function App() {
                 };
               })
             }
+          />
+        )}
+
+        {aba === 'musica' && (
+          <Musica
+            state={state}
+            setState={setState}
+            tocando={tocando}
+            setTocando={setTocando}
+            avisar={(label, notation, text, error) => setLast(result({ label, notation, text, error }))}
           />
         )}
 
