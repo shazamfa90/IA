@@ -2,19 +2,21 @@
 
 /**
  * O app escreve "🎵 **Combate**\ntocar 🔁 <https://…>": vale a última linha.
- * 🔁 depois de "tocar" = repetir a trilha quando acabar. "repetir sim|não" muda a que está tocando.
+ * "playlist <link>" toca a lista inteira em sequência; "pular" vai pra próxima.
+ * 🔁 = repetir quando acabar (a trilha, ou a playlist toda). "repetir sim|não" muda a atual.
  */
 export function lerComando(content) {
   const linha = content.trim().split('\n').at(-1).trim();
-  const m = linha.match(/^(tocar|pausar|continuar|parar|repetir)(?:\s+(.+))?$/i);
+  const m = linha.match(/^(tocar|playlist|pausar|continuar|pular|parar|repetir)(?:\s+(.+))?$/i);
   if (!m) return null;
   const acao = m[1].toLowerCase();
   let alvo = m[2]?.trim();
   if (acao === 'repetir') return /^(sim|não|nao)$/i.test(alvo ?? '') ? { acao, repetir: /^sim$/i.test(alvo) } : null;
-  const repetir = acao === 'tocar' && alvo?.startsWith('🔁');
+  const toca = acao === 'tocar' || acao === 'playlist';
+  const repetir = toca && Boolean(alvo?.startsWith('🔁'));
   if (repetir) alvo = alvo.slice(2).trim();
   alvo = alvo?.replace(/^<(.+)>$/, '$1'); // <link> só evita a prévia no Discord
-  if (acao === 'tocar') return alvo ? { acao, alvo, repetir } : null;
+  if (toca) return alvo ? { acao, alvo, repetir } : null;
   return { acao, alvo };
 }
 
@@ -53,6 +55,10 @@ export function buscaDoSpotify(html) {
   const titulo = meta(html, 'og:title');
   return titulo ? [titulo, meta(html, 'music:musician_description')].filter(Boolean).join(' ') : null;
 }
+
+/** As faixas de uma playlist ou álbum do Spotify, pela página pública (playlist mostra até 30). */
+export const faixasDoSpotify = (html) =>
+  [...html.matchAll(/<meta name="music:song" content="([^"]+)"/g)].map((m) => m[1]);
 
 /** O que vai pro yt-dlp: link direto, ou a primeira busca do YouTube. */
 export const paraYtdlp = (alvo) => (/^https?:\/\//i.test(alvo) ? alvo : `ytsearch1:${alvo}`);

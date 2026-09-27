@@ -476,5 +476,9 @@ test('comando de tocar: a mesa vê o nome, o bot lê o link', () => {
   assert.deepEqual(lerComando(c), { acao: 'tocar', alvo: 'https://youtu.be/abc', repetir: false });
   assert.deepEqual(lerComando(comandoTocar('Taverna', 'taverna medieval', true)), { acao: 'tocar', alvo: 'taverna medieval', repetir: true });
   assert.deepEqual(lerComando('repetir não'), { acao: 'repetir', repetir: false });
+  const pl = comandoTocar('Batalhas', 'https://youtube.com/playlist?list=PL1', true, true);
+  assert.equal(pl, '📀 **Batalhas**\nplaylist 🔁 <https://youtube.com/playlist?list=PL1>');
+  assert.deepEqual(lerComando(pl), { acao: 'playlist', alvo: 'https://youtube.com/playlist?list=PL1', repetir: true });
+  assert.equal(lerComando('pular')?.acao, 'pular');
   for (const b of ['Pausar', 'Continuar', 'Parar']) assert.equal(lerComando(b.toLowerCase())?.acao, b.toLowerCase());
 });

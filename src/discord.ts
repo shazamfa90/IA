@@ -35,8 +35,8 @@ async function post(webhookUrl: string, body: { username: string; avatar_url?: s
 
 /**
  * O que o bot da mesa (pasta bot/) entende: ele lê a última linha. A primeira
- * é pra mesa ver o que começou a tocar. 🔁 = repetir quando acabar. Link entre
- * <> não abre prévia no canal.
+ * é pra mesa ver o que começou a tocar. "playlist" toca a lista inteira em
+ * sequência. 🔁 = repetir quando acabar. Link entre <> não abre prévia no canal.
  */
-export const comandoTocar = (nome: string, link: string, repetir: boolean) =>
-  `🎵 **${nome}**\ntocar ${repetir ? '🔁 ' : ''}${/^https?:\/\//i.test(link) ? `<${link}>` : link}`;
+export const comandoTocar = (nome: string, link: string, repetir: boolean, playlist = false) =>
+  `${playlist ? '📀' : '🎵'} **${nome}**\n${playlist ? 'playlist' : 'tocar'} ${repetir ? '🔁 ' : ''}${/^https?:\/\//i.test(link) ? `<${link}>` : link}`;

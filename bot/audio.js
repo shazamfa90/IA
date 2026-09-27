@@ -38,6 +38,22 @@ export async function prepararProgramas() {
   await new Promise((ok) => execFile(YTDLP, ['-U'], () => ok())); // sem internet, segue com o que tem
 }
 
+/** Os links das faixas de uma playlist (YouTube e o que mais o yt-dlp listar), sem baixar nada. */
+export function listarPlaylist(alvo) {
+  return new Promise((ok, falha) =>
+    execFile(
+      YTDLP,
+      ['--flat-playlist', '--print', 'url', '--playlist-end', '300', '--js-runtimes', 'node', '--no-warnings', ...EXTRA, alvo],
+      { maxBuffer: 4 << 20 },
+      (e, stdout, stderr) => {
+        const itens = stdout.split('\n').map((l) => l.trim()).filter(Boolean);
+        if (itens.length) ok(itens);
+        else falha(new Error(stderr.trim().split('\n').at(-1)?.replace(/^ERROR:\s*/, '') || e?.message || 'Playlist vazia.'));
+      },
+    ),
+  );
+}
+
 /**
  * yt-dlp → ffmpeg → Ogg/Opus, o formato que o Discord toca sem recodificar.
  * `falhou` rejeita se o yt-dlp não achar ou não puder baixar o áudio.
