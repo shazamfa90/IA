@@ -42,7 +42,18 @@ export function explicar(notation: string, t: Template, values: Character['value
     .map((termo) => {
       const m = termo.match(/^@([\w-]+?)(\.mod|\.valor)?$/);
       const f = m && campos.get(m[1]);
-      if (!m || !f) return termo === '+' || termo === '-' ? ` ${termo} ` : termo;
+      if (termo === '+' || termo === '-') return ` ${termo} `;
+      if (!m || !f) {
+        // Campo colado em dado ("@{forca}d10>=6"): o número entra no lugar e o nome vai junto.
+        const nomes: string[] = [];
+        const conta = termo.replace(/@\{([\w-]+)\}/g, (_, id) => {
+          const c = campos.get(id);
+          const n = String(values[id] ?? '') || '0';
+          if (c) nomes.push(`${c.label} ${n}`);
+          return n;
+        });
+        return nomes.length ? `${conta} (${nomes.join(', ')})` : conta;
+      }
       if (f.type === 'attr' && m[2] !== '.valor') return `${f.label} (${formatMod(Number(v[f.id]))})`;
       return `${f.label} (${String(values[f.id] ?? '') || 0})`;
     })
@@ -156,7 +167,8 @@ export function slug(label: string, taken: string[] = []): string {
 export const newProfile = (name = 'Jogador'): Profile => ({
   id: uid(),
   name,
-  theme: 'escuro',
+  // Primeiro acesso segue o aparelho: celular no modo claro abre no tema claro.
+  theme: globalThis.matchMedia?.('(prefers-color-scheme: light)').matches ? 'claro' : 'escuro',
   accent: '#b08cff',
 });
 

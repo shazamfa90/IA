@@ -496,3 +496,34 @@ test('a lista que o bot escreve na mensagem é a que o app lê', () => {
   assert.deepEqual(lidas.slice(0, 2), ['Faixa 1', 'Faixa 2']);
   assert.ok(!lidas.some((f) => f.startsWith('…')), '"e mais N" não vira faixa');
 });
+
+// --- sistemas prontos de outros ramos --------------------------------------
+
+test('cada sistema pronto: campos únicos, rolagens válidas que rolam com a ficha preenchida', async () => {
+  const { PRONTOS } = await import('./sistemas.ts');
+  const { roll } = await import('./dice.ts');
+  assert.ok(PRONTOS.length >= 10, 'vários ramos');
+  for (const p of PRONTOS) {
+    const t = p.criar();
+    assert.equal(t.name.length > 0, true);
+    const campos = t.sections.flatMap((s) => s.fields);
+    const ids = campos.map((c) => c.id);
+    assert.equal(new Set(ids).size, ids.length, `${t.name}: id repetido`);
+    // Valores típicos: atributo 12, número 2 (paradas, bônus, tipo de dado vira d2… usamos 6 pra dado).
+    const valores = Object.fromEntries(campos.map((c) => [c.id, c.type === 'attr' ? '12' : c.type === 'number' ? '6' : '']));
+    for (const r of t.rolls) {
+      for (const [, a, b] of r.notation.matchAll(/@\{([\w]+)\}|@([\w]+)/g)) {
+        assert.ok(ids.includes(a ?? b), `${t.name} › ${r.label}: @${a ?? b} não existe`);
+      }
+      assert.deepEqual(unknownTargets(r.assign, t), [], `${t.name} › ${r.label}: destino inexistente`);
+      const res = roll(r.notation, withMods(t, valores));
+      assert.ok(res.every((x) => Number.isFinite(x.total)), `${t.name} › ${r.label}: ${r.notation}`);
+    }
+    assert.notEqual(p.criar().id, t.id, 'cada adição é uma cópia nova');
+  }
+});
+
+test('explicar: campo colado no dado mostra o nome junto', () => {
+  const t: Template = { id: 'v', name: 'V', sections: [{ id: 's', title: 'A', fields: [{ id: 'forca', label: 'Força', type: 'number' }, { id: 'briga', label: 'Briga', type: 'number' }] }], rolls: [] };
+  assert.equal(explicar('@{forca}d10>=6+@{briga}d10>=6', t, { forca: '3', briga: '2' }), '3d10>=6 (Força 3) + 2d10>=6 (Briga 2)');
+});

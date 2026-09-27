@@ -215,8 +215,9 @@ export default function App() {
     if (DURACAO_GIRO) await new Promise((r) => setTimeout(r, DURACAO_GIRO));
     setGirando(null);
 
-    const parts = rolls.map((r) => ({ detail: r.detail.replace(/~~(\d+)~~/g, '$1̶'), total: r.total }));
+    const parts = rolls.map((r) => ({ detail: r.detail.replace(/~~([^~]+)~~/g, '$1̶'), total: r.total }));
     setLast(result({ label, notation: expr, parts }));
+    navigator.vibrate?.(18); // no celular, o dado "cai" na mão
 
     // Rolagem de atributos: o sistema diz quais campos recebem os totais.
     const ids = parseAssign(assign);

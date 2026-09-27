@@ -71,3 +71,73 @@ test('modificador negativo entra como subtração', () => {
     assert.ok(t >= -1 && t <= 18, `total ${t}`);
   }
 });
+
+// --- outros ramos de RPG ------------------------------------------------------
+
+test('d% é d100 (Call of Cthulhu)', () => {
+  for (let i = 0; i < 300; i++) assert.ok(range(rollOnce('d%').total, 1, 100));
+});
+
+test('4dF: cada dado −1, 0 ou +1 (Fate)', () => {
+  const vistos = new Set<number>();
+  for (let i = 0; i < 300; i++) {
+    const r = rollOnce('4dF+2');
+    assert.ok(range(r.total, -2, 6), `total ${r.total}`);
+    assert.match(r.detail, /^\[[+0−](, [+0−]){3}\] \+ 2$/);
+    vistos.add(r.total);
+  }
+  assert.ok(vistos.size > 4, 'sai de tudo um pouco');
+});
+
+test('d6! explode: tirou 6, rola de novo e soma', () => {
+  let explodiu = false;
+  for (let i = 0; i < 500; i++) {
+    const r = rollOnce('d6!');
+    const dados = r.detail.slice(1, -1).split(', ').map(Number);
+    assert.equal(r.total, dados.reduce((a, b) => a + b, 0));
+    // todo dado antes do último é 6; o último não é
+    dados.slice(0, -1).forEach((v) => assert.equal(v, 6));
+    assert.notEqual(dados.at(-1), 6);
+    if (dados.length > 1) explodiu = true;
+  }
+  assert.ok(explodiu, 'em 500 rolagens algum 6 aparece');
+});
+
+test('d2! tem teto: não roda para sempre', () => {
+  for (let i = 0; i < 50; i++) assert.ok(rollOnce('d2!').detail.split(', ').length <= 101);
+});
+
+test('5d10>=6 conta sucessos (Vampiro, Storyteller)', () => {
+  for (let i = 0; i < 300; i++) {
+    const r = rollOnce('5d10>=6');
+    const dados = [...r.detail.matchAll(/(\d+)(✓?)/g)].slice(0, 5);
+    const sucessos = dados.filter(([, v]) => Number(v) >= 6).length;
+    assert.equal(r.total, sucessos, r.detail);
+    dados.forEach(([, v, marca]) => assert.equal(Boolean(marca), Number(v) >= 6));
+    assert.match(r.detail, /\d+ sucessos?$/);
+  }
+});
+
+test('sucessos com modificador e alvo vindo da ficha', () => {
+  for (let i = 0; i < 100; i++) assert.ok(range(roll('3d6>=@alvo+1', { alvo: 5 })[0].total, 1, 4));
+  for (let i = 0; i < 100; i++) assert.ok(range(rollOnce('6d6<=2').total, 0, 6));
+});
+
+test('explosão com sucessos (Shadowrun, Year Zero)', () => {
+  for (let i = 0; i < 100; i++) assert.ok(rollOnce('4d6!>=5').total >= 0);
+});
+
+test('dado Fate não explode', () => {
+  assert.throws(() => rollOnce('4dF!'), /Fate/);
+});
+
+test('@{campo} colado no dado: parada vinda da ficha', () => {
+  assert.equal(resolve('@{forca}d10>=6+@{briga}d10>=6', { forca: 3, briga: 2 }), '3d10>=6+2d10>=6');
+  for (let i = 0; i < 100; i++) assert.ok(range(roll('@{forca}d10>=6+@{briga}d10>=6', { forca: 3, briga: 2 })[0].total, 0, 5));
+  assert.equal(resolve('d@{agilidade}!', { agilidade: 8 }), 'd8!', 'Savage Worlds: o tipo de dado vem da ficha');
+});
+
+test('parada vazia vale zero, sem erro', () => {
+  assert.deepEqual(rollOnce('0d10>=6'), { total: 0, detail: '[]' });
+  assert.equal(roll('@{nada}d10>=6+2', {})[0].total, 2);
+});

@@ -3,6 +3,8 @@ interface ImportMetaEnv {
   readonly VITE_WEBHOOK_URL?: string;
   /** Canal só do mestre, onde ficam as fichas vivas. Ver README, seção "Ficha viva". */
   readonly VITE_GM_WEBHOOK_URL?: string;
+  /** Vite: true no build publicado. */
+  readonly PROD: boolean;
 }
 
 interface ImportMeta {
