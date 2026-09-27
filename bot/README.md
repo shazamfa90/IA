@@ -77,5 +77,7 @@ assim ele não pergunta token e webhook outra vez.
 - **Nada acontece**: confira se a janela mostra `Pronto como…` e se o webhook que você deu ao bot é
   o mesmo do app (apague o `.env` e ligue de novo para digitar outro).
 
-O `yt-dlp` (que busca o áudio) é baixado sozinho na primeira vez, em `bot/bin`, e se atualiza a cada
-vez que ele liga.
+O `yt-dlp` (que busca o áudio) e o `ffmpeg` (que converte pro Discord) são baixados sozinhos na
+primeira vez, em `bot/bin` — uns 100 MB, então a primeira partida demora um pouco. O yt-dlp se
+atualiza a cada vez que o bot liga. Se o antivírus apagar algum deles, o bot avisa e baixa de novo
+na próxima vez que ligar.
