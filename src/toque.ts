@@ -133,6 +133,7 @@ export function ligarToques() {
   addEventListener(
     'pointerdown',
     (ev) => {
+      if (document.documentElement.dataset.toques === 'nao') return; // Ajustes → Efeito ao tocar
       const efeito = EFEITOS[document.documentElement.dataset.theme ?? ''];
       if (!efeito || document.querySelectorAll('.tq').length > 120) return; // toques em rajada não acumulam
       const k = escala();

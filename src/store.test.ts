@@ -527,3 +527,57 @@ test('explicar: campo colado no dado mostra o nome junto', () => {
   const t: Template = { id: 'v', name: 'V', sections: [{ id: 's', title: 'A', fields: [{ id: 'forca', label: 'Força', type: 'number' }, { id: 'briga', label: 'Briga', type: 'number' }] }], rolls: [] };
   assert.equal(explicar('@{forca}d10>=6+@{briga}d10>=6', t, { forca: '3', briga: '2' }), '3d10>=6 (Força 3) + 2d10>=6 (Briga 2)');
 });
+
+// --- ajustes e backup --------------------------------------------------------
+
+test('ajustes: padrão é fonte padrão, giro normal e resultado que não some', async () => {
+  const { ajustesDe, AJUSTES_PADRAO, GIROS } = await import('./store.ts');
+  assert.deepEqual(ajustesDe({}), AJUSTES_PADRAO);
+  assert.equal(AJUSTES_PADRAO.fonte, 'padrao');
+  assert.equal(AJUSTES_PADRAO.sumir, false);
+  assert.ok(GIROS[AJUSTES_PADRAO.giro] > 700, 'o giro padrão ficou mais lento que o antigo (700 ms)');
+  assert.deepEqual(ajustesDe({ ajustes: { fonte: 'grande' } }), { ...AJUSTES_PADRAO, fonte: 'grande' }, 'ajuste novo num app antigo cai no padrão');
+});
+
+test('backup: volta igual, e arquivo que não é backup é recusado sem apagar nada', async () => {
+  const { exportarBackup, importarBackup } = await import('./store.ts');
+  const { t, c } = tanjiro();
+  const s = { ...aparelho([t]), characters: [c], ajustes: { fonte: 'enorme' as const } };
+  const volta = importarBackup(exportarBackup(s));
+  assert.deepEqual(volta.characters, s.characters);
+  assert.deepEqual(volta.templates, s.templates);
+  assert.deepEqual(volta.ajustes, { fonte: 'enorme' });
+  assert.equal((volta as Record<string, unknown>).app, undefined, 'a marca do arquivo não entra no estado');
+  assert.throws(() => importarBackup('não é json'), /não dá pra ler/);
+  assert.throws(() => importarBackup('{"foto": 1}'), /não é um backup/);
+  assert.throws(() => importarBackup('{"templates": [], "characters": []}'), /não é um backup/);
+});
+
+// --- texto do livro -----------------------------------------------------------
+
+test('livro: rótulo vira tópico, "·" vira etiquetas, lista de vírgulas vira lista', async () => {
+  const { blocos } = await import('./texto.ts');
+  const [a, b, c, d, e] = blocos(
+    '+2 em dois atributos · 15 PV base · 1 perícia.\n' +
+      'Particularidades (escolha duas): Alteração Corporal (15 cm a 5 m), Aparência Animalesca, Camuflagem (+2 Furtividade), Garra Laminada (dano cortante), Visão Noturna (preto e branco).\n' +
+      'Caminho: Alimentação por Sangue (1 L por semana) ou Retenção de Carne.\n' +
+      '• Dano — 1 ponto de energia: +1d10 num ataque.\n' +
+      'Sem fadiga, mas a cada 3 técnicas num turno precisa de recarga.',
+  );
+  assert.deepEqual(a, { tipo: 'p', corpo: { tipo: 'pontos', intro: undefined, itens: ['+2 em dois atributos', '15 PV base', '1 perícia'], nota: undefined } });
+  assert.equal(b.rotulo, 'Particularidades (escolha duas)');
+  assert.deepEqual(b.corpo, { tipo: 'lista', itens: ['Alteração Corporal (15 cm a 5 m)', 'Aparência Animalesca', 'Camuflagem (+2 Furtividade)', 'Garra Laminada (dano cortante)', 'Visão Noturna (preto e branco)'] });
+  assert.deepEqual(c, { tipo: 'topico', rotulo: 'Caminho', corpo: { tipo: 'texto', texto: 'Alimentação por Sangue (1 L por semana) ou Retenção de Carne.' } }, 'poucos itens: fica texto');
+  assert.deepEqual(d, { tipo: 'item', rotulo: 'Dano', corpo: { tipo: 'texto', texto: '1 ponto de energia: +1d10 num ataque.' } });
+  assert.equal(e.tipo, 'p');
+});
+
+test('livro: etiqueta com frase depois vira etiqueta + nota; todo verbete tem forma', async () => {
+  const { blocos } = await import('./texto.ts');
+  const [m] = blocos('Médios (8 kg): M 12 + Des · M+1 13 + Des · M+3 15 + Des. Do +1 em diante, desvantagem em Furtividade.');
+  assert.deepEqual(m.corpo, { tipo: 'pontos', intro: undefined, itens: ['M 12 + Des', 'M+1 13 + Des', 'M+3 15 + Des'], nota: 'Do +1 em diante, desvantagem em Furtividade.' });
+  const [morte] = blocos('Morte: não morre a 0 PV. Regenera por turno: nível 1–5 1d10 · 6–10 2d10 · 11–15 3d10.');
+  assert.deepEqual(morte.corpo, { tipo: 'pontos', intro: 'Não morre a 0 PV.', itens: ['Regenera por turno: nível 1–5 1d10', '6–10 2d10', '11–15 3d10'], nota: undefined }, 'frase antes das etiquetas vira texto');
+  const { LIVRO } = await import('./livro.ts');
+  for (const c of LIVRO) for (const v of c.verbetes) assert.ok(blocos(v.texto).length > 0, v.nome);
+});

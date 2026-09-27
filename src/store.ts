@@ -136,7 +136,41 @@ export type State = {
   musicWebhookUrl?: string;
   /** Repetir a trilha quando acaba. Ausente = sim: música de fundo não acaba no meio da cena. */
   repetirMusica?: boolean;
+  /** Aba Ajustes: valem pro aparelho, não pro perfil. Ausente = AJUSTES_PADRAO. */
+  ajustes?: Partial<Ajustes>;
 };
+
+export const FONTES = { pequena: 14, padrao: 16, grande: 18, enorme: 20 } as const;
+/** Quanto o dado gira antes de mostrar o resultado, em ms. */
+export const GIROS = { rapido: 700, normal: 1500, lento: 2600, desligado: 0 } as const;
+
+export type Ajustes = {
+  fonte: keyof typeof FONTES;
+  giro: keyof typeof GIROS;
+  /** Resultado some sozinho depois de `sumirSeg` segundos. Erro nunca some sozinho: precisa ser lido. */
+  sumir: boolean;
+  sumirSeg: number;
+  som: boolean;
+  vibrar: boolean;
+  /** Efeito ao tocar nos temas das respirações. */
+  toques: boolean;
+  /** A camada que anda devagar no fundo das respirações. */
+  fundoAnimado: boolean;
+};
+
+export const AJUSTES_PADRAO: Ajustes = {
+  fonte: 'padrao',
+  giro: 'normal',
+  sumir: false,
+  sumirSeg: 5,
+  som: false,
+  vibrar: true,
+  toques: true,
+  fundoAnimado: true,
+};
+
+/** Os ajustes em uso: os salvos por cima do padrão (ajuste novo num app antigo cai no padrão). */
+export const ajustesDe = (s: Pick<State, 'ajustes'>): Ajustes => ({ ...AJUSTES_PADRAO, ...s.ajustes });
 
 /** `link` vai direto no comando play: URL (YouTube, Spotify…) ou termo de busca. */
 export type Musica = {
@@ -449,22 +483,47 @@ function adoptIntoProfile(s: any): State {
 
 export function load(): State {
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return blank();
-    const parsed = JSON.parse(raw);
-    if (parsed.template) return migrateV1(parsed);
-    if (!Array.isArray(parsed.templates) || !parsed.templates.length) return blank();
-    if (!Array.isArray(parsed.profiles) || !parsed.profiles.length) return adoptIntoProfile(parsed);
-    // Perfil apagado por outra aba: cai no primeiro em vez de abrir vazio.
-    const current = parsed.profiles.find((p: Profile) => p.id === parsed.currentProfileId);
-    return {
-      ...parsed,
-      currentProfileId: current?.id ?? parsed.profiles[0].id,
-      gmWebhookUrl: parsed.gmWebhookUrl || DEFAULT_GM_WEBHOOK,
-    } as State;
+    return lerEstado(localStorage.getItem(KEY));
   } catch {
     return blank();
   }
+}
+
+/** O estado a partir do texto salvo, migrando formatos antigos. Texto quebrado lança erro. */
+function lerEstado(raw: string | null): State {
+  if (!raw) return blank();
+  const parsed = JSON.parse(raw);
+  if (parsed.template) return migrateV1(parsed);
+  if (!Array.isArray(parsed.templates) || !parsed.templates.length) return blank();
+  if (!Array.isArray(parsed.profiles) || !parsed.profiles.length) return adoptIntoProfile(parsed);
+  // Perfil apagado por outra aba: cai no primeiro em vez de abrir vazio.
+  const current = parsed.profiles.find((p: Profile) => p.id === parsed.currentProfileId);
+  return {
+    ...parsed,
+    currentProfileId: current?.id ?? parsed.profiles[0].id,
+    gmWebhookUrl: parsed.gmWebhookUrl || DEFAULT_GM_WEBHOOK,
+  } as State;
+}
+
+/** Backup: o estado inteiro deste aparelho, pra guardar num arquivo ou levar pra outro. */
+export const exportarBackup = (s: State) => JSON.stringify({ app: 'ficha-rpg', versao: 1, ...s }, null, 1);
+
+/**
+ * Lê um backup. Arquivo que não é backup da Ficha RPG é recusado com erro, em vez de virar
+ * um aparelho vazio: restaurar por engano não pode apagar o que já existe.
+ */
+export function importarBackup(texto: string): State {
+  let dados;
+  try {
+    dados = JSON.parse(texto);
+  } catch {
+    throw new Error('Esse arquivo não é um backup: não dá pra ler.');
+  }
+  if (!Array.isArray(dados?.templates) || !dados.templates.length || !Array.isArray(dados?.characters)) {
+    throw new Error('Esse arquivo não é um backup da Ficha RPG.');
+  }
+  const { app: _app, versao: _versao, ...estado } = dados;
+  return lerEstado(JSON.stringify(estado));
 }
 
 export const save = (s: State) => localStorage.setItem(KEY, JSON.stringify(s));

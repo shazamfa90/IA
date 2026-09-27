@@ -78,7 +78,9 @@ Em *Sistemas → Adicionar*:
   criação, raças, equipamento, combate, condições, as 13 respirações com todas as formas, as
   classes e a lista de kekkijutsu — com busca (sem acento, por nome, texto ou capítulo). É um
   resumo com palavras próprias, para consulta na mesa: números e regras, sem o texto do livro,
-  que continua sendo a fonte. Só é baixado quando alguém abre a aba.
+  que continua sendo a fonte. Só é baixado quando alguém abre a aba. Cada verbete aparece em
+  tópicos: rótulo em negrito, listas com marcador, tabelas curtas (CR, XP) como etiquetas e
+  rolagens como `1d10` destacadas.
 
 **Prontos para outros ramos** — cada um com a ficha, as rolagens na notação certa e explicação
 no ⓘ (regras e números com palavras próprias, sem texto dos livros):
@@ -142,6 +144,20 @@ do aparelho. No primeiro acesso, segue o modo claro/escuro do aparelho.
 
 **Sem internet**: depois de aberto uma vez, o app abre do cache mesmo sem sinal (service worker).
 Rolar, editar a ficha e consultar o livro funcionam; só o que vai pro Discord espera a conexão.
+
+## Ajustes
+
+A aba **Ajustes** guarda preferências deste aparelho:
+
+- **Tamanho da fonte** — Pequena, Padrão (o padrão), Grande ou Enorme; muda o app inteiro.
+- **Velocidade do giro** — Rápido, Normal (o padrão, ~1,5 s), Lento ou Sem giro; *Testar o giro*
+  rola um d20 de mentira (não vai pro Discord).
+- **Sumir automaticamente** — desligado por padrão; ligado, o resultado some depois de 3 a 20 s.
+  Erros nunca somem sozinhos.
+- **Som de dados** (gerado na hora, funciona offline), **vibrar** ao sair o resultado, **efeito ao
+  tocar** e **fundo animado** das respirações (desligar poupa bateria).
+- **Backup** — baixa tudo (perfis, fichas, sistemas, músicas, ajustes) num arquivo `.json` e
+  restaura em outro aparelho. O arquivo leva os webhooks: guarde como senha.
 
 ## Discord
 
