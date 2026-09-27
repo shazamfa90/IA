@@ -111,9 +111,9 @@ export type State = {
   webhookUrl: string;
   /** Canal só do mestre, onde as fichas vivem. Vazio = recurso desligado. */
   gmWebhookUrl: string;
-  /** Aba Música, só do mestre: trilhas salvas e o prefixo do bot de música. */
+  /** Aba Música, só do mestre: trilhas salvas e o webhook do canal que o bot da mesa lê. */
   musicas?: Musica[];
-  prefixoMusica?: string;
+  musicWebhookUrl?: string;
 };
 
 /** `link` vai direto no comando play: URL (YouTube, Spotify…) ou termo de busca. */

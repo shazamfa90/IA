@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { comandoTocar, postComando } from './discord.ts';
 import { uid, type Musica as Trilha, type State } from './store.ts';
 
 type Props = {
@@ -10,36 +11,36 @@ type Props = {
   avisar: (label: string, notation: string, text: string, error?: boolean) => void;
 };
 
-// Comandos do Jockie Music (prefixo padrão "m!"). Tocar usa --now: troca na hora, sem fila.
-// O app só copia: o Jockie ignora webhook e entra no canal de voz de quem
-// mandou o comando, então o comando tem que sair da conta do mestre.
-const CONTROLES = [
-  ['Pausar', 'pause'],
-  ['Continuar', 'resume'],
-  ['Parar', 'stop'],
-] as const;
+// O que o bot da mesa (pasta bot/ do repositório) entende. Bot de terceiros,
+// como o Jockie, ignora webhook: por isso a mesa tem o próprio.
+const CONTROLES = ['Pausar', 'Continuar', 'Parar'] as const;
+
+const GUIA = 'https://github.com/shazamfa90/IA/blob/HEAD/bot/README.md';
 
 export default function Musica({ state, setState, tocando, setTocando, avisar }: Props) {
   const [nome, setNome] = useState('');
   const [link, setLink] = useState('');
   const musicas = state.musicas ?? [];
-  const prefixo = state.prefixoMusica ?? 'm!';
   const set = (patch: Partial<State>) => setState((s) => ({ ...s, ...patch }));
 
-  // Devolve se copiou. Sem permissão de área de transferência, o aviso mostra o comando pra copiar à mão.
-  async function copiar(rotulo: string, comando: string): Promise<boolean> {
+  /** Devolve se o Discord aceitou; o bot marca ✅ na mensagem quando começa a tocar. */
+  async function mandar(rotulo: string, comando: string): Promise<boolean> {
+    if (!state.musicWebhookUrl) {
+      avisar(rotulo, '', 'Cole o webhook em "Canal do bot", aqui embaixo.', true);
+      return false;
+    }
     try {
-      await navigator.clipboard.writeText(comando);
-      avisar(rotulo, comando, 'Copiado. Cole no canal do Jockie, com você num canal de voz.');
+      await postComando(state.musicWebhookUrl, comando);
+      avisar(rotulo, '', 'Enviado ao bot da mesa.');
       return true;
-    } catch {
-      avisar(rotulo, comando, 'Não deu pra copiar sozinho: copie o comando acima e cole no Discord.', true);
+    } catch (e) {
+      avisar(rotulo, '', `não enviou: ${(e as Error).message}`, true);
       return false;
     }
   }
 
   const tocar = async (m: Trilha) => {
-    if (await copiar(m.nome, `${prefixo}play ${m.link} --now`)) setTocando(m.id);
+    if (await mandar(m.nome, comandoTocar(m.nome, m.link))) setTocando(m.id);
   };
 
   return (
@@ -63,12 +64,12 @@ export default function Musica({ state, setState, tocando, setTocando, avisar }:
           </div>
         ))}
         <div className="controles">
-          {CONTROLES.map(([rotulo, cmd]) => (
+          {CONTROLES.map((rotulo) => (
             <button
-              key={cmd}
+              key={rotulo}
               className="add"
               onClick={async () => {
-                if ((await copiar(rotulo, prefixo + cmd)) && cmd === 'stop') setTocando(null);
+                if ((await mandar(rotulo, rotulo.toLowerCase())) && rotulo === 'Parar') setTocando(null);
               }}
             >
               {rotulo}
@@ -103,21 +104,26 @@ export default function Musica({ state, setState, tocando, setTocando, avisar }:
           </label>
           <button className="roll compact" disabled={!link.trim()}>Salvar</button>
         </form>
+        <p className="hint">YouTube, Spotify (vira busca no YouTube), link direto de áudio ou só o nome da música.</p>
       </section>
 
       <section>
-        <h2>Como toca</h2>
+        <h2>Canal do bot</h2>
         <p className="hint">
-          Tocar numa trilha copia o comando. Cole no canal do Jockie Music e envie, estando num canal de voz: ele entra
-          onde você está. Não dá pra mandar pelo app, porque o Jockie não obedece webhook.
+          Quem toca é o bot da mesa, rodando no seu PC durante a sessão. Ele entra no canal de voz onde estiver a mesa e
+          repete a trilha até você trocar. Como criar e ligar:{' '}
+          <a href={GUIA} target="_blank" rel="noreferrer">passo a passo</a>.
         </p>
-        <label className="field">
-          <span>Prefixo do bot</span>
-          <input type="text" value={prefixo} onChange={(e) => set({ prefixoMusica: e.target.value })} />
+        <label className="field wide">
+          <span>Webhook do canal do bot</span>
+          <input
+            type="password"
+            placeholder="https://discord.com/api/webhooks/..."
+            value={state.musicWebhookUrl ?? ''}
+            onChange={(e) => set({ musicWebhookUrl: e.target.value.trim() || undefined })}
+          />
         </label>
-        <p className="hint">
-          Tocar manda <code>{prefixo}play link --now</code>, que troca a música na hora em vez de pôr na fila.
-        </p>
+        <p className="hint">Fica só neste aparelho. Trate como senha: quem tiver a URL comanda a música.</p>
       </section>
     </>
   );

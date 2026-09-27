@@ -1,6 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { HASHIRA, atualizaHashira } from './hashira.ts';
+import { comandoTocar } from './discord.ts';
+import { lerComando } from '../bot/comando.js';
 import { slug, encodeTemplate, decodeTemplate, EXAMPLE, load, renameField, migrateValues, parseAssign, applyRoll, unknownTargets, filledTargets, modifierOf, formatMod, withMods, encodeFicha, decodeFicha, addFicha, newCharacter, sha256, senhaDoMestre, tintaSobre, explicar, type State, type Template } from './store.ts';
 
 test('slug tira acento e espaço', () => {
@@ -464,4 +466,14 @@ test('texto sobre a cor de destaque é o que contrasta mais', () => {
   assert.equal(tintaSobre('#6d3fd4'), '#fff'); // roxo do tema claro: escuro, pede branco
   assert.equal(tintaSobre('#ffffff'), '#111');
   assert.equal(tintaSobre('#000000'), '#fff');
+});
+
+// --- música: o que o app escreve é o que o bot lê -----------------------------
+
+test('comando de tocar: a mesa vê o nome, o bot lê o link', () => {
+  const c = comandoTocar('Combate', 'https://youtu.be/abc');
+  assert.equal(c, '🎵 **Combate**\ntocar <https://youtu.be/abc>', 'link entre <>: sem prévia no canal');
+  assert.deepEqual(lerComando(c), { acao: 'tocar', alvo: 'https://youtu.be/abc' });
+  assert.deepEqual(lerComando(comandoTocar('Taverna', 'taverna medieval')), { acao: 'tocar', alvo: 'taverna medieval' });
+  for (const b of ['Pausar', 'Continuar', 'Parar']) assert.equal(lerComando(b.toLowerCase())?.acao, b.toLowerCase());
 });
