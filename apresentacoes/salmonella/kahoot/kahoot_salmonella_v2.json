@@ -1,0 +1,574 @@
+{
+ "uuid": "ff745301-b5eb-4fcf-8034-52fd95136895",
+ "title": "Salmonella: taxonomia, doenças e prevenção (nível avançado)",
+ "description": "Quiz avançado sobre Salmonella: taxonomia, história, biologia, transmissão, doenças, diagnóstico e prevenção.",
+ "language": "Português",
+ "cover_image_query": "agar plate bacterial colonies laboratory",
+ "questions": [
+  {
+   "type": "content",
+   "title": "Salmonella: nível avançado",
+   "description": "30 perguntas sobre taxonomia, história, biologia, doenças e prevenção. Leia com atenção: as alternativas são parecidas!",
+   "image_query": "students laboratory classroom microscope"
+  },
+  {
+   "type": "content",
+   "title": "Parte 1: classificação e história",
+   "description": "De Enterobacterales a Daniel Salmon: taxonomia, espécies, sorotipos e descobertas.",
+   "image_query": "microscope laboratory green"
+  },
+  {
+   "question": "No esquema taxonômico, a Salmonella pertence a qual ordem?",
+   "choices": [
+    {
+     "answer": "Lactobacillales"
+    },
+    {
+     "answer": "Enterobacterales",
+     "correct": true
+    },
+    {
+     "answer": "Pseudomonadales"
+    },
+    {
+     "answer": "Bacillales"
+    }
+   ],
+   "time": 20000,
+   "image_query": "petri dish colonies close up"
+  },
+  {
+   "question": "O filo da Salmonella, antes chamado de Proteobacteria, hoje é:",
+   "choices": [
+    {
+     "answer": "Actinomycetota"
+    },
+    {
+     "answer": "Bacteroidota"
+    },
+    {
+     "answer": "Pseudomonadota",
+     "correct": true
+    },
+    {
+     "answer": "Bacillota"
+    }
+   ],
+   "time": 20000,
+   "image_query": "scientist pipette laboratory"
+  },
+  {
+   "question": "Quantas subespécies tem a espécie Salmonella enterica?",
+   "choices": [
+    {
+     "answer": "Duas"
+    },
+    {
+     "answer": "Quatro"
+    },
+    {
+     "answer": "Doze"
+    },
+    {
+     "answer": "Seis",
+     "correct": true
+    }
+   ],
+   "time": 20000,
+   "image_query": "laboratory test tubes rack"
+  },
+  {
+   "type": "true_false",
+   "question": "A espécie S. bongori causa cerca de 99% das infecções humanas por Salmonella.",
+   "correct": false,
+   "time": 20000,
+   "image_query": "lizard reptile close up"
+  },
+  {
+   "question": "Na nomenclatura, como se escreve o sorotipo (ex.: Typhimurium)?",
+   "choices": [
+    {
+     "answer": "Inicial maiúscula e sem itálico",
+     "correct": true
+    },
+    {
+     "answer": "Entre aspas e em negrito"
+    },
+    {
+     "answer": "Tudo em maiúsculas e sublinhado"
+    },
+    {
+     "answer": "Tudo em minúsculas e itálico"
+    }
+   ],
+   "time": 20000,
+   "image_query": "old latin manuscript handwriting"
+  },
+  {
+   "question": "No esquema de Kauffmann-White, o antígeno H está associado a:",
+   "choices": [
+    {
+     "answer": "Fímbrias de adesão"
+    },
+    {
+     "answer": "Flagelos",
+     "correct": true
+    },
+    {
+     "answer": "Cápsula (antígeno Vi)"
+    },
+    {
+     "answer": "Parede celular (antígeno O)"
+    }
+   ],
+   "time": 20000,
+   "image_query": "microscope slide close up"
+  },
+  {
+   "question": "Quais sorotipos não tifoides são mais comuns em surtos alimentares?",
+   "choices": [
+    {
+     "answer": "Enteritidis e Typhimurium",
+     "correct": true
+    },
+    {
+     "answer": "Typhi e Paratyphi A"
+    },
+    {
+     "answer": "Typhi e Typhimurium"
+    },
+    {
+     "answer": "Paratyphi B e Enteritidis"
+    }
+   ],
+   "time": 20000,
+   "image_query": "picnic buffet food table"
+  },
+  {
+   "question": "Quem observou o bacilo da febre tifoide em tecidos de pacientes, em 1880?",
+   "choices": [
+    {
+     "answer": "Georg Gaffky"
+    },
+    {
+     "answer": "Daniel Salmon"
+    },
+    {
+     "answer": "Karl Eberth",
+     "correct": true
+    },
+    {
+     "answer": "Louis Pasteur"
+    }
+   ],
+   "time": 20000,
+   "image_query": "19th century laboratory glassware"
+  },
+  {
+   "question": "Em 1885, a bactéria isolada de porcos doentes recebeu qual nome?",
+   "choices": [
+    {
+     "answer": "Salmonella typhi"
+    },
+    {
+     "answer": "Vibrio cholerae"
+    },
+    {
+     "answer": "Bacillus anthracis"
+    },
+    {
+     "answer": "Bacillus choleraesuis",
+     "correct": true
+    }
+   ],
+   "time": 20000,
+   "image_query": "pig farm piglets"
+  },
+  {
+   "question": "Quem propôs o gênero Salmonella, em 1900, homenageando Daniel Salmon?",
+   "choices": [
+    {
+     "answer": "Georg Gaffky"
+    },
+    {
+     "answer": "Theobald Smith"
+    },
+    {
+     "answer": "Joseph Lignières",
+     "correct": true
+    },
+    {
+     "answer": "Karl Eberth"
+    }
+   ],
+   "time": 20000,
+   "image_query": "old handwritten letters archive"
+  },
+  {
+   "type": "content",
+   "title": "Parte 2: biologia e transmissão",
+   "description": "Como a bactéria vive, o que a identifica e como chega até nós.",
+   "image_query": "bacteria illustration green abstract"
+  },
+  {
+   "question": "Quanto ao uso de oxigênio, a Salmonella é classificada como:",
+   "choices": [
+    {
+     "answer": "Anaeróbia estrita"
+    },
+    {
+     "answer": "Anaeróbia facultativa",
+     "correct": true
+    },
+    {
+     "answer": "Aeróbia estrita"
+    },
+    {
+     "answer": "Microaerófila"
+    }
+   ],
+   "time": 20000,
+   "image_query": "air bubbles underwater"
+  },
+  {
+   "type": "true_false",
+   "question": "A Salmonella forma esporos que resistem ao cozimento dos alimentos.",
+   "correct": false,
+   "time": 20000,
+   "image_query": "mushroom gills macro"
+  },
+  {
+   "question": "Na identificação em laboratório, a maioria das cepas de Salmonella:",
+   "choices": [
+    {
+     "answer": "Fermenta lactose e não produz H2S"
+    },
+    {
+     "answer": "Não fermenta lactose e não produz H2S"
+    },
+    {
+     "answer": "Fermenta lactose e produz H2S"
+    },
+    {
+     "answer": "Não fermenta lactose e produz H2S",
+     "correct": true
+    }
+   ],
+   "time": 30000,
+   "image_query": "glass milk bottle"
+  },
+  {
+   "question": "Qual situação é um exemplo de contaminação cruzada na cozinha?",
+   "choices": [
+    {
+     "answer": "Cortar salada na tábua usada para frango cru",
+     "correct": true
+    },
+    {
+     "answer": "Guardar os ovos na geladeira"
+    },
+    {
+     "answer": "Lavar as mãos antes de cozinhar"
+    },
+    {
+     "answer": "Cozinhar o frango por muito tempo"
+    }
+   ],
+   "time": 20000,
+   "image_query": "cutting board raw chicken kitchen"
+  },
+  {
+   "type": "true_false",
+   "question": "Répteis, como tartarugas e iguanas, podem carregar Salmonella sem apresentar sintomas.",
+   "correct": true,
+   "time": 20000,
+   "image_query": "turtle on rock"
+  },
+  {
+   "type": "content",
+   "title": "Parte 3: doenças e diagnóstico",
+   "description": "Salmonelose, febre tifoide, números no mundo, exames e tratamento.",
+   "image_query": "doctor stethoscope clinic"
+  },
+  {
+   "question": "Qual é o intervalo típico entre a ingestão e os sintomas da salmonelose?",
+   "choices": [
+    {
+     "answer": "1 a 3 semanas"
+    },
+    {
+     "answer": "30 a 60 minutos"
+    },
+    {
+     "answer": "2 a 3 meses"
+    },
+    {
+     "answer": "6 a 72 horas",
+     "correct": true
+    }
+   ],
+   "time": 20000,
+   "image_query": "hourglass sand timer"
+  },
+  {
+   "question": "Qual sorotipo, restrito a humanos, causa a febre tifoide?",
+   "choices": [
+    {
+     "answer": "S. Typhi",
+     "correct": true
+    },
+    {
+     "answer": "S. bongori"
+    },
+    {
+     "answer": "S. Typhimurium"
+    },
+    {
+     "answer": "S. Enteritidis"
+    }
+   ],
+   "time": 20000,
+   "image_query": "hospital bed ward"
+  },
+  {
+   "question": "Em comparação com a febre tifoide, a paratifoide costuma ser:",
+   "choices": [
+    {
+     "answer": "Mais grave e mais letal"
+    },
+    {
+     "answer": "Restrita a animais"
+    },
+    {
+     "answer": "Mais branda, com sintomas parecidos",
+     "correct": true
+    },
+    {
+     "answer": "Causada por um vírus"
+    }
+   ],
+   "time": 20000,
+   "image_query": "thermometer fever"
+  },
+  {
+   "question": "Na infecção invasiva por Salmonella, a bactéria:",
+   "choices": [
+    {
+     "answer": "Infecta apenas a pele"
+    },
+    {
+     "answer": "Atinge o sangue e pode chegar a ossos e meninges",
+     "correct": true
+    },
+    {
+     "answer": "É eliminada sem sair do intestino"
+    },
+    {
+     "answer": "Fica só no intestino delgado"
+    }
+   ],
+   "time": 20000,
+   "image_query": "blood sample tube"
+  },
+  {
+   "question": "A OMS estima, por ano, para a salmonelose não tifoide, cerca de:",
+   "choices": [
+    {
+     "answer": "94 milhões de casos e 155 mil mortes",
+     "correct": true
+    },
+    {
+     "answer": "9 milhões de casos e 110 mil mortes"
+    },
+    {
+     "answer": "94 mil casos e 155 mortes"
+    },
+    {
+     "answer": "940 mil casos e 1,5 mil mortes"
+    }
+   ],
+   "time": 30000,
+   "image_query": "world map globe"
+  },
+  {
+   "question": "Qual par exame–amostra está correto?",
+   "choices": [
+    {
+     "answer": "Coprocultura: urina | Hemocultura: sangue"
+    },
+    {
+     "answer": "Coprocultura: fezes | Hemocultura: urina"
+    },
+    {
+     "answer": "Coprocultura: fezes | Hemocultura: sangue",
+     "correct": true
+    },
+    {
+     "answer": "Coprocultura: sangue | Hemocultura: fezes"
+    }
+   ],
+   "time": 30000,
+   "image_query": "blood culture bottles laboratory"
+  },
+  {
+   "question": "Em adulto com salmonelose leve, qual é a conduta inicial mais indicada?",
+   "choices": [
+    {
+     "answer": "Antidiarreico em dose alta"
+    },
+    {
+     "answer": "Hidratação e repouso",
+     "correct": true
+    },
+    {
+     "answer": "Jejum prolongado"
+    },
+    {
+     "answer": "Antibiótico imediato"
+    }
+   ],
+   "time": 20000,
+   "image_query": "pouring glass of water"
+  },
+  {
+   "type": "true_false",
+   "question": "Todo caso de salmonelose exige tratamento com antibiótico.",
+   "correct": false,
+   "time": 20000,
+   "image_query": "pills capsules close up"
+  },
+  {
+   "type": "content",
+   "title": "Parte 4: prevenção",
+   "description": "Do cuidado na cozinha às medidas da comunidade.",
+   "image_query": "clean kitchen fresh vegetables"
+  },
+  {
+   "question": "A OMS orienta cozinhar carnes, aves e ovos até o centro passar de:",
+   "choices": [
+    {
+     "answer": "Qualquer temperatura, se estiver dourado"
+    },
+    {
+     "answer": "45 °C"
+    },
+    {
+     "answer": "55 °C"
+    },
+    {
+     "answer": "70 °C",
+     "correct": true
+    }
+   ],
+   "time": 20000,
+   "image_query": "meat thermometer cooking"
+  },
+  {
+   "question": "Para conservar alimentos perecíveis, a geladeira deve ficar:",
+   "choices": [
+    {
+     "answer": "Perto de 15 °C"
+    },
+    {
+     "answer": "Abaixo de 5 °C",
+     "correct": true
+    },
+    {
+     "answer": "Entre 10 e 12 °C"
+    },
+    {
+     "answer": "Na temperatura ambiente"
+    }
+   ],
+   "time": 20000,
+   "image_query": "refrigerator interior fresh food"
+  },
+  {
+   "question": "Qual prática reduz o risco ao preparar alimentos?",
+   "choices": [
+    {
+     "answer": "Lavar as mãos com água e sabão antes e depois de manipular carnes",
+     "correct": true
+    },
+    {
+     "answer": "Usar o mesmo pano para tudo"
+    },
+    {
+     "answer": "Enxaguar as mãos só com água"
+    },
+    {
+     "answer": "Passar álcool só na tábua"
+    }
+   ],
+   "time": 20000,
+   "image_query": "washing hands soap lather"
+  },
+  {
+   "question": "Qual medida coletiva interrompe a via fecal-oral da febre tifoide?",
+   "choices": [
+    {
+     "answer": "Proibir o consumo de frutas"
+    },
+    {
+     "answer": "Fechar escolas por 30 dias"
+    },
+    {
+     "answer": "Saneamento básico e água tratada",
+     "correct": true
+    },
+    {
+     "answer": "Controlar insetos com repelente"
+    }
+   ],
+   "time": 20000,
+   "image_query": "water treatment plant"
+  },
+  {
+   "question": "Como a vacinação de aves ajuda a prevenir a salmonelose humana?",
+   "choices": [
+    {
+     "answer": "Dispensa o cozimento dos alimentos"
+    },
+    {
+     "answer": "Aumenta a produção de ovos"
+    },
+    {
+     "answer": "Elimina a bactéria da água"
+    },
+    {
+     "answer": "Reduz a bactéria em ovos e carnes",
+     "correct": true
+    }
+   ],
+   "time": 20000,
+   "image_query": "hens poultry farm"
+  },
+  {
+   "type": "true_false",
+   "question": "Existem vacinas contra a febre tifoide, indicadas a viajantes e a áreas de risco.",
+   "correct": true,
+   "time": 20000,
+   "image_query": "vaccine vial syringe"
+  },
+  {
+   "question": "Qual é o papel da vigilância sanitária na prevenção?",
+   "choices": [
+    {
+     "answer": "Fabricar vacinas"
+    },
+    {
+     "answer": "Receitar antibióticos"
+    },
+    {
+     "answer": "Fiscalizar alimentos e notificar surtos",
+     "correct": true
+    },
+    {
+     "answer": "Tratar os pacientes"
+    }
+   ],
+   "time": 20000,
+   "image_query": "food inspector restaurant kitchen"
+  }
+ ]
+}
