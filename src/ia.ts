@@ -11,6 +11,7 @@
  * chaves ficam só neste aparelho.
  */
 import type { Chat } from './mestre.ts';
+import { ordenar, palavras } from './memoria.ts';
 
 export type Tipo = 'gemini' | 'groq' | 'openrouter' | 'cerebras' | 'mistral' | 'outro' | 'llm7';
 
@@ -29,7 +30,17 @@ type Info = {
   dica: string;
   /** Integrada: funciona sem chave, com o modelo fixo de `padrao`. */
   semChave?: boolean;
+  /**
+   * Quanto de conversa recente (em letras) esta IA recebe inteira. Quem tem contexto grande
+   * e cota folgada lê mais falas palavra por palavra; as apertadas recebem menos e contam
+   * com o resumo e as lembranças.
+   */
+  folego: number;
+  /** O que mandar junto no pedido pra ligar o raciocínio do modelo, no nível pedido. */
+  raciocinio?: (nivel: 'medium' | 'low') => Record<string, unknown>;
 };
+
+const esforco = (nivel: 'medium' | 'low') => ({ reasoning_effort: nivel });
 
 export const PROVEDORES: Record<Tipo, Info> = {
   gemini: {
@@ -39,6 +50,8 @@ export const PROVEDORES: Record<Tipo, Info> = {
     padrao: 'gemini-flash-latest',
     prefere: [/^gemini-[\d.]+-flash$/, /^gemini-flash-latest$/, /^gemini-[\d.]+-flash-lite$/, /^gemini-.*flash/],
     dica: 'A cota grátis mais folgada e a melhor narração. Comece por esta.',
+    folego: 48000,
+    raciocinio: esforco,
   },
   groq: {
     nome: 'Groq',
@@ -46,7 +59,9 @@ export const PROVEDORES: Record<Tipo, Info> = {
     chaves: 'https://console.groq.com/keys',
     padrao: 'openai/gpt-oss-120b',
     prefere: [/gpt-oss-120b/, /llama.*70b/, /qwen/, /gpt-oss/, /llama/],
-    dica: 'Muito rápido. Boa reserva para quando a primeira cota acabar.',
+    dica: 'Muito rápido: ótimo auxiliar (revisão e memória) e boa reserva de narrador.',
+    folego: 9000, // o plano grátis conta poucos tokens por minuto
+    raciocinio: esforco,
   },
   openrouter: {
     nome: 'OpenRouter',
@@ -56,6 +71,8 @@ export const PROVEDORES: Record<Tipo, Info> = {
     confere: '/key',
     prefere: [/^openrouter\/free$/, /:free$/],
     dica: 'Escolhe sozinho um modelo grátis disponível. Cota diária pequena.',
+    folego: 24000,
+    raciocinio: (nivel) => ({ reasoning: { effort: nivel } }),
   },
   cerebras: {
     nome: 'Cerebras',
@@ -64,6 +81,8 @@ export const PROVEDORES: Record<Tipo, Info> = {
     padrao: 'gpt-oss-120b',
     prefere: [/gpt-oss-120b/, /llama.*70b/, /qwen/, /llama/],
     dica: 'Rápido e com cota diária generosa.',
+    folego: 24000,
+    raciocinio: esforco,
   },
   mistral: {
     nome: 'Mistral',
@@ -72,6 +91,7 @@ export const PROVEDORES: Record<Tipo, Info> = {
     padrao: 'mistral-small-latest',
     prefere: [/^mistral-medium-latest$/, /^mistral-small-latest$/, /^mistral-large-latest$/, /-latest$/],
     dica: 'Plano grátis de experimentação, bom em português.',
+    folego: 24000,
   },
   outro: {
     nome: 'Outro (compatível com OpenAI)',
@@ -80,6 +100,7 @@ export const PROVEDORES: Record<Tipo, Info> = {
     padrao: '',
     prefere: [],
     dica: 'Qualquer serviço ou programa que fale o formato OpenAI — por exemplo o Ollama rodando no seu PC.',
+    folego: 16000,
   },
   llm7: {
     nome: 'Mistral Nemo (LLM7)',
@@ -89,6 +110,7 @@ export const PROVEDORES: Record<Tipo, Info> = {
     prefere: [],
     dica: 'Integrada, sem chave. Responde em uns 15 segundos; sem chave, libera poucas falas por dia.',
     semChave: true,
+    folego: 8000,
   },
 };
 
@@ -105,16 +127,28 @@ export const INTEGRADAS: Conexao[] = (Object.keys(PROVEDORES) as Tipo[])
 
 export type Conexao = { tipo: Tipo; chave: string; modelo: string; /** Só no tipo "outro". */ url?: string };
 /** A ordem é a prioridade: a primeira responde; as outras entram quando ela falha. */
-export type ConfigIA = { conexoes: Conexao[]; pesquisar: boolean; /** Usar as IAs sem chave. */ integradas: boolean };
+export type ConfigIA = {
+  conexoes: Conexao[];
+  pesquisar: boolean;
+  /** Usar as IAs sem chave. */
+  integradas: boolean;
+  /** Uma segunda IA revisa cada fala e cuida da memória. */
+  equipe: boolean;
+};
 
 const KEY = 'ficha-rpg-ia';
 
 export function carregarIA(): ConfigIA {
   try {
     const c = JSON.parse(localStorage.getItem(KEY) ?? '');
-    return { conexoes: Array.isArray(c?.conexoes) ? c.conexoes : [], pesquisar: c?.pesquisar !== false, integradas: c?.integradas !== false };
+    return {
+      conexoes: Array.isArray(c?.conexoes) ? c.conexoes : [],
+      pesquisar: c?.pesquisar !== false,
+      integradas: c?.integradas !== false,
+      equipe: c?.equipe !== false,
+    };
   } catch {
-    return { conexoes: [], pesquisar: true, integradas: true };
+    return { conexoes: [], pesquisar: true, integradas: true, equipe: true };
   }
 }
 
@@ -126,6 +160,20 @@ export const pronta = (c: Conexao) =>
 
 /** Quem responde, em ordem: as chaves do jogador (modelos melhores) e depois as integradas. */
 export const ativas = (cfg: ConfigIA): Conexao[] => [...cfg.conexoes.filter(pronta), ...(cfg.integradas ? INTEGRADAS : [])];
+
+/**
+ * Quem faz o trabalho de bastidor (revisar, arquivar, planejar pesquisa), em ordem. É a
+ * fila das chaves do jogador girada: a segunda IA vem primeiro e a que narra fica por último.
+ * Assim as duas trabalham ao mesmo tempo na mesma fala e nenhuma cota carrega tudo sozinha.
+ * A integrada fica de fora: a cota dela sem chave é pequena demais pra gastar com bastidor.
+ */
+export function auxiliares(cfg: ConfigIA): Conexao[] {
+  const [narrador, ...resto] = cfg.conexoes.filter(pronta);
+  return cfg.equipe && narrador ? [...resto, narrador] : [];
+}
+
+/** Quanto de conversa recente a IA que narra aguenta: é ela que dita o tamanho do capítulo. */
+export const folegoDe = (c: Conexao | undefined): number => (c ? PROVEDORES[c.tipo].folego : PROVEDORES.llm7.folego);
 
 const base = (c: Conexao) => (c.tipo === 'outro' ? (c.url ?? '') : PROVEDORES[c.tipo].url).trim().replace(/\/+$/, '');
 const cabecalhos = (c: Conexao): Record<string, string> => ({
@@ -215,23 +263,40 @@ type Opcoes = {
   onTexto?: (texto: string) => void;
   sinal?: AbortSignal;
   temperatura?: number;
+  /** Quanto o modelo raciocina antes de responder. Narrar pede mais; bastidor, menos. */
+  raciocinio?: 'medium' | 'low';
   /** Quanto esperar antes da segunda rodada, quando todos recusaram por pressa. */
   espera?: number;
 };
 
+/** Conexões cujo modelo recusou o pedido de raciocínio: daí em diante vão sem ele. */
+const semRaciocinio = new Set<string>();
+
 /** Uma chamada a um serviço, lendo a resposta conforme ela chega. */
 export async function chamar(c: Conexao, mensagens: Chat[], o: Opcoes = {}): Promise<string> {
-  let res: Response;
-  try {
-    res = await fetch(`${base(c)}/chat/completions`, {
-      method: 'POST',
-      headers: cabecalhos(c),
-      body: JSON.stringify({ model: c.modelo.trim(), messages: mensagens, temperature: o.temperatura ?? 0.9, stream: true }),
-      signal: o.sinal,
-    });
-  } catch (e) {
-    if ((e as Error).name === 'AbortError') throw e;
-    throw new ErroIA(0);
+  const marca = `${c.tipo}/${c.modelo}`;
+  const pedir = async (extras: Record<string, unknown>) => {
+    try {
+      return await fetch(`${base(c)}/chat/completions`, {
+        method: 'POST',
+        headers: cabecalhos(c),
+        body: JSON.stringify({ model: c.modelo.trim(), messages: mensagens, temperature: o.temperatura ?? 0.9, stream: true, ...extras }),
+        signal: o.sinal,
+      });
+    } catch (e) {
+      if ((e as Error).name === 'AbortError') throw e;
+      throw new ErroIA(0);
+    }
+  };
+  // Raciocínio sempre ligado onde o serviço aceita. Nem todo modelo aceita o parâmetro: se o
+  // pedido voltar como inválido, repete sem ele e não tenta mais com este modelo.
+  const extras = semRaciocinio.has(marca) ? {} : (PROVEDORES[c.tipo].raciocinio?.(o.raciocinio ?? 'medium') ?? {});
+  let res = await pedir(extras);
+  if ((res.status === 400 || res.status === 422) && Object.keys(extras).length) {
+    const erro = await erroDe(res);
+    if (/recusada/.test(erro.message)) throw erro; // chave errada também vem como 400
+    semRaciocinio.add(marca);
+    res = await pedir({});
   }
   if (!res.ok) throw await erroDe(res);
 
@@ -277,7 +342,12 @@ export async function chamar(c: Conexao, mensagens: Chat[], o: Opcoes = {}): Pro
  * Pergunta às conexões em ordem até uma responder. Cota esgotada, chave recusada, serviço
  * fora do ar: passa pra próxima. Só para de vez se o jogador cancelar ou se nenhuma servir.
  */
-export async function conversar(conexoes: Conexao[], mensagens: Chat[], o: Opcoes = {}): Promise<{ texto: string; por: Conexao }> {
+export async function conversar(
+  conexoes: Conexao[],
+  /** As mensagens, ou como montá-las pra cada IA: cada uma recebe o tanto de conversa que aguenta. */
+  mensagens: Chat[] | ((c: Conexao) => Chat[]),
+  o: Opcoes = {},
+): Promise<{ texto: string; por: Conexao }> {
   const prontas = conexoes.filter(pronta);
   if (!prontas.length) throw new Error('Nenhuma IA ligada. Ligue a IA integrada ou cole uma chave em "IA do mestre".');
   let falhas: string[] = [];
@@ -289,7 +359,7 @@ export async function conversar(conexoes: Conexao[], mensagens: Chat[], o: Opcoe
     for (const c of prontas) {
       try {
         o.onTexto?.('');
-        const texto = await chamar(c, mensagens, o);
+        const texto = await chamar(c, typeof mensagens === 'function' ? mensagens(c) : mensagens, o);
         if (texto.trim()) return { texto, por: c };
         falhas.push(`${PROVEDORES[c.tipo].nome}: resposta vazia`);
       } catch (e) {
@@ -316,42 +386,93 @@ function esperar(ms: number, sinal?: AbortSignal): Promise<void> {
 
 // --- Pesquisa ------------------------------------------------------------
 
-async function wikipedia(lingua: string, termo: string, sinal?: AbortSignal): Promise<string> {
-  const q = new URLSearchParams({
-    action: 'query',
-    generator: 'search',
-    gsrsearch: termo,
-    gsrlimit: '3',
-    prop: 'extracts',
-    exintro: '1',
-    explaintext: '1',
-    exlimit: '3',
-    exchars: '700',
-    format: 'json',
-    origin: '*', // é o que libera a consulta direto do navegador
-  });
+async function wiki(lingua: string, params: Record<string, string>, sinal?: AbortSignal): Promise<any> {
+  // origin=* é o que libera a consulta direto do navegador.
+  const q = new URLSearchParams({ action: 'query', format: 'json', origin: '*', ...params });
   const res = await fetch(`https://${lingua}.wikipedia.org/w/api.php?${q}`, { signal: sinal });
-  if (!res.ok) return '';
-  const paginas: any[] = Object.values((await res.json())?.query?.pages ?? {});
-  return paginas
-    .sort((a, b) => a.index - b.index)
-    .filter((p) => p.extract?.trim())
-    .map((p) => `${p.title}: ${p.extract.trim().replace(/\s+/g, ' ')}`)
-    .join('\n');
+  return res.ok ? res.json() : null;
 }
 
+const semTags = (html: string) => html.replace(/<[^>]+>/g, '').replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#0?39;/g, "'");
+/** Daqui pra baixo o verbete é bibliografia e lista de links: não ajuda a narrar. */
+const RODAPE = /\n(Referências|Notas|Ver também|Ligações externas|Bibliografia|References|Notes|See also|External links|Further reading)\s*\n/;
+
+/** Os verbetes que a busca devolve pro termo e que de fato falam dele. */
+async function acharVerbetes(lingua: string, termo: string, sinal?: AbortSignal): Promise<string[]> {
+  const j = await wiki(lingua, { list: 'search', srsearch: termo, srlimit: '4', srprop: 'snippet' }, sinal);
+  const alvo = new Set(palavras(termo));
+  return ((j?.query?.search ?? []) as any[])
+    // A busca devolve também o que só esbarra no termo. Fica quem tem palavra do termo no
+    // título, ou pelo menos duas no resumo.
+    .filter((h) => {
+      const noTitulo = palavras(h.title).filter((p) => alvo.has(p)).length;
+      const noResumo = new Set(palavras(semTags(h.snippet ?? '')).filter((p) => alvo.has(p))).size;
+      return noTitulo > 0 || noResumo >= Math.min(2, alvo.size);
+    })
+    .map((h) => String(h.title));
+}
+
+/** O texto corrido de um verbete, em parágrafos, sem o rodapé. */
+async function lerVerbete(lingua: string, titulo: string, sinal?: AbortSignal): Promise<string[]> {
+  const j = await wiki(lingua, { titles: titulo, prop: 'extracts', explaintext: '1', exsectionformat: 'plain', redirects: '1' }, sinal);
+  const pagina: any = Object.values(j?.query?.pages ?? {})[0];
+  const texto = String(pagina?.extract ?? '').split(RODAPE)[0];
+  return texto
+    .split(/\n+/)
+    .map((p) => p.trim().replace(/\s+/g, ' '))
+    .filter((p) => p.length >= 80);
+}
+
+export type Pesquisa = { texto: string; fontes: string[] };
+
 /**
- * Pesquisa na Wikipédia, em português e depois em inglês. É de graça, sem chave e sem
- * limite prático. Devolve '' quando não acha ou não há sinal: pesquisa nunca trava a mesa.
+ * Pesquisa na Wikipédia: de graça, sem chave e sem limite prático.
+ *
+ * Cada termo é um ângulo do assunto e ganha o próprio verbete, primeiro em português e,
+ * se não houver, em inglês. De cada verbete entram a abertura (que diz o que a coisa é) e
+ * os parágrafos que mais têm a ver com o termo e com o assunto geral — não só o começo do
+ * artigo, que costuma falar de autor e data. O espaço é dividido entre os termos, pra um
+ * verbete comprido não engolir os outros. Devolve vazio quando não acha ou não há sinal:
+ * pesquisa nunca trava a mesa.
  */
-export async function pesquisar(termo: string, sinal?: AbortSignal): Promise<string> {
-  for (const lingua of ['pt', 'en']) {
-    try {
-      const achado = await wikipedia(lingua, termo, sinal);
-      if (achado) return achado;
-    } catch (e) {
-      if ((e as Error).name === 'AbortError') throw e;
+export async function pesquisar(termos: string[], assunto = '', sinal?: AbortSignal, orcamento = 1800): Promise<Pesquisa> {
+  const pedidos = [...new Set(termos.map((t) => t.trim()).filter(Boolean))].slice(0, 5);
+  if (!pedidos.length) return { texto: '', fontes: [] };
+  const usados = new Set<string>();
+  const porTermo = Math.max(500, Math.floor(orcamento / pedidos.length));
+
+  const achar = async (termo: string): Promise<{ titulo: string; texto: string } | null> => {
+    for (const lingua of ['pt', 'en']) {
+      try {
+        for (const titulo of await acharVerbetes(lingua, termo, sinal)) {
+          if (usados.has(titulo.toLowerCase())) continue;
+          const paragrafos = await lerVerbete(lingua, titulo, sinal);
+          if (!paragrafos.length) continue;
+          usados.add(titulo.toLowerCase());
+          const [abertura, ...resto] = paragrafos;
+          const melhores = ordenar(resto.map((texto) => ({ texto, rotulo: titulo })), `${termo} ${assunto}`).map((t) => t.texto);
+          const escolhidos = [abertura.slice(0, 300)];
+          let gasto = escolhidos[0].length;
+          for (const p of melhores) {
+            const corte = p.slice(0, 420);
+            if (gasto + corte.length > porTermo) break;
+            escolhidos.push(corte);
+            gasto += corte.length;
+          }
+          return { titulo, texto: escolhidos.join(' […] ') };
+        }
+      } catch (e) {
+        if ((e as Error).name === 'AbortError') throw e;
+      }
     }
+    return null;
+  };
+
+  // Um termo de cada vez: o mesmo verbete não entra duas vezes, e a Wikipédia não vê rajada.
+  const achados: { titulo: string; texto: string }[] = [];
+  for (const termo of pedidos) {
+    const a = await achar(termo);
+    if (a) achados.push(a);
   }
-  return '';
+  return { texto: achados.map((a) => `${a.titulo}: ${a.texto}`).join('\n\n'), fontes: achados.map((a) => a.titulo) };
 }
