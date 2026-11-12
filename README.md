@@ -2,6 +2,7 @@
 
 Ficha de personagem para qualquer sistema de RPG, que posta as rolagens num canal do Discord.
 Roda no navegador e instala no celular como app.
+Traz também o **Mestre IA**: um narrador de RPG solo, grátis, com memória que continua entre as sessões.
 
 ```bash
 npm install
@@ -63,6 +64,52 @@ npm run build   # gera dist/
 - **Perfis** — cada pessoa que usa o aparelho tem o seu: fichas separadas e aparência própria
   (6 temas e uma cor de destaque). São locais, sem senha e sem servidor — servem pra dividir um
   tablet na mesa, não pra entrar da sua conta noutro aparelho.
+
+## Mestre IA
+
+Aba **Mestre IA**: um mestre de RPG narrativo que conduz uma aventura solo, em conversa. Você dá o
+universo ou tema, ele apresenta o mundo, faz as seis perguntas do personagem e abre a Cena 1.
+
+- **Regras da mesa** — o mestre segue um roteiro fixo (em `src/mestre.ts`): leis do universo
+  definidas antes da primeira cena e nunca quebradas, poder que nunca surge de graça, consequências
+  que persistem, inimigos que aprendem, agência do jogador (ele nunca decide por você) e status do
+  personagem ao fim de toda fala, com campos próprios do tema.
+- **Anti-onisciência** — o mestre sabe tudo; você só lê o que o personagem percebeu. A cada fala ele
+  anota os segredos (planos de NPC, armadilhas, o anel amaldiçoado) num bloco de bastidores que o
+  app guarda e nunca mostra na conversa. Em *Memória → Bastidores* dá pra espiar, com aviso de spoiler.
+- **Memória persistente** — a aventura fica no aparelho (IndexedDB) e continua de onde parou. O
+  mestre relê a cada fala: leis do mundo, ficha fixa do personagem, tempo, fatos vividos, segredos,
+  o que cada NPC quer e sabe, e o resumo da história. Quando a conversa cresce, as falas antigas
+  viram resumo e as anotações são condensadas, então a campanha não tem tamanho máximo.
+  *Exportar* leva tudo num arquivo pra outro aparelho.
+- **Pesquisa** — antes de criar o mundo o mestre consulta a Wikipédia sobre o tema (pra pegar a
+  atmosfera e a lógica de poder de uma obra, sem copiar personagens nem trama), pode consultar de
+  novo durante o jogo, e o 🔎 ao lado da caixa de texto pesquisa pra você e anota pra ele.
+- **Na conversa** — a resposta aparece enquanto é escrita; *↻ Outra versão* troca a última fala do
+  mestre e devolve a memória ao que era; se a resposta falhar, *Tentar de novo* ou *Reescrever
+  minha fala*. Dá pra olhar a ficha em outra aba sem perder a resposta que está chegando.
+
+### Ligar a IA (grátis)
+
+O app não tem servidor: a conversa sai do navegador direto para um serviço de IA, com uma chave
+sua. Em *Mestre IA → Ligar a IA*, toque em **Pegar chave grátis**, crie a chave no site do serviço
+(conta comum, sem cartão), cole e toque em **Ligar** — o app lê a lista de modelos e escolhe um.
+
+| Serviço | Para quê |
+|---|---|
+| Google Gemini | Comece por este: a cota grátis mais folgada e a melhor narração |
+| Groq, Cerebras | Rápidos; boas reservas |
+| OpenRouter | Escolhe sozinho um modelo grátis disponível; cota diária pequena |
+| Mistral | Plano grátis de experimentação |
+| Outro | Qualquer endereço no formato OpenAI — por exemplo o Ollama no seu PC |
+
+**Sobre "ilimitado"**: nenhum serviço de IA dá uso infinito de graça; cada um tem uma cota por dia.
+O que o app faz é ligar vários ao mesmo tempo: quando a cota de um acaba (ou ele cai), a fala vai
+sozinha pro próximo da lista. Com dois ou três ligados, dá pra jogar horas por dia sem pagar. Sem
+limite de verdade, só rodando o modelo na sua máquina (opção *Outro*, com Ollama ou parecido).
+
+As chaves ficam só no aparelho (não entram em link de ficha nem no backup). O que você escreve na
+aventura é enviado ao serviço ligado, que é quem gera a resposta.
 
 ## Sistemas prontos
 

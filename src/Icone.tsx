@@ -1,6 +1,7 @@
 /** Ícones de traço, desenhados aqui: um <path> cada, sem biblioteca. */
 const P = {
   ficha: 'M7 3h7l4 4v14H7zM14 3v4h4M10 11h5M10 15h5',
+  mestreia: 'M4 4h16v12H10l-5 4v-4H4zM12 7l1 2.5 2.5 1-2.5 1L12 14l-1-2.5-2.5-1 2.5-1z',
   personagens: 'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 6.5M18.5 14a6.5 6.5 0 0 1 3 6',
   sistemas: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5M3 17.5l9 5 9-5',
   musica: 'M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
