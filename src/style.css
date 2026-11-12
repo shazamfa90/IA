@@ -448,12 +448,13 @@ article.verbete .texto { padding: 4px 0 0; }
 
 /* --- Mestre IA: conversa com o narrador ------------------------------------- */
 /* A aba fica montada mesmo escondida (a resposta continua chegando), e é sempre uma coluna só. */
-.aba-ia { grid-column: 1 / -1; display: grid; gap: 18px; align-content: start; width: 100%; max-width: 820px; margin: 0 auto; }
+.aba-ia { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-content: start; width: 100%; max-width: 820px; margin: 0 auto; }
 .aba-ia[hidden] { display: none; }
 .aba-ia > * { min-width: 0; }
 /* Na conversa a caixa de escrever cola no fim: o respiro de baixo do main sobraria vazio. */
 main:has(.aba-ia:not([hidden]) .escrever) { padding-bottom: calc(var(--barra) + env(safe-area-inset-bottom) + 14px); }
-.chat { display: grid; gap: 14px; }
+/* minmax(0, 1fr): sem isso um título comprido (que não quebra linha) alarga a coluna e a página inteira. */
+.chat { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
 .chat-topo { display: flex; align-items: center; gap: 10px; }
 .chat-topo h1 { flex: 1; min-width: 0; margin: 0; font-size: 1.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chat-topo .add { flex: none; margin: 0; }
@@ -502,3 +503,4 @@ section > .status { margin-top: 0; }
   .escrever { bottom: 18px; }
 }
 @media (prefers-reduced-motion: reduce) { .digitando::after { animation: none; } }
+.fala .por { display: block; margin-top: 10px; color: var(--dim); font-size: .72rem; }

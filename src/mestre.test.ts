@@ -131,6 +131,32 @@ TEMPO: (sem mudanças)
   assert.deepEqual(aplicar(memoriaVazia(), '- **NPC:** Dorn — guarda, quer propina').npcs, { Dorn: 'guarda, quer propina' });
 });
 
+test('o que os modelos pequenos erram de verdade: status sem régua, linha "vazia" por extenso, NPC sem barra', () => {
+  // Saída real de um modelo de 12B: status sem fechamento e a pergunta final depois dele.
+  const { narrativa, status } = extrairStatus('Uma figura inspeciona uma caixa.\n\n━━━ STATUS DO PERSONAGEM ━━━\n• Nome: Lia\n• Condição: Vigilante\n\n\n\nO que você faz, Lia?');
+  assert.deepEqual(camposDoStatus(status), [['Nome', 'Lia'], ['Condição', 'Vigilante']]);
+  assert.equal(narrativa, 'Uma figura inspeciona uma caixa.\n\nO que você faz, Lia?');
+  // Campos espaçados por linha em branco continuam sendo um status só.
+  assert.equal(camposDoStatus(extrairStatus('━━━ STATUS DO PERSONAGEM ━━━\n• Nome: Lia\n\n• Condição: Ferida\n━━━━━━━━').status).length, 2);
+
+  const mem = aplicar(memoriaVazia(), `SECRETO: Ainda não há segredos.
+FATO: Nenhum.
+ESQUECER: Nenhum
+FATO: Nenhum guarda viu Lia entrar no armazém
+NPC: Estivador velho, desconfiado; teme Blackwood; sente alívio por ver Lia viva`);
+  assert.deepEqual(mem.segredos, []);
+  assert.deepEqual(mem.fatos, ['Nenhum guarda viu Lia entrar no armazém']);
+  assert.deepEqual(mem.npcs, { 'Estivador velho': 'desconfiado; teme Blackwood; sente alívio por ver Lia viva' });
+});
+
+test('o prompt pede NPCs com emoção e termina com a conferência', () => {
+  const s = sistema(campanha());
+  assert.ok(s.includes('NPCs REALISTAS E COM EMOÇÕES'));
+  assert.ok(s.includes('o que sente agora e por quê'));
+  assert.ok(s.trimEnd().endsWith('Escreva sempre em português do Brasil.'));
+  assert.ok(s.indexOf('ANTES DE ENVIAR, CONFIRA') > s.indexOf('MEMÓRIA DO MESTRE'));
+});
+
 test('o prompt leva o tema, as regras e a memória secreta', () => {
   const c = campanha();
   c.mem = aplicar(memoriaVazia(), 'SECRETO: o anel é amaldiçoado\nPERSONAGEM: Kael, humano, ex-soldado');

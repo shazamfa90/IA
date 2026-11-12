@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { chamar, conversar, escolherModelo, listarModelos, pesquisar, pronta, type Conexao } from './ia.ts';
+import { INTEGRADAS, TIPOS, ativas, chamar, conversar, escolherModelo, listarModelos, pesquisar, pronta, type Conexao } from './ia.ts';
 
 const real = globalThis.fetch;
 /** Troca o fetch por um de mentira durante o teste. Devolve as chamadas feitas. */
@@ -72,12 +72,47 @@ test('cota esgotada na primeira: a segunda responde', async () => {
 
 test('todas falharam: o erro diz o que houve em cada uma', async () => {
   falso((url) => (url.includes('googleapis') ? erro(429) : erro(401)));
-  await assert.rejects(conversar([gemini, groq], oi), /Google Gemini: a cota grátis acabou por agora · Groq: a chave foi recusada/);
+  await assert.rejects(conversar([gemini, groq], oi, { espera: 1 }), /Google Gemini: limite de uso atingido por agora · Groq: a chave foi recusada/);
   falso(() => {
     throw new TypeError('fetch failed');
   });
   await assert.rejects(conversar([gemini], oi), /sem conexão/);
   await assert.rejects(conversar([{ ...gemini, chave: '' }], oi), /Nenhuma IA ligada/);
+  globalThis.fetch = real;
+});
+
+test('integradas: prontas sem chave, não mandam Authorization, e vêm depois das chaves do jogador', async () => {
+  assert.ok(INTEGRADAS.length >= 1);
+  assert.ok(INTEGRADAS.every(pronta));
+  assert.ok(!TIPOS.some((t) => INTEGRADAS.some((i) => i.tipo === t)), 'integrada não aparece na lista de chaves');
+  const cfg = { conexoes: [gemini, { ...groq, chave: '' }], pesquisar: true, integradas: true };
+  assert.deepEqual(ativas(cfg).map((c) => c.tipo), ['gemini', ...INTEGRADAS.map((c) => c.tipo)]);
+  assert.deepEqual(ativas({ ...cfg, integradas: false }).map((c) => c.tipo), ['gemini']);
+
+  const chamadas = falso(() => sse('Sem chave.'));
+  const { texto } = await conversar(ativas({ conexoes: [], pesquisar: true, integradas: true }), oi);
+  assert.equal(texto, 'Sem chave.');
+  assert.equal(chamadas[0].url, 'https://api.llm7.io/v1/chat/completions');
+  // Sem chave não há o que mandar: um Authorization vazio só daria motivo pra recusa.
+  assert.deepEqual(Object.keys(chamadas[0].init?.headers as object), ['Content-Type']);
+  globalThis.fetch = real;
+});
+
+test('todos recusaram por pressa: espera e tenta mais uma rodada', async () => {
+  let n = 0;
+  const chamadas = falso(() => (++n <= 2 ? erro(429) : sse('Agora foi.')));
+  const { texto, por } = await conversar([gemini, groq], oi, { espera: 1 });
+  assert.equal(texto, 'Agora foi.');
+  assert.equal(por.tipo, 'gemini');
+  assert.equal(chamadas.length, 3);
+  // Cota do dia esgotada: o serviço manda voltar em uma hora, então esperar segundos não adianta.
+  const esgotada = falso(() => new Response(JSON.stringify({ error: { message: 'Daily token quota exceeded.' } }), { status: 429, headers: { 'retry-after': '3600' } }));
+  await assert.rejects(conversar([gemini], oi, { espera: 1 }), /limite de uso/);
+  assert.equal(esgotada.length, 1);
+  // Falha que não é pressa não ganha segunda rodada.
+  const outras = falso(() => erro(401));
+  await assert.rejects(conversar([gemini, groq], oi, { espera: 1 }));
+  assert.equal(outras.length, 2);
   globalThis.fetch = real;
 });
 
@@ -92,7 +127,7 @@ test('cancelar para tudo, sem tentar a próxima', async () => {
 
 test('erro no meio do stream vira falha, não texto', async () => {
   falso(() => new Response('data: {"error":{"code":429,"message":"rate"}}\n\n', { headers: { 'content-type': 'text/event-stream' } }));
-  await assert.rejects(chamar(gemini, oi), /cota grátis/);
+  await assert.rejects(chamar(gemini, oi), /limite de uso/);
   globalThis.fetch = real;
 });
 

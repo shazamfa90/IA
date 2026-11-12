@@ -12,6 +12,8 @@ export type Msg = {
   /** Do mestre, o texto bruto: narração, status e bastidores. A tela mostra só `separar().visivel`. */
   texto: string;
   t: number;
+  /** Qual IA narrou esta fala: aparece discreto embaixo, pra saber quando houve troca. */
+  por?: string;
 };
 
 export type Memoria = {
@@ -131,7 +133,16 @@ Ao final de TODA mensagem, inclua:
 Regras: Crie campos dinâmicos baseados no TEMA. Só liste o que ele realmente possui/sabe. Use "Perdido/Selado/Desconhecido/Nenhum" quando aplicável. NUNCA revele no status algo que ele não descobriu (se anel é amaldiçoado e ele não sabe, mostre "Anel de prata - Nenhum efeito aparente").
 
 9. INÍCIO
-Apresente o mundo em até 3 parágrafos sem spoilers. Depois pergunte: 1) Nome? 2) Aparência/Espécie? 3) Origem/Conceito em 1 frase? 4) Ponto de partida? 5) Estilo [combate, drama, exploração, mistério, misto]? 6) Limites de conteúdo? Confirme e inicie a Cena 1 com imersão sensorial e dilema aberto.`;
+Apresente o mundo em até 3 parágrafos sem spoilers. Depois pergunte: 1) Nome? 2) Aparência/Espécie? 3) Origem/Conceito em 1 frase? 4) Ponto de partida? 5) Estilo [combate, drama, exploração, mistério, misto]? 6) Limites de conteúdo? Confirme e inicie a Cena 1 com imersão sensorial e dilema aberto.
+
+10. NPCs REALISTAS E COM EMOÇÕES
+Todo NPC é uma pessoa, não um balcão de informações. Cada um tem temperamento, um desejo, um medo, um defeito, um jeito próprio de falar e uma vida que não gira em torno do personagem.
+• Emoção antes da fala: decida o que o NPC sente AGORA (medo, raiva, luto, alívio, vergonha, cobiça, afeto, tédio, esperança) e por quê. A emoção muda o que ele diz, o que esconde e como age.
+• Mostre, não rotule: mãos que tremem, olhar que foge, riso fora de hora, frase que morre no meio, voz que endurece. Nunca "ele está triste"; o jogador percebe pelo corpo e pela voz.
+• Emoções têm causa e duram: mudam por acontecimentos, não a cada frase. Quem foi humilhado guarda rancor, quem foi ajudado lembra; luto, trauma e cansaço atravessam dias.
+• Reagem como gente: recusam, hesitam, mentem por vergonha, erram por orgulho, ajudam contra o próprio interesse, mudam de ideia, perdem a paciência, fazem piada, têm dia ruim. Ninguém é só bom ou só mau: vilões têm razões, aliados têm limites.
+• Relações evoluem: confiança, medo, dívida e afeto pelo personagem crescem ou quebram conforme o que ele faz, o que diz e o tom com que diz.
+• Vida própria: família, ofício, rotina, problemas e opinião sobre os outros NPCs. Conversam entre si, fofocam, brigam, se protegem.`;
 
 /**
  * Como o mestre conversa com o app. Vem depois das regras porque é mecânica, não estilo:
@@ -145,13 +156,13 @@ PERSONAGEM: ficha fixa numa linha (nome, aparência/espécie, origem, estilo de 
 TEMPO: data, hora e clima atuais do mundo.
 FATO: um fato confirmado novo que o personagem viveu (ferimento, promessa, dívida, item ganho ou perdido, lugar, reputação). Uma linha FATO por fato.
 SECRETO: uma informação secreta nova ou alterada (plano de NPC, armadilha, identidade oculta, fraqueza, o que anda acontecendo fora de cena). Uma linha SECRETO por segredo.
-NPC: Nome | o que quer, o que sabe, onde está agora e como vê o personagem.
+NPC: Nome | jeito de ser; o que quer e o que teme; o que sabe; o que sente agora e por quê; como vê o personagem (confiança, medo, rancor, afeto); onde está.
 ESQUECER: trecho de uma anotação antiga que deixou de valer.
 >>>
 
 Regras do bloco:
 • O jogador NUNCA vê o bloco: é o único lugar onde segredos podem ser escritos. Fora dele vale a anti-onisciência.
-• Anote só o que mudou nesta mensagem; omita as linhas sem novidade. Uma linha NPC com o mesmo nome substitui a anterior.
+• Anote só o que mudou nesta mensagem; omita as linhas sem novidade. Uma linha NPC com o mesmo nome substitui a anterior: reescreva-a sempre que a emoção ou o vínculo do NPC mudar, para ele continuar a mesma pessoa na próxima cena.
 • Use os SECRETOS da memória para fazer o mundo andar fora de cena, e respeite todos os FATOS: eles já aconteceram.
 • Nunca cite o bloco, a memória ou o aplicativo na narração.
 
@@ -174,14 +185,23 @@ export function memoriaEmTexto(c: Campanha): string {
     m.resumo && `RESUMO DA HISTÓRIA ATÉ AQUI:\n${m.resumo}`,
     `FATOS CONFIRMADOS (o personagem viveu; persistem):\n${lista(m.fatos)}`,
     `SEGREDOS (PROIBIDO narrar antes do gatilho lógico):\n${lista(m.segredos)}`,
-    `NPCs (cada um só sabe o que está na própria linha):\n${lista(npcs)}`,
+    `NPCs (cada um só sabe o que está na própria linha; retome a emoção e o vínculo anotados):\n${lista(npcs)}`,
     m.pesquisas.length > 0 && `PESQUISAS:\n${m.pesquisas.map((p) => `[${p.termo}]\n${p.texto}`).join('\n\n')}`,
   ];
   return partes.filter(Boolean).join('\n\n');
 }
 
+/** Vai por último, que é o que os modelos menores mais respeitam: o que conferir antes de enviar. */
+const CONFERIR = `═══ ANTES DE ENVIAR, CONFIRA ═══
+1. Não escrevi fala, pensamento, sentimento nem ação do personagem do jogador além do que ele mesmo declarou.
+2. Nenhum segredo apareceu na narração: só dados sensoriais brutos.
+3. Cada NPC em cena agiu movido pelo que sente e quer, com voz própria.
+4. Terminei com a situação aberta e uma pergunta objetiva.
+5. Depois vem o STATUS DO PERSONAGEM e, por último, o bloco <<<BASTIDORES ... >>>.
+Escreva sempre em português do Brasil.`;
+
 export const sistema = (c: Campanha): string =>
-  `${REGRAS.replace('[TEMA]', c.tema)}\n\n${PROTOCOLO}\n\n${memoriaEmTexto(c)}`;
+  `${REGRAS.replace('[TEMA]', c.tema)}\n\n${PROTOCOLO}\n\n${memoriaEmTexto(c)}\n\n${CONFERIR}`;
 
 const ABERTURA = '[O jogador acabou de abrir a aventura. Siga a seção 9 – INÍCIO.]';
 const CONTINUA = '[A aventura continua do ponto em que parou.]';
@@ -267,15 +287,34 @@ export function extrairStatus(visivel: string): { narrativa: string; status: str
   const linhas = visivel.split('\n');
   const inicio = linhas.findIndex((l) => /STATUS DO PERSONAGEM/i.test(l));
   if (inicio < 0) return { narrativa: visivel.trim(), status: '' };
-  // Fecha na próxima régua (linha só de traços) ou no fim do texto.
-  let fim = linhas.findIndex((l, i) => i > inicio && /^[\s━─═—_*-]{6,}$/.test(l));
-  if (fim < 0) fim = linhas.length - 1;
+  // Fecha na próxima régua (linha só de traços). Sem régua, na linha em branco depois dos
+  // campos — a não ser que o que vem depois dela ainda seja campo (modelo que espaça a lista).
+  const regua = (l: string) => /^[\s━─═—_*-]{6,}$/.test(l);
+  const campo = (l: string) => /^\s*[•*·-]\s*\S/.test(l);
+  let fim = linhas.length - 1;
+  let viuCampo = false;
+  for (let i = inicio + 1; i < linhas.length; i++) {
+    if (regua(linhas[i])) {
+      fim = i;
+      break;
+    }
+    if (linhas[i].trim()) viuCampo = true;
+    else if (viuCampo && !campo(linhas.slice(i).find((l) => l.trim()) ?? '') && !regua(linhas.slice(i).find((l) => l.trim()) ?? '')) {
+      fim = i;
+      break;
+    }
+  }
   const status = linhas
     .slice(inicio + 1, fim + 1)
     .filter((l) => !/^[\s━─═—_*`-]*$/.test(l))
     .map((l) => l.trim())
     .join('\n');
-  const narrativa = [...linhas.slice(0, inicio), ...linhas.slice(fim + 1)].join('\n').replace(/\s*```\s*$/, '').trim();
+  const narrativa = [...linhas.slice(0, inicio), ...linhas.slice(fim + 1)]
+    .join('\n')
+    .replace(/\n[\s_*-]{3,}\s*(?=\n|$)/g, '\n') // régua de markdown que separava o status
+    .replace(/\s*```\s*$/, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
   return { narrativa, status };
 }
 
@@ -296,7 +335,8 @@ export function camposDoStatus(status: string): [string, string][] {
 const CHAVES = ['PERSONAGEM', 'TEMPO', 'FATO', 'SECRETO', 'NPC', 'ESQUECER', 'RESUMO'] as const;
 type Chave = (typeof CHAVES)[number];
 const APELIDO: Record<string, Chave> = { FATOS: 'FATO', SECRETOS: 'SECRETO', SEGREDO: 'SECRETO', SEGREDOS: 'SECRETO', NPCS: 'NPC' };
-const VAZIO = /^[\s([]*(nenhum|nenhuma|nada|sem novidades?|sem mudanças?|n\/a|—|-)?[\s)\].]*$/i;
+/** "Nenhum.", "(sem mudanças)", "Ainda não há segredos.": o modelo preencheu a linha sem ter o que dizer. */
+const VAZIO = /^[\s([]*((ainda\s+)?(não há|nenhuma?|nada|sem)(?=[\s.)\]]|$)[^,;:|]{0,20}|n\/a|—|-|\.{3}|…)?[\s)\].]*$/i;
 
 /**
  * Lê as linhas "CHAVE: valor" de um bloco. Aceita o que os modelos costumam variar:
@@ -328,9 +368,9 @@ export function lerBloco(bloco: string): [Chave, string][] {
 const semRepetir = (itens: string[]) => [...new Set(itens.map((i) => i.trim()).filter(Boolean))];
 const contem = (texto: string, trecho: string) => texto.toLowerCase().includes(trecho.toLowerCase());
 
-/** "Nome | notas" (ou com travessão, ou dois-pontos) → [nome, notas]. */
+/** "Nome | notas" (ou com travessão, dois-pontos ou, na falta, a primeira vírgula) → [nome, notas]. */
 function lerNpc(valor: string): [string, string] {
-  const m = valor.match(/^(.{1,60}?)\s*(?:\||—|–| - |:)\s*(.+)$/s);
+  const m = valor.match(/^(.{1,60}?)\s*(?:\||—|–| - |:)\s*(.+)$/s) ?? valor.match(/^(.{1,60}?),\s*(.+)$/s);
   return m ? [m[1].trim(), m[2].trim()] : [valor.trim().slice(0, 60), valor.trim()];
 }
 
@@ -415,7 +455,7 @@ Responda exatamente neste formato, em português, sem mais nada:
 RESUMO: a história até aqui em ordem cronológica, em até 250 palavras, incorporando o resumo anterior e o trecho novo.
 FATO: um fato confirmado que ainda importa (uma linha FATO para cada, no máximo 20)
 SECRETO: um segredo ainda não revelado ou plano em andamento (uma linha SECRETO para cada, no máximo 15)
-NPC: Nome | o que quer, o que sabe, onde está, como vê o personagem (uma linha NPC para cada NPC que ainda importa)`,
+NPC: Nome | jeito de ser; o que quer e teme; o que sabe; o que sente agora e por quê; como vê o personagem; onde está (uma linha NPC para cada NPC que ainda importa — preserve as emoções e os vínculos)`,
       },
       {
         role: 'user',
