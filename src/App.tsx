@@ -49,6 +49,7 @@ const GRUPOS: [string, readonly Theme[]][] = [
 
 const TABS = [
   ['ficha', 'Ficha'],
+  ['mestreia', 'Mestre IA'],
   ['personagens', 'Personagens'],
   ['sistemas', 'Sistemas'],
   ['musica', 'Música'],
@@ -59,6 +60,8 @@ const TABS = [
 
 // O fichário pesa mais que o resto do app: só baixa quando alguém abre a aba.
 const Livro = lazy(() => import('./Livro.tsx'));
+// O mestre narrador também: quem só usa a ficha não baixa a conversa com a IA.
+const MestreIA = lazy(() => import('./MestreIA.tsx'));
 
 // Sistemas Hashira criados antes das explicações ganham descrições e rolagens novas.
 const carregar = (): State => {
@@ -108,6 +111,9 @@ export default function App() {
   const semMovimento = matchMedia('(prefers-reduced-motion: reduce)').matches && !state.ajustes?.giro;
   const duracaoGiro = semMovimento ? 0 : GIROS[aj.giro];
   const [tocando, setTocando] = useState<Tocando | null>(null);
+  // Aberta uma vez, a aba do mestre fica montada (só escondida): a resposta que está
+  // chegando não se perde quando o jogador vai olhar a ficha no meio da cena.
+  const [mestreAberto, setMestreAberto] = useState(false);
 
   useEffect(() => save(state), [state]);
 
@@ -228,6 +234,9 @@ export default function App() {
     ([id]) => (!['sistemas', 'musica'].includes(id) || state.role === 'mestre') && (id !== 'livro' || hashira),
   );
   const aba = abas.some(([id]) => id === tab) ? tab : 'ficha';
+  useEffect(() => {
+    if (aba === 'mestreia') setMestreAberto(true);
+  }, [aba]);
 
   /** `teste`: só a animação e o resultado, sem mexer na ficha nem postar no Discord. */
   async function doRoll(label: string, notation: string, assign?: string, teste = false) {
@@ -374,6 +383,14 @@ export default function App() {
           <Suspense fallback={<p className="hint">Abrindo o livro…</p>}>
             <Livro />
           </Suspense>
+        )}
+
+        {mestreAberto && (
+          <div className="aba-ia" hidden={aba !== 'mestreia'}>
+            <Suspense fallback={<p className="hint">Chamando o mestre…</p>}>
+              <MestreIA />
+            </Suspense>
+          </div>
         )}
 
         {aba === 'ajustes' && (

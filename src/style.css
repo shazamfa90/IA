@@ -445,3 +445,60 @@ html.respiracao .tab.on .ico { color: var(--accent); }
 .texto .intro { display: block; margin-bottom: 6px; }
 .texto .d { padding: 0 4px; border-radius: 6px; background: var(--tint); color: var(--accent-txt); font-family: ui-monospace, monospace; font-size: .9em; white-space: nowrap; }
 article.verbete .texto { padding: 4px 0 0; }
+
+/* --- Mestre IA: conversa com o narrador ------------------------------------- */
+/* A aba fica montada mesmo escondida (a resposta continua chegando), e é sempre uma coluna só. */
+.aba-ia { grid-column: 1 / -1; display: grid; gap: 18px; align-content: start; width: 100%; max-width: 820px; margin: 0 auto; }
+.aba-ia[hidden] { display: none; }
+.aba-ia > * { min-width: 0; }
+/* Na conversa a caixa de escrever cola no fim: o respiro de baixo do main sobraria vazio. */
+main:has(.aba-ia:not([hidden]) .escrever) { padding-bottom: calc(var(--barra) + env(safe-area-inset-bottom) + 14px); }
+.chat { display: grid; gap: 14px; }
+.chat-topo { display: flex; align-items: center; gap: 10px; }
+.chat-topo h1 { flex: 1; min-width: 0; margin: 0; font-size: 1.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat-topo .add { flex: none; margin: 0; }
+/* O mestre fala em cartão saltado; o jogador, afundado e à direita: dá pra saber quem disse sem ler nome. */
+.fala { padding: 16px 18px; border-radius: var(--r); background: var(--bg); box-shadow: var(--alto); line-height: 1.65; overflow-wrap: anywhere; }
+.fala p { margin: 0 0 .85em; }
+.fala p:last-child { margin-bottom: 0; }
+.fala.jogador { justify-self: end; max-width: 88%; padding: 12px 16px; border-radius: var(--r) var(--r) 6px var(--r); box-shadow: var(--fundo); white-space: pre-wrap; }
+.fala.achado { padding: 12px 16px; box-shadow: var(--fundo-p); color: var(--dim); font-size: .88rem; white-space: pre-wrap; }
+.status { margin-top: 14px; padding: 12px 14px; border-radius: 16px; box-shadow: var(--fundo); font-size: .9rem; }
+section > .status { margin-top: 0; }
+.status h3 { margin: 0 0 8px; color: var(--accent-txt); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
+.status dl { display: grid; gap: 6px; margin: 0; }
+.status dl > div { display: flex; flex-wrap: wrap; gap: 2px 10px; }
+.status dt { flex: 0 0 auto; color: var(--dim); }
+.status dt::after { content: ':'; }
+.status dd { flex: 1 1 60%; min-width: 0; margin: 0; font-weight: 600; }
+.acoes { margin-top: 0; }
+.acoes .add { flex: 0 1 auto; }
+.digitando { margin: 0; }
+.digitando::after { content: '…'; display: inline-block; width: 1.2em; animation: digitando 1.2s steps(4, end) infinite; overflow: hidden; vertical-align: bottom; }
+@keyframes digitando { from { width: 0; } to { width: 1.2em; } }
+.escrever { position: sticky; z-index: 4; bottom: calc(var(--barra) + env(safe-area-inset-bottom) + 8px); display: flex; align-items: flex-end; gap: 8px; padding: 8px; border-radius: 24px; background: var(--bg); box-shadow: var(--alto); }
+.escrever textarea { flex: 1; min-width: 0; min-height: 44px; max-height: 38vh; resize: none; }
+.escrever button { flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 14px; background: var(--bg); box-shadow: var(--alto-p); color: var(--accent-txt); font-weight: 800; }
+.escrever button:active:not(:disabled) { box-shadow: var(--fundo-p); }
+.escrever .enviar { background: var(--accent); color: var(--on-accent); }
+.prosa { margin: 0; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.lista { margin: 0; padding-left: 20px; display: grid; gap: 6px; line-height: 1.5; overflow-wrap: anywhere; }
+.lista li::marker { color: var(--accent); }
+.ideias { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.ideias button { padding: 7px 12px; border: 0; border-radius: 999px; background: var(--bg); box-shadow: var(--alto-p); color: var(--dim); font-size: .82rem; font-weight: 600; }
+.ideias button:active { box-shadow: var(--fundo-p); }
+.ligacao { margin-top: 12px; border-radius: 18px; box-shadow: var(--alto-p); }
+.ligacao > summary { display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 10px 16px; font-weight: 700; cursor: pointer; list-style: none; }
+.ligacao > summary::-webkit-details-marker { display: none; }
+.ligacao > summary small { margin-left: auto; padding: 2px 10px; border-radius: 99px; box-shadow: var(--fundo-p); color: var(--dim); font-size: .75rem; font-weight: 600; white-space: nowrap; }
+.ligacao[open] { padding-bottom: 16px; }
+.ligacao[open] > summary { color: var(--accent-txt); }
+.ligacao > :not(summary) { margin-left: 16px; margin-right: 16px; }
+.ligacao > .hint:first-of-type { margin-top: 0; }
+.ligacao a.add { display: inline-block; text-decoration: none; }
+.ligacao select { width: 100%; max-width: none; margin-top: 10px; }
+@media (min-width: 900px) {
+  main:has(.aba-ia:not([hidden]) .escrever) { padding-bottom: 28px; }
+  .escrever { bottom: 18px; }
+}
+@media (prefers-reduced-motion: reduce) { .digitando::after { animation: none; } }
