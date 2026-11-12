@@ -85,15 +85,40 @@ universo ou tema, ele apresenta o mundo, faz as seis perguntas do personagem e a
   personagem ao fim de toda fala, com campos próprios do tema.
 - **Anti-onisciência** — o mestre sabe tudo; você só lê o que o personagem percebeu. A cada fala ele
   anota os segredos (planos de NPC, armadilhas, o anel amaldiçoado) num bloco de bastidores que o
-  app guarda e nunca mostra na conversa. Em *Memória → Bastidores* dá pra espiar, com aviso de spoiler.
-- **Memória persistente** — a aventura fica no aparelho (IndexedDB) e continua de onde parou. O
-  mestre relê a cada fala: leis do mundo, ficha fixa do personagem, tempo, fatos vividos, segredos,
-  o que cada NPC quer e sabe, e o resumo da história. Quando a conversa cresce, as falas antigas
-  viram resumo e as anotações são condensadas, então a campanha não tem tamanho máximo.
-  *Exportar* leva tudo num arquivo pra outro aparelho.
-- **Pesquisa** — antes de criar o mundo o mestre consulta a Wikipédia sobre o tema (pra pegar a
-  atmosfera e a lógica de poder de uma obra, sem copiar personagens nem trama), pode consultar de
-  novo durante o jogo, e o 🔎 ao lado da caixa de texto pesquisa pra você e anota pra ele.
+  app guarda e nunca mostra na conversa. Em *Memória → Bastidores* dá pra espiar, com aviso de
+  spoiler. Segredo que o personagem descobre deixa de ser segredo e vira fato.
+- **Raciocínio antes de narrar** — toda fala do mestre começa por um bloco que você não vê, em
+  que ele julga a ação com a memória em mãos: o que foi tentado, o que as leis do mundo e a
+  condição do personagem permitem, o que cada NPC em cena sabe e sente, o resultado e o custo, e
+  o que anda fora de cena. Onde o serviço tem modo de raciocínio (Gemini, Groq, OpenRouter,
+  Cerebras), ele vai ligado em toda chamada; modelo que não aceita o parâmetro é chamado sem ele.
+- **Equipe de IAs** — com duas chaves ligadas, uma IA narra e a outra confere cada fala contra as
+  regras e a memória (agência do jogador, segredo vazado, contradição, formato). Erro grave volta
+  pro narrador com o motivo, uma vez só; se a fala passa, a segunda IA completa as anotações de
+  memória. São duas chamadas por fala, uma em cada serviço, então o trabalho e a cota se dividem.
+  O bastidor (revisão, capítulos, plano de pesquisa) roda com raciocínio baixo, pra gastar pouco.
+  Com uma chave só, a mesma IA faz a segunda passada; só com a integrada, a equipe fica desligada.
+- **Memória que não esquece** — a aventura fica no aparelho (IndexedDB) e continua de onde parou.
+  São três camadas:
+  - *de trabalho*, que vai inteira em toda fala: status, tempo, ficha do personagem, fatos
+    recentes, pendências (promessas, dívidas, prazos, missões), segredos, NPCs em cena com o que
+    sentem, o resumo da campanha e os dois últimos capítulos;
+  - *arquivo*: o que sai da memória de trabalho desce pra lá em vez de ser apagado — fatos
+    antigos, pendências resolvidas, capítulos, pesquisas — e todas as falas ficam guardadas;
+  - *lembrança*: a cada fala o app procura no arquivo e nas cenas antigas o que tem a ver com a
+    cena atual e põe na frente do mestre. É busca por palavras feita no próprio celular: não
+    gasta chamada de IA. O mestre também pode pedir (`[[LEMBRAR: assunto]]`).
+
+  A conversa recente vai palavra por palavra, no tamanho que a IA que narra aguenta (o Gemini
+  recebe umas cinco vezes mais que as apertadas); quando passa disso, o trecho antigo vira um
+  capítulo. Em *Memória* você vê tudo, apaga anotação errada com o ✕ e escreve em *Nunca
+  esquecer* o que o mestre deve ter na frente em toda fala. *Exportar* leva tudo pra outro aparelho.
+- **Pesquisa por vários ângulos** — antes de criar o mundo, uma IA lista as buscas (a obra ou o
+  gênero, o sistema de poder, a época que inspira, as criaturas e facções), o app lê um verbete
+  da Wikipédia pra cada uma (português, depois inglês), fica com a abertura e os parágrafos que
+  mais têm a ver com o tema, descarta verbete que só esbarra no termo, e outra passada de IA
+  separa o que serve num dossiê curto. As fontes aparecem na conversa. Durante o jogo o mestre
+  pode pesquisar até três termos de uma vez, e o 🔎 faz o mesmo pra você.
 - **Na conversa** — a resposta aparece enquanto é escrita; *↻ Outra versão* troca a última fala do
   mestre e devolve a memória ao que era; se a resposta falhar, *Tentar de novo* ou *Reescrever
   minha fala*. Dá pra olhar a ficha em outra aba sem perder a resposta que está chegando.

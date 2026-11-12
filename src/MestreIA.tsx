@@ -1,22 +1,31 @@
 import { useEffect, useRef, useState } from 'react';
-import { INTEGRADAS, PROVEDORES, TIPOS, ativas, carregarIA, conversar, escolherModelo, listarModelos, pesquisar, pronta, salvarIA, type ConfigIA, type Conexao, type Tipo } from './ia.ts';
+import { INTEGRADAS, PROVEDORES, TIPOS, ativas, auxiliares, carregarIA, conversar, escolherModelo, folegoDe, listarModelos, pesquisar, pronta, salvarIA, type ConfigIA, type Conexao, type Tipo } from './ia.ts';
 import { destrancado, lembrar, senhaCerta } from './tranca.ts';
 import { apagarCampanha, listarCampanhas, pedirPermanencia, salvarCampanha } from './banco.ts';
 import {
   aplicar,
-  aplicarCondensado,
+  aplicarCapitulo,
+  atualizar,
   camposDoStatus,
   comPesquisa,
   contexto,
   exportarCampanha,
   extrairStatus,
   importarCampanha,
+  lerAuxiliar,
+  lerBuscas,
   novaCampanha,
-  pedidoCondensar,
+  pedidoAuxiliar,
+  pedidoBuscas,
+  pedidoCapitulo,
+  pedidoDossie,
   pedidoLeis,
+  pedidoRefazer,
   precisaCondensar,
+  relembrar,
   separar,
   type Campanha,
+  type Memoria,
 } from './mestre.ts';
 
 const IDEIAS = ['Fantasia sombria', 'Cyberpunk', 'Horror cósmico', 'Faroeste fantástico', 'Kimetsu no Yaiba', 'Piratas e mares malditos'];
@@ -69,6 +78,20 @@ function Status({ status }: { status: string }) {
         ))}
       </dl>
     </div>
+  );
+}
+
+/** Lista de anotações que o jogador pode apagar uma a uma. */
+function Itens({ itens, onTirar }: { itens: string[]; onTirar: (i: number) => void }) {
+  return (
+    <ul className="lista itens">
+      {itens.map((texto, i) => (
+        <li key={i}>
+          <span>{texto}</span>
+          <button type="button" aria-label={`Apagar: ${texto.slice(0, 40)}`} onClick={() => onTirar(i)}>✕</button>
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -128,6 +151,7 @@ function LigarIA({ ia, setIa }: { ia: ConfigIA; setIa: (c: ConfigIA) => void }) 
   }
 
   const prontas = ia.conexoes.filter(pronta);
+  const equipe = auxiliares({ ...ia, equipe: true });
   return (
     <section>
       <h2>IA do mestre</h2>
@@ -140,6 +164,19 @@ function LigarIA({ ia, setIa }: { ia: ConfigIA; setIa: (c: ConfigIA) => void }) 
           </small>
         </span>
         <button type="button" role="switch" aria-checked={ia.integradas} aria-label="IA integrada" className="chave" onClick={() => setIa({ ...ia, integradas: !ia.integradas })} />
+      </div>
+      <div className="ajuste">
+        <span>
+          Equipe de IAs
+          <small>
+            {equipe.length > 1
+              ? `${PROVEDORES[equipe[equipe.length - 1].tipo].nome} narra; ${PROVEDORES[equipe[0].tipo].nome} confere cada fala e cuida da memória. As duas dividem o trabalho e a cota.`
+              : equipe.length === 1
+                ? `${PROVEDORES[equipe[0].tipo].nome} narra e também confere a própria fala numa segunda passada. Ligue outra IA pra dividir o trabalho.`
+                : 'Uma segunda IA confere cada fala (agência, segredos, contradições) e cuida da memória. Entra em ação quando houver uma chave ligada.'}
+          </small>
+        </span>
+        <button type="button" role="switch" aria-checked={ia.equipe} aria-label="Equipe de IAs" className="chave" onClick={() => setIa({ ...ia, equipe: !ia.equipe })} />
       </div>
       <h2 className="sub">Para jogar de verdade, sem parar</h2>
       <p className="hint" style={{ marginTop: 0 }}>
@@ -211,7 +248,7 @@ function LigarIA({ ia, setIa }: { ia: ConfigIA; setIa: (c: ConfigIA) => void }) 
       <div className="ajuste">
         <span>
           Pesquisar na Wikipédia
-          <small>O mestre consulta o tema antes de criar o mundo, e pode consultar durante o jogo.</small>
+          <small>Antes de criar o mundo, o mestre pesquisa o tema por vários ângulos e guarda só o que serve. Pode consultar de novo durante o jogo.</small>
         </span>
         <button type="button" role="switch" aria-checked={ia.pesquisar} aria-label="Pesquisar na Wikipédia" className="chave" onClick={() => setIa({ ...ia, pesquisar: !ia.pesquisar })} />
       </div>
@@ -272,6 +309,7 @@ function Mestre({ onTrancar }: { onTrancar: () => void }) {
   const [aviso, setAviso] = useState('');
   const [painel, setPainel] = useState<'conversa' | 'memoria'>('conversa');
   const [spoilers, setSpoilers] = useState(false);
+  const [lembrete, setLembrete] = useState('');
 
   const [texto, setTexto] = useState('');
   const [ocupado, setOcupado] = useState('');
@@ -290,7 +328,7 @@ function Mestre({ onTrancar }: { onTrancar: () => void }) {
 
   useEffect(() => {
     listarCampanhas()
-      .then(setCampanhas)
+      .then((cs) => setCampanhas(cs.map(atualizar)))
       .catch(() => {
         setCampanhas([]);
         setAviso('Este navegador não deixou abrir o armazenamento (aba anônima?). Dá pra jogar, mas a aventura some ao fechar.');
@@ -317,64 +355,144 @@ function Mestre({ onTrancar }: { onTrancar: () => void }) {
     if (parcial && innerHeight + scrollY >= document.documentElement.scrollHeight - 200) aoFim();
   }, [parcial]);
 
-  /** Pede a próxima fala do mestre para a aventura como ela está (a fala do jogador já entrou). */
+  /**
+   * Pede a próxima fala do mestre para a aventura como ela está (a fala do jogador já entrou).
+   * Quem narra é a primeira IA da fila; a segunda confere a fala e cuida da memória.
+   */
   async function rodar(c: Campanha) {
     const ctl = new AbortController();
     parar.current = ctl;
     setErro('');
     setParcial('');
-    const pedir = (extra?: string) =>
-      conversar(narradores, contexto(c, extra), { sinal: ctl.signal, onTexto: (t) => setParcial(separar(t).visivel) });
+    const sinal = ctl.signal;
+    const ajudantes = auxiliares(ia);
+    // Sem equipe (só a integrada, ou equipe desligada), o trabalho de bastidor fica com quem narra.
+    const bastidor = ajudantes.length ? ajudantes : narradores;
+    const folego = folegoDe(narradores[0]);
+    const nome = (con: Conexao) => PROVEDORES[con.tipo].nome;
+
+    const narrar = (extra?: string) =>
+      conversar(narradores, (con) => contexto(c, { extra, folego: folegoDe(con) }), {
+        sinal,
+        onTexto: (t) => {
+          const visivel = separar(t).visivel;
+          setParcial(visivel);
+          // Enquanto só chegou o bloco de raciocínio, não há o que mostrar: diz o que está havendo.
+          setOcupado(visivel || !t ? 'O mestre está narrando…' : 'O mestre raciocina sobre a sua ação…');
+        },
+      });
+    /** Chamada de bastidor: se falhar, o jogo segue sem ela. Só o "parar" interrompe. */
+    const nosBastidores = async (mensagens: Parameters<typeof conversar>[1]): Promise<string> => {
+      try {
+        return (await conversar(bastidor, mensagens, { sinal, temperatura: 0.3, raciocinio: 'low' })).texto;
+      } catch (e) {
+        if (cancelou(e)) throw e;
+        return '';
+      }
+    };
+
     try {
-      // Antes da primeira cena: as leis do universo, escritas uma vez e seguidas até o fim.
+      // Antes da primeira cena: a pesquisa do tema e as leis do universo, feitas uma vez só.
       if (!c.mem.leis) {
-        let referencia = '';
+        let dossie = '';
         if (ia.pesquisar) {
-          setOcupado('Pesquisando o tema…');
-          referencia = await pesquisar(c.tema.slice(0, 120), ctl.signal);
+          // Com equipe, uma IA planeja as buscas (um ângulo do tema em cada) e depois separa
+          // do material achado o que serve. Sem equipe, busca o tema direto: sai mais barato.
+          let buscas = [c.tema.split('\n')[0].slice(0, 80)];
+          if (ajudantes.length) {
+            setOcupado('Planejando a pesquisa do tema…');
+            const plano = await nosBastidores(pedidoBuscas(c.tema));
+            if (plano) buscas = lerBuscas(plano, c.tema);
+          }
+          setOcupado(`Pesquisando: ${buscas.join(' · ')}…`);
+          const achado = await pesquisar(buscas, c.tema, sinal, 3200);
+          dossie = achado.texto.slice(0, 1800);
+          if (achado.texto && ajudantes.length) {
+            setOcupado('Separando o que serve ao tema…');
+            const filtrado = separar(await nosBastidores(pedidoDossie(c.tema, achado.texto))).visivel.trim();
+            if (filtrado) dossie = /^NADA\b/i.test(filtrado) ? '' : filtrado;
+          }
+          if (dossie) {
+            c = {
+              ...c,
+              mem: comPesquisa(c.mem, 'Dossiê do tema', dossie),
+              msgs: [...c.msgs, { de: 'nota', texto: `🔎 Pesquisa do tema. Fontes: ${achado.fontes.join(', ')}.`, t: Date.now() }],
+            };
+            gravar(c);
+          }
         }
         setOcupado('O mestre está criando o mundo…');
-        const leis = await conversar(narradores, pedidoLeis(c.tema, referencia), { sinal: ctl.signal, temperatura: 1 });
+        const leis = await conversar(narradores, pedidoLeis(c.tema, dossie), { sinal, temperatura: 1 });
         c = { ...c, mem: { ...c.mem, leis: separar(leis.texto).visivel } };
         gravar(c);
       }
 
       setOcupado('O mestre está narrando…');
-      let resposta = await pedir();
+      let resposta = await narrar();
       let r = separar(resposta.texto);
-      if (r.pesquisa && !r.visivel) {
-        setOcupado('O mestre consulta os livros…');
-        const achado = ia.pesquisar ? await pesquisar(r.pesquisa, ctl.signal) : '';
-        c = { ...c, mem: comPesquisa(c.mem, r.pesquisa, achado || 'Nada encontrado. Siga com o que já está na memória.') };
-        gravar(c);
-        setOcupado('O mestre está narrando…');
-        resposta = await pedir('[Pesquisa anotada na memória. Narre agora, sem pedir outra pesquisa.]');
+      // O mestre pode pedir uma consulta em vez de narrar: à própria memória, ou a uma enciclopédia.
+      for (let consultas = 0; consultas < 2 && !r.visivel && (r.lembrar || r.pesquisa); consultas++) {
+        let recado: string;
+        if (r.lembrar) {
+          setOcupado('O mestre puxa pela memória…');
+          recado = `[Do arquivo da campanha, sobre "${r.lembrar}":\n${relembrar(c, r.lembrar)}\nNarre agora.]`;
+        } else {
+          setOcupado('O mestre consulta os livros…');
+          const termos = r.pesquisa.split(/[;|]/).map((t) => t.trim()).filter(Boolean).slice(0, 3);
+          const achado = ia.pesquisar ? await pesquisar(termos, c.tema, sinal) : { texto: '', fontes: [] };
+          c = { ...c, mem: comPesquisa(c.mem, termos.join('; '), achado.texto || 'Nada encontrado. Siga com o que já está na memória.') };
+          gravar(c);
+          recado = '[Pesquisa anotada na memória, em PESQUISAS. Narre agora, sem pedir outra consulta.]';
+        }
+        resposta = await narrar(recado);
         r = separar(resposta.texto);
       }
       if (!r.visivel) throw new Error('O mestre respondeu em branco.');
 
+      // A segunda IA relê a fala contra as regras e a memória. Erro grave volta pro narrador,
+      // uma vez só; se ela aprovar, as anotações dela completam as do mestre.
+      let anotacoes = '';
+      let conferido = '';
+      if (ajudantes.length) {
+        setOcupado('A segunda IA confere a cena…');
+        try {
+          const aux = await conversar(ajudantes, pedidoAuxiliar(c, resposta.texto), { sinal, temperatura: 0.2, raciocinio: 'low' });
+          const parecer = lerAuxiliar(aux.texto);
+          conferido = nome(aux.por);
+          if (parecer.refazer) {
+            setParcial('');
+            setOcupado(`A revisão pediu um ajuste (${parecer.motivos[0].slice(0, 90)}). Reescrevendo…`);
+            const nova = await narrar(pedidoRefazer(parecer.motivos));
+            if (separar(nova.texto).visivel) {
+              resposta = nova;
+              r = separar(nova.texto);
+            }
+          } else anotacoes = parecer.anotacoes;
+        } catch (e) {
+          if (cancelou(e)) throw e; // a revisão falhou (cota, sinal): a fala do mestre vale como veio
+        }
+      }
+
+      const turno = c.msgs.length;
+      const quem = nome(resposta.por);
       c = {
         ...c,
         desfazer: { mem: c.mem, resumidoAte: c.resumidoAte },
-        mem: aplicar(c.mem, r.bastidores, extrairStatus(r.visivel).status),
-        msgs: [...c.msgs, { de: 'mestre', texto: r.limpo, t: Date.now(), por: PROVEDORES[resposta.por.tipo].nome }],
+        mem: aplicar(aplicar(c.mem, r.bastidores, extrairStatus(r.visivel).status, turno), anotacoes, '', turno),
+        msgs: [...c.msgs, { de: 'mestre', texto: r.limpo, t: Date.now(), por: conferido && conferido !== quem ? `${quem} · conferido por ${conferido}` : quem }],
         jogada: Date.now(),
       };
       gravar(c);
       setParcial('');
 
-      // Memória longa: o que ficou velho na conversa vira resumo. Falhar aqui não é grave:
-      // nada foi perdido, e a próxima rodada tenta de novo.
-      if (precisaCondensar(c) && c.msgs.length - condensou.current >= 6) {
-        setOcupado('O mestre organiza as anotações…');
+      // A conversa passou do que a IA que narra aguenta inteira: o trecho mais antigo vira
+      // capítulo. Falhar aqui não é grave: nada foi perdido, e a próxima rodada tenta de novo.
+      if (precisaCondensar(c, folego) && c.msgs.length - condensou.current >= 4) {
+        setOcupado('Fechando um capítulo na memória…');
         condensou.current = c.msgs.length;
-        try {
-          const { mensagens, ate } = pedidoCondensar(c);
-          const { texto: condensado } = await conversar(narradores, mensagens, { sinal: ctl.signal, temperatura: 0.3 });
-          gravar(aplicarCondensado(c, condensado, ate));
-        } catch {
-          // segue o jogo
-        }
+        const { mensagens, ate } = pedidoCapitulo(c, folego);
+        const capitulo = await nosBastidores(mensagens);
+        if (capitulo) gravar(aplicarCapitulo(c, capitulo, ate));
       }
     } catch (e) {
       if (!cancelou(e)) setErro((e as Error).message);
@@ -431,21 +549,25 @@ function Mestre({ onTrancar }: { onTrancar: () => void }) {
 
   async function pesquisarAgora() {
     if (!aberta || ocupado) return;
-    const termo = prompt('Pesquisar o quê na Wikipédia? O resultado aparece pra você e entra na memória do mestre.')?.trim();
-    if (!termo) return;
+    const pedido = prompt('Pesquisar o quê na Wikipédia? Pode pôr mais de um assunto, separados por ponto e vírgula. O resultado aparece pra você e entra na memória do mestre.')?.trim();
+    if (!pedido) return;
+    const termos = pedido.split(';').map((t) => t.trim()).filter(Boolean).slice(0, 4);
     setOcupado('Pesquisando…');
     try {
-      const achado = await pesquisar(termo);
-      const nota = achado ? `🔎 ${termo}\n\n${achado}` : `🔎 ${termo}\n\nNada encontrado. Tente outras palavras.`;
+      const achado = await pesquisar(termos, aberta.tema);
+      const nota = achado.texto ? `🔎 ${termos.join(' · ')}\n\n${achado.texto}` : `🔎 ${termos.join(' · ')}\n\nNada encontrado. Tente o nome do assunto como ele apareceria numa enciclopédia.`;
       gravar({
         ...aberta,
-        mem: achado ? comPesquisa(aberta.mem, termo, achado) : aberta.mem,
+        mem: achado.texto ? comPesquisa(aberta.mem, termos.join('; '), achado.texto) : aberta.mem,
         msgs: [...aberta.msgs, { de: 'nota', texto: nota, t: Date.now() }],
       });
     } finally {
       setOcupado('');
     }
   }
+
+  /** O jogador corrige a memória do mestre: tira o que está errado, fixa o que não pode ser esquecido. */
+  const mudarMemoria = (patch: Partial<Memoria>) => aberta && gravar({ ...aberta, mem: { ...aberta.mem, ...patch } });
 
   function baixar(c: Campanha) {
     const url = URL.createObjectURL(new Blob([exportarCampanha(c)], { type: 'application/json' }));
@@ -493,21 +615,49 @@ function Mestre({ onTrancar }: { onTrancar: () => void }) {
               <h2>O que seu personagem sabe</h2>
               {m.status ? <Status status={m.status} /> : <p className="hint">O status aparece depois da primeira fala do mestre.</p>}
               {m.tempo && <p className="hint">Agora: <strong>{m.tempo}</strong></p>}
-              {m.resumo && (
-                <>
-                  <h2 className="sub">A história até aqui</h2>
-                  <p className="prosa">{m.resumo}</p>
-                </>
+
+              <h2 className="sub">Nunca esquecer</h2>
+              <p className="hint" style={{ marginTop: 0 }}>O que você anotar aqui vai na frente do mestre em toda fala, pra sempre.</p>
+              {m.fixos.length > 0 && <Itens itens={m.fixos} onTirar={(i) => mudarMemoria({ fixos: m.fixos.filter((_, j) => j !== i) })} />}
+              <form
+                className="anotar"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!lembrete.trim()) return;
+                  mudarMemoria({ fixos: [...m.fixos, lembrete.trim()] });
+                  setLembrete('');
+                }}
+              >
+                <input value={lembrete} placeholder="Ex.: Mirta me deve um favor" aria-label="Anotar lembrança" onChange={(e) => setLembrete(e.target.value)} />
+                <button type="submit" className="add" disabled={!lembrete.trim()}>Anotar</button>
+              </form>
+
+              <h2 className="sub">Pendências</h2>
+              {m.pendencias.length ? (
+                <Itens itens={m.pendencias} onTirar={(i) => mudarMemoria({ pendencias: m.pendencias.filter((_, j) => j !== i) })} />
+              ) : (
+                <p className="hint" style={{ marginTop: 0 }}>Promessas, dívidas, prazos e missões em aberto aparecem aqui.</p>
               )}
+
               <h2 className="sub">Fatos vividos</h2>
               {m.fatos.length ? (
-                <ul className="lista">
-                  {m.fatos.map((f, i) => (
-                    <li key={i}>{f}</li>
-                  ))}
-                </ul>
+                <Itens itens={m.fatos} onTirar={(i) => mudarMemoria({ fatos: m.fatos.filter((_, j) => j !== i) })} />
               ) : (
-                <p className="hint">Nada anotado ainda.</p>
+                <p className="hint" style={{ marginTop: 0 }}>Nada anotado ainda.</p>
+              )}
+              <p className="hint">O ✕ apaga uma anotação errada: o mestre deixa de contar com ela.</p>
+
+              {(m.resumo || m.capitulos.length > 0) && (
+                <>
+                  <h2 className="sub">A história até aqui</h2>
+                  {m.resumo && <p className="prosa">{m.resumo}</p>}
+                  {m.capitulos.map((cap, i) => (
+                    <details key={i} className="capitulo">
+                      <summary>Capítulo {i + 1}</summary>
+                      <p className="prosa">{cap}</p>
+                    </details>
+                  ))}
+                </>
               )}
               {m.pesquisas.length > 0 && (
                 <>
@@ -519,6 +669,11 @@ function Mestre({ onTrancar }: { onTrancar: () => void }) {
                   </ul>
                 </>
               )}
+              <p className="hint">
+                Memória de longo prazo: {m.arquivo.length} {m.arquivo.length === 1 ? 'anotação antiga' : 'anotações antigas'}, {m.capitulos.length}{' '}
+                {m.capitulos.length === 1 ? 'capítulo' : 'capítulos'} e todas as {aberta.msgs.length} falas ficam guardados. A cada fala, o que tem a
+                ver com a cena volta pra frente do mestre.
+              </p>
             </section>
 
             <section>
@@ -554,8 +709,8 @@ function Mestre({ onTrancar }: { onTrancar: () => void }) {
               </label>
               <p className="hint break">Tema: {aberta.tema}</p>
               <p className="hint">
-                {aberta.msgs.length} falas guardadas; as {aberta.msgs.length - aberta.resumidoAte} mais recentes vão inteiras
-                para o mestre, e as anteriores vão como resumo.
+                {aberta.msgs.length} falas guardadas; as mais recentes (até {aberta.msgs.length - aberta.resumidoAte}, conforme a IA que
+                narra) vão inteiras para o mestre, e as anteriores viram capítulo e lembrança.
               </p>
               <div className="controles">
                 <button className="add" onClick={() => baixar(aberta)}>Exportar</button>

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { INTEGRADAS, TIPOS, ativas, chamar, conversar, escolherModelo, listarModelos, pesquisar, pronta, type Conexao } from './ia.ts';
+import { INTEGRADAS, TIPOS, ativas, auxiliares, chamar, conversar, escolherModelo, folegoDe, listarModelos, pesquisar, pronta, type Conexao } from './ia.ts';
 
 const real = globalThis.fetch;
 /** Troca o fetch por um de mentira durante o teste. Devolve as chamadas feitas. */
@@ -85,12 +85,12 @@ test('integradas: prontas sem chave, não mandam Authorization, e vêm depois da
   assert.ok(INTEGRADAS.length >= 1);
   assert.ok(INTEGRADAS.every(pronta));
   assert.ok(!TIPOS.some((t) => INTEGRADAS.some((i) => i.tipo === t)), 'integrada não aparece na lista de chaves');
-  const cfg = { conexoes: [gemini, { ...groq, chave: '' }], pesquisar: true, integradas: true };
+  const cfg = { conexoes: [gemini, { ...groq, chave: '' }], pesquisar: true, integradas: true, equipe: true };
   assert.deepEqual(ativas(cfg).map((c) => c.tipo), ['gemini', ...INTEGRADAS.map((c) => c.tipo)]);
   assert.deepEqual(ativas({ ...cfg, integradas: false }).map((c) => c.tipo), ['gemini']);
 
   const chamadas = falso(() => sse('Sem chave.'));
-  const { texto } = await conversar(ativas({ conexoes: [], pesquisar: true, integradas: true }), oi);
+  const { texto } = await conversar(ativas({ conexoes: [], pesquisar: true, integradas: true, equipe: true }), oi);
   assert.equal(texto, 'Sem chave.');
   assert.equal(chamadas[0].url, 'https://api.llm7.io/v1/chat/completions');
   // Sem chave não há o que mandar: um Authorization vazio só daria motivo pra recusa.
@@ -165,19 +165,110 @@ test('lista de modelos: tira o prefixo, o que não conversa, e ordena pela vers�
   globalThis.fetch = real;
 });
 
-test('pesquisa: português primeiro, inglês se não achar, vazio se cair', async () => {
-  const pagina = (title: string, extract: string, index: number) => ({ title, extract, index });
-  const chamadas = falso((url) =>
-    url.includes('pt.wikipedia')
-      ? new Response(JSON.stringify({ batchcomplete: '' }))
-      : new Response(JSON.stringify({ query: { pages: { 2: pagina('B', 'segundo', 2), 1: pagina('A', 'primeiro\n texto', 1) } } })),
-  );
-  assert.equal(await pesquisar('demon slayer'), 'A: primeiro texto\nB: segundo');
+/** Uma Wikipédia de mentira: `busca` diz que verbetes cada termo acha; `artigos`, o texto de cada um. */
+function wikipedia(busca: (lingua: string, termo: string) => string[], artigos: Record<string, string>) {
+  return falso((url) => {
+    const u = new URL(url);
+    const lingua = u.hostname.split('.')[0];
+    const termo = u.searchParams.get('srsearch');
+    if (termo !== null) return new Response(JSON.stringify({ query: { search: busca(lingua, termo).map((title) => ({ title, snippet: `${title} é um verbete` })) } }));
+    const titulo = u.searchParams.get('titles') ?? '';
+    return new Response(JSON.stringify({ query: { pages: { 1: { title: titulo, extract: artigos[titulo] ?? '' } } } }));
+  });
+}
+
+const KIMETSU = [
+  'Kimetsu no Yaiba é uma série de mangá escrita e ilustrada por Koyoharu Gotouge, publicada entre 2016 e 2020 na revista Weekly Shonen Jump.',
+  'O mangá vendeu mais de 150 milhões de cópias e a adaptação para anime bateu recordes de bilheteria no Japão em 2020.',
+  'Os caçadores de demônios usam técnicas de respiração que aumentam a força e a resistência do corpo, ao custo de exaustão e de encurtar a própria vida.',
+  'Os demônios só morrem expostos à luz do sol ou decapitados por lâminas forjadas com minério que absorve a luz solar.',
+  'Referências',
+  'Este parágrafo de rodapé fala de respiração e demônios mas vem depois das referências e não deve entrar de jeito nenhum.',
+].join('\n');
+
+test('pesquisa: um verbete por ângulo, com a abertura e os parágrafos que têm a ver', async () => {
+  const chamadas = wikipedia((_, termo) => (termo.includes('Kimetsu') ? ['Kimetsu no Yaiba'] : termo.includes('Taish') ? ['Período Taishō'] : []), {
+    'Kimetsu no Yaiba': KIMETSU,
+    'Período Taishō': 'O período Taishō foi uma era da história do Japão entre 1912 e 1926, marcada pela abertura ao Ocidente e pela convivência do antigo com o moderno.',
+  });
+  const { texto, fontes } = await pesquisar(['Kimetsu no Yaiba', 'Período Taishō'], 'caçadores de demônios respiração');
+  assert.deepEqual(fontes, ['Kimetsu no Yaiba', 'Período Taishō']);
+  assert.ok(texto.startsWith('Kimetsu no Yaiba: Kimetsu no Yaiba é uma série de mangá'));
+  assert.ok(texto.includes('técnicas de respiração'), 'o parágrafo sobre o assunto entra');
+  assert.ok(texto.includes('Período Taishō: O período Taishō foi uma era'));
+  assert.ok(!texto.includes('rodapé'), 'nada depois de Referências');
   assert.ok(chamadas[0].url.includes('origin=*'));
-  assert.ok(chamadas[0].url.includes('gsrsearch=demon+slayer'));
+  // O parágrafo que fala do assunto vem antes do que fala de vendas.
+  assert.ok(texto.indexOf('técnicas de respiração') < (texto.indexOf('150 milhões') + 1 || Infinity));
+  globalThis.fetch = real;
+});
+
+test('pesquisa: verbete que só esbarra no termo fica de fora; sem português, vai o inglês', async () => {
+  wikipedia((lingua, termo) => (termo === 'Oni' ? (lingua === 'pt' ? ['Lista de episódios de um anime'] : ['Oni']) : []), {
+    'Lista de episódios de um anime': 'Esta é a lista de episódios de um anime qualquer, com datas de exibição e títulos em japonês e em português para consulta.',
+    Oni: 'An oni is a kind of yokai, demon, orc, ogre, or troll in Japanese folklore, typically portrayed as a hulking figure with horns.',
+  });
+  const { texto, fontes } = await pesquisar(['Oni'], 'folclore japonês');
+  assert.deepEqual(fontes, ['Oni']);
+  assert.ok(texto.includes('Japanese folklore'));
+  globalThis.fetch = real;
+});
+
+test('pesquisa: o mesmo verbete não entra duas vezes; sem sinal, volta vazio', async () => {
+  wikipedia(() => ['Kimetsu no Yaiba'], { 'Kimetsu no Yaiba': KIMETSU });
+  assert.deepEqual((await pesquisar(['Kimetsu no Yaiba', 'Yaiba Kimetsu respiração'], '')).fontes, ['Kimetsu no Yaiba']);
   falso(() => {
     throw new TypeError('offline');
   });
-  assert.equal(await pesquisar('qualquer'), '');
+  assert.deepEqual(await pesquisar(['qualquer coisa']), { texto: '', fontes: [] });
+  assert.deepEqual(await pesquisar([' ']), { texto: '', fontes: [] });
+  globalThis.fetch = real;
+});
+
+test('raciocínio: vai ligado; modelo que recusa o parâmetro é chamado de novo sem ele', async () => {
+  const corpos: any[] = [];
+  const responder = (aceita: boolean) =>
+    falso((_, init) => {
+      const corpo = JSON.parse(String(init?.body));
+      corpos.push(corpo);
+      return 'reasoning_effort' in corpo && !aceita ? erro(400, 'reasoning_effort is not supported with this model') : sse('ok');
+    });
+  responder(true);
+  await chamar(gemini, oi);
+  assert.equal(corpos[0].reasoning_effort, 'medium');
+  await chamar(gemini, oi, { raciocinio: 'low' });
+  assert.equal(corpos[1].reasoning_effort, 'low');
+
+  const llama: Conexao = { tipo: 'groq', chave: 'k', modelo: 'llama-sem-raciocinio' };
+  corpos.length = 0;
+  const chamadas = responder(false);
+  assert.equal(await chamar(llama, oi), 'ok');
+  assert.equal(chamadas.length, 2);
+  assert.ok(!('reasoning_effort' in corpos[1]));
+  // Daí em diante nem tenta: uma chamada só.
+  assert.equal(await chamar(llama, oi), 'ok');
+  assert.equal(chamadas.length, 3);
+  // Quem não tem o parâmetro (integrada) nunca o manda.
+  corpos.length = 0;
+  await chamar(INTEGRADAS[0], oi);
+  assert.ok(!('reasoning_effort' in corpos[0]) && !('reasoning' in corpos[0]));
+  globalThis.fetch = real;
+});
+
+test('equipe: a segunda IA faz o bastidor, a que narra fica por último, a integrada fica de fora', () => {
+  const cfg = { conexoes: [gemini, groq], pesquisar: true, integradas: true, equipe: true };
+  assert.deepEqual(auxiliares(cfg).map((c) => c.tipo), ['groq', 'gemini']);
+  assert.deepEqual(auxiliares({ ...cfg, conexoes: [gemini] }).map((c) => c.tipo), ['gemini']);
+  assert.deepEqual(auxiliares({ ...cfg, conexoes: [] }), []);
+  assert.deepEqual(auxiliares({ ...cfg, equipe: false }), []);
+  assert.ok(folegoDe(gemini) > folegoDe(groq));
+  assert.equal(folegoDe(undefined), folegoDe(INTEGRADAS[0]));
+});
+
+test('cada IA recebe as mensagens montadas pra ela', async () => {
+  const chamadas = falso((url) => (url.includes('googleapis') ? erro(429) : sse('ok')));
+  await conversar([gemini, groq], (c) => [{ role: 'user', content: `para ${c.tipo}` }], { espera: 1 });
+  assert.equal(JSON.parse(String(chamadas[0].init?.body)).messages[0].content, 'para gemini');
+  assert.equal(JSON.parse(String(chamadas[1].init?.body)).messages[0].content, 'para groq');
   globalThis.fetch = real;
 });
