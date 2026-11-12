@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { PROVEDORES, TIPOS, carregarIA, conversar, escolherModelo, listarModelos, pesquisar, pronta, salvarIA, type ConfigIA, type Conexao, type Tipo } from './ia.ts';
+import { INTEGRADAS, PROVEDORES, TIPOS, ativas, carregarIA, conversar, escolherModelo, listarModelos, pesquisar, pronta, salvarIA, type ConfigIA, type Conexao, type Tipo } from './ia.ts';
+import { destrancado, lembrar, senhaCerta } from './tranca.ts';
 import { apagarCampanha, listarCampanhas, pedirPermanencia, salvarCampanha } from './banco.ts';
 import {
   aplicar,
@@ -72,12 +73,13 @@ function Status({ status }: { status: string }) {
 }
 
 /** A fala do mestre como o jogador lê: narração, e o status num cartão. Bastidores ficam de fora. */
-function FalaDoMestre({ bruto }: { bruto: string }) {
+function FalaDoMestre({ bruto, por }: { bruto: string; por?: string }) {
   const { narrativa, status } = extrairStatus(separar(bruto).visivel);
   return (
     <article className="fala mestre">
       <Narracao texto={narrativa} />
       <Status status={status} />
+      {por && <small className="por">narrado por {por}</small>}
     </article>
   );
 }
@@ -88,9 +90,6 @@ function LigarIA({ ia, setIa }: { ia: ConfigIA; setIa: (c: ConfigIA) => void }) 
   const [modelos, setModelos] = useState<Partial<Record<Tipo, string[]>>>({});
   const [aviso, setAviso] = useState<Partial<Record<Tipo, string>>>({});
   const [testando, setTestando] = useState<Tipo | null>(null);
-  // Quem ainda não ligou nada já encontra o primeiro serviço aberto. Decidido uma vez só:
-  // se acompanhasse o estado, o cartão fecharia na cara de quem acabou de ligar.
-  const [primeiraVez] = useState(() => !ia.conexoes.some(pronta));
 
   const de = (tipo: Tipo): Conexao => ia.conexoes.find((c) => c.tipo === tipo) ?? { tipo, chave: '', modelo: '' };
   function mudar(tipo: Tipo, patch: Partial<Conexao>) {
@@ -131,11 +130,23 @@ function LigarIA({ ia, setIa }: { ia: ConfigIA; setIa: (c: ConfigIA) => void }) 
   const prontas = ia.conexoes.filter(pronta);
   return (
     <section>
-      <h2>Ligar a IA</h2>
+      <h2>IA do mestre</h2>
+      <div className="ajuste">
+        <span>
+          IA integrada
+          <small>
+            Já vem ligada, sem conta e sem chave: {INTEGRADAS.map((c) => PROVEDORES[c.tipo].nome).join(' e ')}. Serve pra
+            experimentar na hora: sem chave, o serviço libera só umas poucas falas por dia.
+          </small>
+        </span>
+        <button type="button" role="switch" aria-checked={ia.integradas} aria-label="IA integrada" className="chave" onClick={() => setIa({ ...ia, integradas: !ia.integradas })} />
+      </div>
+      <h2 className="sub">Para jogar de verdade, sem parar</h2>
       <p className="hint" style={{ marginTop: 0 }}>
-        O mestre usa um serviço de IA com <strong>plano grátis</strong>. Você pega uma chave no site do serviço (é só
-        entrar com uma conta, sem cartão), cola aqui e pronto. Nenhum plano grátis é infinito: cada um tem uma cota por
-        dia. Ligue <strong>dois ou três</strong> e, quando a cota de um acabar, o app passa sozinho pro próximo.
+        Cole a chave <strong>grátis</strong> de um serviço maior (é só entrar com uma conta, sem cartão): ele passa a
+        narrar primeiro, com um modelo bem melhor que o da integrada. Cada serviço tem uma cota por dia, e a do Gemini
+        sozinha já dá pra horas de jogo. Com <strong>dois ou três</strong> ligados, quando a cota de um acaba o app
+        passa sozinho pro próximo — na prática, não dá pra esgotar jogando.
       </p>
       {TIPOS.map((tipo) => {
         const info = PROVEDORES[tipo];
@@ -143,7 +154,7 @@ function LigarIA({ ia, setIa }: { ia: ConfigIA; setIa: (c: ConfigIA) => void }) 
         const ordem = prontas.findIndex((p) => p.tipo === tipo);
         const lista = modelos[tipo];
         return (
-          <details key={tipo} className="ligacao" open={tipo === 'gemini' && primeiraVez}>
+          <details key={tipo} className="ligacao">
             <summary>
               {info.nome}
               <small>{ordem >= 0 ? `${ordem + 1}ª · ligada` : 'desligada'}</small>
@@ -206,7 +217,7 @@ function LigarIA({ ia, setIa }: { ia: ConfigIA; setIa: (c: ConfigIA) => void }) 
       </div>
       <p className="hint">
         As chaves ficam só neste aparelho. O que você escreve na aventura vai direto do seu navegador para o serviço
-        ligado, que gera a resposta; o app não tem servidor no meio.
+        que estiver narrando, que gera a resposta; o app não tem servidor no meio.
       </p>
     </section>
   );
@@ -214,7 +225,46 @@ function LigarIA({ ia, setIa }: { ia: ConfigIA; setIa: (c: ConfigIA) => void }) 
 
 // --- A tela --------------------------------------------------------------
 
+/** A porta: sem a senha, nada do Mestre IA aparece. */
+function Senha({ onAbrir }: { onAbrir: () => void }) {
+  const [senha, setSenha] = useState('');
+  const [estado, setEstado] = useState<'' | 'conferindo' | 'errou'>('');
+
+  async function entrar(e: React.FormEvent) {
+    e.preventDefault();
+    setEstado('conferindo');
+    if (await senhaCerta(senha).catch(() => false)) onAbrir();
+    else setEstado('errou');
+  }
+
+  return (
+    <>
+      <h1>Mestre IA</h1>
+      <form onSubmit={entrar}>
+        <section>
+          <h2>Área trancada</h2>
+          <label className="field wide">
+            <span>Senha do Mestre IA</span>
+            <input type="password" autoComplete="current-password" value={senha} onChange={(e) => (setSenha(e.target.value), setEstado(''))} />
+          </label>
+          {estado === 'errou' && <p className="hint err" role="alert">Senha errada.</p>}
+          <button type="submit" className="roll compact" style={{ marginTop: 14 }} disabled={!senha || estado === 'conferindo'}>
+            {estado === 'conferindo' ? 'Conferindo…' : 'Entrar'}
+          </button>
+          <p className="hint">Depois de entrar, este aparelho fica destrancado até você tocar em "Trancar".</p>
+        </section>
+      </form>
+    </>
+  );
+}
+
 export default function MestreIA() {
+  const [aberto, setAberto] = useState(destrancado);
+  if (!aberto) return <Senha onAbrir={() => (lembrar(true), setAberto(true))} />;
+  return <Mestre onTrancar={() => (lembrar(false), setAberto(false))} />;
+}
+
+function Mestre({ onTrancar }: { onTrancar: () => void }) {
   const [campanhas, setCampanhas] = useState<Campanha[] | null>(null);
   const [abertaId, setAbertaId] = useState<string | null>(null);
   const [ia, setIaEstado] = useState<ConfigIA>(carregarIA);
@@ -234,7 +284,8 @@ export default function MestreIA() {
   const arquivo = useRef<HTMLInputElement>(null);
 
   const setIa = (c: ConfigIA) => (setIaEstado(c), salvarIA(c));
-  const ligada = ia.conexoes.some(pronta);
+  const narradores = ativas(ia);
+  const ligada = narradores.length > 0;
   const aberta = campanhas?.find((c) => c.id === abertaId) ?? null;
 
   useEffect(() => {
@@ -273,7 +324,7 @@ export default function MestreIA() {
     setErro('');
     setParcial('');
     const pedir = (extra?: string) =>
-      conversar(ia.conexoes, contexto(c, extra), { sinal: ctl.signal, onTexto: (t) => setParcial(separar(t).visivel) });
+      conversar(narradores, contexto(c, extra), { sinal: ctl.signal, onTexto: (t) => setParcial(separar(t).visivel) });
     try {
       // Antes da primeira cena: as leis do universo, escritas uma vez e seguidas até o fim.
       if (!c.mem.leis) {
@@ -283,20 +334,22 @@ export default function MestreIA() {
           referencia = await pesquisar(c.tema.slice(0, 120), ctl.signal);
         }
         setOcupado('O mestre está criando o mundo…');
-        const leis = await conversar(ia.conexoes, pedidoLeis(c.tema, referencia), { sinal: ctl.signal, temperatura: 1 });
+        const leis = await conversar(narradores, pedidoLeis(c.tema, referencia), { sinal: ctl.signal, temperatura: 1 });
         c = { ...c, mem: { ...c.mem, leis: separar(leis.texto).visivel } };
         gravar(c);
       }
 
       setOcupado('O mestre está narrando…');
-      let r = separar((await pedir()).texto);
+      let resposta = await pedir();
+      let r = separar(resposta.texto);
       if (r.pesquisa && !r.visivel) {
         setOcupado('O mestre consulta os livros…');
         const achado = ia.pesquisar ? await pesquisar(r.pesquisa, ctl.signal) : '';
         c = { ...c, mem: comPesquisa(c.mem, r.pesquisa, achado || 'Nada encontrado. Siga com o que já está na memória.') };
         gravar(c);
         setOcupado('O mestre está narrando…');
-        r = separar((await pedir('[Pesquisa anotada na memória. Narre agora, sem pedir outra pesquisa.]')).texto);
+        resposta = await pedir('[Pesquisa anotada na memória. Narre agora, sem pedir outra pesquisa.]');
+        r = separar(resposta.texto);
       }
       if (!r.visivel) throw new Error('O mestre respondeu em branco.');
 
@@ -304,7 +357,7 @@ export default function MestreIA() {
         ...c,
         desfazer: { mem: c.mem, resumidoAte: c.resumidoAte },
         mem: aplicar(c.mem, r.bastidores, extrairStatus(r.visivel).status),
-        msgs: [...c.msgs, { de: 'mestre', texto: r.limpo, t: Date.now() }],
+        msgs: [...c.msgs, { de: 'mestre', texto: r.limpo, t: Date.now(), por: PROVEDORES[resposta.por.tipo].nome }],
         jogada: Date.now(),
       };
       gravar(c);
@@ -317,7 +370,7 @@ export default function MestreIA() {
         condensou.current = c.msgs.length;
         try {
           const { mensagens, ate } = pedidoCondensar(c);
-          const { texto: condensado } = await conversar(ia.conexoes, mensagens, { sinal: ctl.signal, temperatura: 0.3 });
+          const { texto: condensado } = await conversar(narradores, mensagens, { sinal: ctl.signal, temperatura: 0.3 });
           gravar(aplicarCondensado(c, condensado, ate));
         } catch {
           // segue o jogo
@@ -515,7 +568,7 @@ export default function MestreIA() {
           <>
             {aberta.msgs.map((msg, i) =>
               msg.de === 'mestre' ? (
-                <FalaDoMestre key={i} bruto={msg.texto} />
+                <FalaDoMestre key={i} bruto={msg.texto} por={msg.por} />
               ) : (
                 <article key={i} className={msg.de === 'nota' ? 'fala achado' : 'fala jogador'}>{msg.texto}</article>
               ),
@@ -524,7 +577,14 @@ export default function MestreIA() {
             {parcial && <FalaDoMestre bruto={parcial} />}
             {ocupado && <p className="hint digitando" role="status">{ocupado}</p>}
             {erro && <p className="hint err break" role="alert">Não deu: {erro}</p>}
-            {!ligada && <p className="hint err">Nenhuma IA ligada. Volte (←) e cole uma chave em "Ligar a IA".</p>}
+            {erro.includes('limite de uso') && (
+              <p className="hint">
+                {ia.conexoes.some(pronta)
+                  ? 'Todas as IAs ligadas estão no limite agora. Espere alguns minutos e toque em "Tentar de novo".'
+                  : 'A IA integrada, sem chave, libera poucas falas por dia, e as de hoje acabaram. Para continuar agora e não parar mais, volte (←) e cole uma chave grátis do Gemini em "IA do mestre".'}
+              </p>
+            )}
+            {!ligada && <p className="hint err">Nenhuma IA ligada. Volte (←) e ligue a IA integrada em "IA do mestre".</p>}
 
             {!ocupado && (semResposta || ultima?.de === 'mestre') && (
               <div className="controles acoes">
@@ -603,7 +663,10 @@ export default function MestreIA() {
         <button className="roll compact" style={{ marginTop: 14 }} disabled={!tema.trim() || !ligada} onClick={comecar}>
           Começar aventura
         </button>
-        {!ligada && <p className="hint">Antes, ligue uma IA logo abaixo: leva um minuto e é grátis.</p>}
+        {!ligada && <p className="hint">Antes, ligue a IA integrada logo abaixo, em "IA do mestre".</p>}
+        {ligada && !ia.conexoes.some(pronta) && (
+          <p className="hint">Usando a IA integrada, que libera poucas falas por dia. Para jogar sem parar, cole uma chave grátis em "IA do mestre", logo abaixo.</p>
+        )}
       </section>
 
       <section>
@@ -633,6 +696,12 @@ export default function MestreIA() {
       </section>
 
       <LigarIA ia={ia} setIa={setIa} />
+
+      <section>
+        <h2>Acesso</h2>
+        <p className="hint" style={{ marginTop: 0 }}>Este aparelho está destrancado. Trancar pede a senha de novo na próxima vez; as aventuras continuam guardadas.</p>
+        <button className="add" onClick={() => (parar.current?.abort(), onTrancar())}>Trancar</button>
+      </section>
     </>
   );
 }

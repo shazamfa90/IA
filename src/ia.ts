@@ -1,14 +1,18 @@
 /**
  * A conversa com os modelos de linguagem e a pesquisa.
  *
- * Não existe IA grátis sem limite: cada serviço dá uma cota por dia. O jeito de não ficar
- * parado é ter mais de uma chave grátis e pular para a próxima quando uma acaba — é o que
- * `conversar` faz. Tudo sai direto do navegador do jogador para o serviço: o app não tem
- * servidor, e as chaves ficam só neste aparelho.
+ * O app já vem com uma IA integrada: um serviço gratuito que aceita uso sem conta e sem
+ * chave, então o mestre funciona na hora. Serve pra experimentar: usa um modelo pequeno e
+ * a cota diária sem chave acaba em poucas falas (medido: ~25 mil tokens, umas cinco falas).
+ * IA grátis sem limite nenhum não existe em serviço hospedado; o que chega perto é
+ * somar cotas: quem cola chaves grátis de serviços maiores ganha narração melhor e, quando a
+ * cota de um acaba, `conversar` passa sozinho pro próximo, terminando na integrada.
+ * Tudo sai direto do navegador do jogador para o serviço: o app não tem servidor, e as
+ * chaves ficam só neste aparelho.
  */
 import type { Chat } from './mestre.ts';
 
-export type Tipo = 'gemini' | 'groq' | 'openrouter' | 'cerebras' | 'mistral' | 'outro';
+export type Tipo = 'gemini' | 'groq' | 'openrouter' | 'cerebras' | 'mistral' | 'outro' | 'llm7';
 
 type Info = {
   nome: string;
@@ -23,6 +27,8 @@ type Info = {
   /** Preferência entre os modelos que o serviço listar, do melhor pro aceitável. */
   prefere: RegExp[];
   dica: string;
+  /** Integrada: funciona sem chave, com o modelo fixo de `padrao`. */
+  semChave?: boolean;
 };
 
 export const PROVEDORES: Record<Tipo, Info> = {
@@ -73,31 +79,53 @@ export const PROVEDORES: Record<Tipo, Info> = {
     chaves: '',
     padrao: '',
     prefere: [],
-    dica: 'Qualquer serviço ou programa que fale o formato OpenAI — por exemplo o Ollama rodando no seu PC, que aí sim não tem limite nenhum.',
+    dica: 'Qualquer serviço ou programa que fale o formato OpenAI — por exemplo o Ollama rodando no seu PC.',
+  },
+  llm7: {
+    nome: 'Mistral Nemo (LLM7)',
+    url: 'https://api.llm7.io/v1',
+    chaves: '',
+    padrao: 'mistral-Nemo-Instruct-2407',
+    prefere: [],
+    dica: 'Integrada, sem chave. Responde em uns 15 segundos; sem chave, libera poucas falas por dia.',
+    semChave: true,
   },
 };
 
-export const TIPOS = Object.keys(PROVEDORES) as Tipo[];
+/** Os serviços que pedem uma chave do jogador, na ordem em que aparecem na tela. */
+export const TIPOS = (Object.keys(PROVEDORES) as Tipo[]).filter((t) => !PROVEDORES[t].semChave);
+
+/**
+ * As IAs que já vêm ligadas, na ordem em que são tentadas. Só entra aqui serviço que aceita
+ * uso anônimo vindo de um site; os que pedem verificação anti-robô no navegador ficam de fora.
+ */
+export const INTEGRADAS: Conexao[] = (Object.keys(PROVEDORES) as Tipo[])
+  .filter((t) => PROVEDORES[t].semChave)
+  .map((tipo) => ({ tipo, chave: '', modelo: PROVEDORES[tipo].padrao }));
 
 export type Conexao = { tipo: Tipo; chave: string; modelo: string; /** Só no tipo "outro". */ url?: string };
 /** A ordem é a prioridade: a primeira responde; as outras entram quando ela falha. */
-export type ConfigIA = { conexoes: Conexao[]; pesquisar: boolean };
+export type ConfigIA = { conexoes: Conexao[]; pesquisar: boolean; /** Usar as IAs sem chave. */ integradas: boolean };
 
 const KEY = 'ficha-rpg-ia';
 
 export function carregarIA(): ConfigIA {
   try {
     const c = JSON.parse(localStorage.getItem(KEY) ?? '');
-    return { conexoes: Array.isArray(c?.conexoes) ? c.conexoes : [], pesquisar: c?.pesquisar !== false };
+    return { conexoes: Array.isArray(c?.conexoes) ? c.conexoes : [], pesquisar: c?.pesquisar !== false, integradas: c?.integradas !== false };
   } catch {
-    return { conexoes: [], pesquisar: true };
+    return { conexoes: [], pesquisar: true, integradas: true };
   }
 }
 
 export const salvarIA = (c: ConfigIA) => localStorage.setItem(KEY, JSON.stringify(c));
 
-/** Pronta pra uso: tem modelo, e tem chave (ou é um endereço próprio, que pode não pedir). */
-export const pronta = (c: Conexao) => !!c.modelo.trim() && (c.tipo === 'outro' ? !!c.url?.trim() : !!c.chave.trim());
+/** Pronta pra uso: tem modelo, e tem chave (ou é integrada, ou um endereço próprio, que pode não pedir). */
+export const pronta = (c: Conexao) =>
+  !!c.modelo.trim() && (PROVEDORES[c.tipo].semChave || (c.tipo === 'outro' ? !!c.url?.trim() : !!c.chave.trim()));
+
+/** Quem responde, em ordem: as chaves do jogador (modelos melhores) e depois as integradas. */
+export const ativas = (cfg: ConfigIA): Conexao[] => [...cfg.conexoes.filter(pronta), ...(cfg.integradas ? INTEGRADAS : [])];
 
 const base = (c: Conexao) => (c.tipo === 'outro' ? (c.url ?? '') : PROVEDORES[c.tipo].url).trim().replace(/\/+$/, '');
 const cabecalhos = (c: Conexao): Record<string, string> => ({
@@ -107,9 +135,12 @@ const cabecalhos = (c: Conexao): Record<string, string> => ({
 
 export class ErroIA extends Error {
   status: number;
-  constructor(status: number, detalhe = '') {
+  /** Em quantos segundos o serviço disse pra voltar (cabeçalho Retry-After), se disse. */
+  depois: number;
+  constructor(status: number, detalhe = '', depois = 0) {
     super(explicar(status, detalhe));
     this.status = status;
+    this.depois = depois;
   }
 }
 
@@ -117,7 +148,7 @@ export class ErroIA extends Error {
 const CHAVE_RUIM = /api[ _-]?key|authentication|unauthorized/i;
 
 function explicar(status: number, detalhe: string): string {
-  if (status === 429) return 'a cota grátis acabou por agora';
+  if (status === 429) return 'limite de uso atingido por agora';
   if (status === 401 || status === 403 || (status === 400 && CHAVE_RUIM.test(detalhe))) return 'a chave foi recusada';
   if (status === 404) return 'o modelo escolhido não existe mais: escolha outro';
   if (status === 0) return detalhe || 'sem conexão com o serviço';
@@ -135,7 +166,7 @@ async function erroDe(res: Response): Promise<ErroIA> {
   } catch {
     // corpo sem JSON: o número do erro já diz o bastante
   }
-  return new ErroIA(res.status, detalhe);
+  return new ErroIA(res.status, detalhe, Number(res.headers.get('retry-after')) || 0);
 }
 
 const NAO_CONVERSA = /embed|whisper|tts|guard|image|imagen|audio|live|rerank|moderat|veo|transcri|speech|lyria|robotics|computer|aqa|ocr|vision-only/i;
@@ -184,6 +215,8 @@ type Opcoes = {
   onTexto?: (texto: string) => void;
   sinal?: AbortSignal;
   temperatura?: number;
+  /** Quanto esperar antes da segunda rodada, quando todos recusaram por pressa. */
+  espera?: number;
 };
 
 /** Uma chamada a um serviço, lendo a resposta conforme ela chega. */
@@ -246,20 +279,39 @@ export async function chamar(c: Conexao, mensagens: Chat[], o: Opcoes = {}): Pro
  */
 export async function conversar(conexoes: Conexao[], mensagens: Chat[], o: Opcoes = {}): Promise<{ texto: string; por: Conexao }> {
   const prontas = conexoes.filter(pronta);
-  if (!prontas.length) throw new Error('Nenhuma IA ligada ainda. Cole uma chave grátis em "Ligar a IA".');
-  const falhas: string[] = [];
-  for (const c of prontas) {
-    try {
-      o.onTexto?.('');
-      const texto = await chamar(c, mensagens, o);
-      if (texto.trim()) return { texto, por: c };
-      falhas.push(`${PROVEDORES[c.tipo].nome}: resposta vazia`);
-    } catch (e) {
-      if ((e as Error).name === 'AbortError') throw e;
-      falhas.push(`${PROVEDORES[c.tipo].nome}: ${(e as Error).message}`);
+  if (!prontas.length) throw new Error('Nenhuma IA ligada. Ligue a IA integrada ou cole uma chave em "IA do mestre".');
+  let falhas: string[] = [];
+  // Duas rodadas: serviço grátis recusa quem pede rápido demais, e uns segundos depois aceita.
+  // Cota do dia esgotada (o serviço manda voltar daqui a muito tempo) não melhora esperando.
+  for (let rodada = 0; rodada < 2; rodada++) {
+    falhas = [];
+    let apressado = false;
+    for (const c of prontas) {
+      try {
+        o.onTexto?.('');
+        const texto = await chamar(c, mensagens, o);
+        if (texto.trim()) return { texto, por: c };
+        falhas.push(`${PROVEDORES[c.tipo].nome}: resposta vazia`);
+      } catch (e) {
+        if ((e as Error).name === 'AbortError') throw e;
+        apressado ||= (e as ErroIA).status === 429 && !((e as ErroIA).depois > 20);
+        falhas.push(`${PROVEDORES[c.tipo].nome}: ${(e as Error).message}`);
+      }
     }
+    if (!apressado || rodada) break;
+    await esperar(o.espera ?? 6000, o.sinal);
   }
   throw new Error(falhas.join(' · '));
+}
+
+/** Pausa que o "parar" interrompe. */
+function esperar(ms: number, sinal?: AbortSignal): Promise<void> {
+  return new Promise((ok, erro) => {
+    const parou = () => (clearTimeout(t), erro(Object.assign(new Error('parou'), { name: 'AbortError' })));
+    const t = setTimeout(() => (sinal?.removeEventListener('abort', parou), ok()), ms);
+    if (sinal?.aborted) parou();
+    else sinal?.addEventListener('abort', parou, { once: true });
+  });
 }
 
 // --- Pesquisa ------------------------------------------------------------

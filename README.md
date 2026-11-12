@@ -70,6 +70,15 @@ npm run build   # gera dist/
 Aba **Mestre IA**: um mestre de RPG narrativo que conduz uma aventura solo, em conversa. Você dá o
 universo ou tema, ele apresenta o mundo, faz as seis perguntas do personagem e abre a Cena 1.
 
+- **Trancada por senha** — a aba só abre com a senha do dono. O repositório guarda apenas o
+  resultado de uma conta lenta (PBKDF2) sobre ela, em `src/tranca.ts`, nunca a senha. Depois de
+  entrar, o aparelho fica destrancado até tocar em *Trancar*. É uma tranca de tela, não um cofre:
+  o app roda inteiro no navegador. O que fica protegido de fato é o que nunca sai do aparelho — as
+  aventuras e as chaves de IA.
+- **NPCs com emoções** — cada NPC tem temperamento, desejo, medo e defeito; sente algo antes de
+  falar, e isso aparece no corpo e na voz, não em rótulo. Rancor, afeto e confiança mudam conforme
+  o que o personagem faz, e ficam anotados na memória pra continuarem na cena seguinte.
+
 - **Regras da mesa** — o mestre segue um roteiro fixo (em `src/mestre.ts`): leis do universo
   definidas antes da primeira cena e nunca quebradas, poder que nunca surge de graça, consequências
   que persistem, inimigos que aprendem, agência do jogador (ele nunca decide por você) e status do
@@ -89,11 +98,17 @@ universo ou tema, ele apresenta o mundo, faz as seis perguntas do personagem e a
   mestre e devolve a memória ao que era; se a resposta falhar, *Tentar de novo* ou *Reescrever
   minha fala*. Dá pra olhar a ficha em outra aba sem perder a resposta que está chegando.
 
-### Ligar a IA (grátis)
+### IA do mestre (grátis)
 
-O app não tem servidor: a conversa sai do navegador direto para um serviço de IA, com uma chave
-sua. Em *Mestre IA → Ligar a IA*, toque em **Pegar chave grátis**, crie a chave no site do serviço
-(conta comum, sem cartão), cole e toque em **Ligar** — o app lê a lista de modelos e escolhe um.
+O app não tem servidor: a conversa sai do navegador direto para um serviço de IA.
+
+**IA integrada** — já vem ligada, sem conta e sem chave (Mistral Nemo, pelo LLM7). Serve pra
+experimentar na hora, mas é um modelo pequeno e, sem chave, o serviço libera só umas poucas falas
+por dia (medido em teste: a cota acabou em cerca de cinco).
+
+**Para jogar de verdade** — em *Mestre IA → IA do mestre*, toque em **Pegar chave grátis**, crie a
+chave no site do serviço (conta comum, sem cartão), cole e toque em **Ligar**. O app lê a lista de
+modelos e escolhe um, e esse serviço passa a narrar antes da integrada.
 
 | Serviço | Para quê |
 |---|---|
@@ -103,10 +118,11 @@ sua. Em *Mestre IA → Ligar a IA*, toque em **Pegar chave grátis**, crie a cha
 | Mistral | Plano grátis de experimentação |
 | Outro | Qualquer endereço no formato OpenAI — por exemplo o Ollama no seu PC |
 
-**Sobre "ilimitado"**: nenhum serviço de IA dá uso infinito de graça; cada um tem uma cota por dia.
-O que o app faz é ligar vários ao mesmo tempo: quando a cota de um acaba (ou ele cai), a fala vai
-sozinha pro próximo da lista. Com dois ou três ligados, dá pra jogar horas por dia sem pagar. Sem
-limite de verdade, só rodando o modelo na sua máquina (opção *Outro*, com Ollama ou parecido).
+**Sobre "ilimitado"**: nenhum serviço de IA dá uso infinito de graça; cada um tem uma cota por dia,
+e os que dispensam chave são os de cota menor. O que o app faz é ligar vários ao mesmo tempo:
+quando a cota de um acaba (ou ele cai), a fala vai sozinha pro próximo da lista, terminando na
+integrada. Com dois ou três ligados, dá pra jogar horas por dia sem pagar. Sem limite de verdade,
+só rodando o modelo na sua máquina (opção *Outro*, com Ollama ou parecido).
 
 As chaves ficam só no aparelho (não entram em link de ficha nem no backup). O que você escreve na
 aventura é enviado ao serviço ligado, que é quem gera a resposta.
